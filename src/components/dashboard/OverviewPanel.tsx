@@ -6,7 +6,7 @@ interface OverviewPanelProps {
   accounts: any[];
   transactions: any[];
   contracts: any[];
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: any) => void;
 }
 
 export default function OverviewPanel({ profile, accounts, transactions, contracts, setActiveTab }: OverviewPanelProps) {

@@ -281,7 +281,7 @@ function ProdukSection() {
             <div key={p.name} className="feature-card reveal" style={{ borderTop: '5px solid #cca334' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                 <div style={{ fontSize: 48 }}>{p.icon}</div>
-                <span style={{ background: '#fdf2f8', color: '#b45309', fontSize: 14, fontWeight: 800, padding: '6px 14px', borderRadius: 999, background: '#fef3c7' }}>{p.tag}</span>
+                <span style={{ color: '#b45309', fontSize: 14, fontWeight: 800, padding: '6px 14px', borderRadius: 999, background: '#fef3c7' }}>{p.tag}</span>
               </div>
               <h3 style={{ fontSize: 24, fontWeight: 800, color: '#043121', marginBottom: 16 }}>{p.name}</h3>
               <p style={{ fontSize: 17, lineHeight: 1.7, color: '#4b5563' }}>{p.desc}</p>

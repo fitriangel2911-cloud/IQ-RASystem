@@ -95,7 +95,7 @@ export default function ManagerPage() {
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
           <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1.5px' }}>
             iQ-RA System
-            <span style={{ color: '#ffffff', fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '6px', background: '#cca334', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
+            <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '6px', background: '#cca334', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
               🏢 GENERAL MANAGER
             </span>
           </h1>
