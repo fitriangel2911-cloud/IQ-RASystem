@@ -40,13 +40,18 @@ body {
 /* The active moving image itself. Fully visible (opacity 1) as the core backdrop concept. */
 .site-bg-pattern {
   position: absolute;
-  inset: -200px;
+  top: -600px;
+  left: -600px;
+  right: -600px;
+  bottom: -600px;
   background-image: url('/pattern-bg.png');
   background-repeat: repeat;
   background-size: 600px 600px;
-  opacity: 1;
-  /* Accelerated speed to 18s to make constant continuous motion fully visible instantly */
-  animation: scrollContinuous 18s linear infinite;
+  opacity: 0.95;
+  /* Optimize rendering: move to GPU layer & bypass repaint */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  animation: scrollContinuous 30s linear infinite;
   pointer-events: none;
 }
 
@@ -54,22 +59,21 @@ body {
 .site-bg-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
-              radial-gradient(circle at 85% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 45%);
+  background: radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
+              radial-gradient(circle at 85% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 45%);
   pointer-events: none;
+  transform: translateZ(0); /* Push overlay to GPU as well */
 }
 
 @keyframes scrollContinuous {
   0% {
-    background-position: 0px 0px;
-    transform: scale(1);
+    transform: translate3d(0px, 0px, 0) scale(1.0);
   }
   50% {
-    transform: scale(1.05); /* Active breathing motion */
+    transform: translate3d(300px, 300px, 0) scale(1.02); /* Extremely subtle scale, gentle on GPU */
   }
   100% {
-    background-position: 600px 600px;
-    transform: scale(1);
+    transform: translate3d(600px, 600px, 0) scale(1.0); /* Seamless 600px match size */
   }
 }
 

@@ -72,6 +72,15 @@ export default function DashboardPage() {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isSavingRole, setIsSavingRole] = useState(false);
   
+  // Create User Modal States
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [newFullName, setNewFullName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState('member');
+  const [isSavingNewUser, setIsSavingNewUser] = useState(false);
+  const [createErrorMsg, setCreateErrorMsg] = useState<string | null>(null);
+  
   // Audit mask
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   
@@ -112,12 +121,24 @@ export default function DashboardPage() {
             router.push('/teller');
             return;
           }
+          if (dbProfile.role === 'accounting') {
+            router.push('/accounting');
+            return;
+          }
+          if (dbProfile.role === 'manager') {
+            router.push('/manager');
+            return;
+          }
+          if (dbProfile.role === 'dps') {
+            router.push('/dps');
+            return;
+          }
           if (dbProfile.role === 'member') {
             router.push('/members');
             return;
           }
         
-        const isStaffRole = ['super_user', 'manager', 'account_officer', 'accounting'].includes(dbProfile.role);
+        const isStaffRole = ['super_user', 'manager', 'account_officer', 'accounting', 'dps'].includes(dbProfile.role);
         if (isStaffRole) {
           fetchUsersList();
         }
@@ -204,6 +225,58 @@ export default function DashboardPage() {
       alert('Gagal memperbarui: ' + error.message);
     }
     setIsSavingRole(false);
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateErrorMsg(null);
+    
+    if (!newFullName || !newEmail || !newPassword || !newRole) {
+      setCreateErrorMsg('Harap isi seluruh bidang form.');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setCreateErrorMsg('Kata sandi minimal harus 6 karakter.');
+      return;
+    }
+
+    setIsSavingNewUser(true);
+    
+    try {
+      const res = await fetch('/api/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: newFullName,
+          email: newEmail,
+          password: newPassword,
+          role: newRole
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mendaftarkan user baru.');
+      }
+      
+      alert('🎉 PENDAFTARAN BERHASIL!\nUser atau Staf baru telah berhasil dimasukkan ke dalam sistem.');
+      
+      // Reset Form States
+      setNewFullName('');
+      setNewEmail('');
+      setNewPassword('');
+      setNewRole('member');
+      setIsCreatingUser(false);
+      
+      // Refresh Data
+      await fetchUsersList();
+    } catch (err: any) {
+      setCreateErrorMsg(err.message);
+    } finally {
+      setIsSavingNewUser(false);
+    }
   };
 
   // Exclusive Super User simulation utility: Dynamically injects physical CIF into physical database
@@ -660,6 +733,33 @@ export default function DashboardPage() {
                   </div>
 
                   <button 
+                    onClick={() => {
+                      setCreateErrorMsg(null);
+                      setIsCreatingUser(true);
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
+                      border: 'none',
+                      color: '#02130e',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 20px rgba(243,198,83,0.3)',
+                      transition: 'transform 0.1s',
+                      flexShrink: 0
+                    }}
+                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    ➕ Tambah User Staf
+                  </button>
+
+                  <button 
                     onClick={fetchUsersList}
                     disabled={loadingUsers}
                     style={{
@@ -1079,6 +1179,7 @@ export default function DashboardPage() {
                   <option value="account_officer">ACCOUNT OFFICER (Pembiayaan)</option>
                   <option value="accounting">ACCOUNTING (Pembukuan SAK EP)</option>
                   <option value="manager">MANAGER (Otorisasi & Approval)</option>
+                  <option value="dps">DEWAN PENGAWAS SYARIAH (DPS)</option>
                   <option value="super_user">SUPER USER (Otoritas Penuh IT)</option>
                 </select>
               </div>
@@ -1138,6 +1239,156 @@ export default function DashboardPage() {
 
             </div>
 
+          </div>
+        )}
+
+        {/* NEW ADDITION: 3.5 MODAL POPUP CREATE NEW USER */}
+        {isCreatingUser && (
+          <div style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(1, 10, 7, 0.9)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 110,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'fadeIn 0.2s ease-out',
+            padding: '20px'
+          }}>
+            <div style={{
+              background: '#032419',
+              border: '4px solid #cca334',
+              borderRadius: '28px',
+              width: '100%',
+              maxWidth: '520px',
+              padding: '36px',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.8)',
+              animation: 'scaleUp 0.2s ease-out',
+              maxHeight: '95vh',
+              overflowY: 'auto'
+            }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#f3c653', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                ➕ Tambah Akun Staf Baru
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', marginBottom: '24px', fontWeight: 500 }}>
+                Daftarkan hak akses baru ke sistem secara langsung dan aman.
+              </p>
+
+              {createErrorMsg && (
+                <div style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '2px solid #fca5a5',
+                  borderRadius: '12px',
+                  padding: '12px',
+                  color: '#fca5a5',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  marginBottom: '20px',
+                  textAlign: 'center'
+                }}>
+                  ⚠️ {createErrorMsg}
+                </div>
+              )}
+
+              <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Nama Lengkap</label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="Contoh: Muhammad Ridwan"
+                    value={newFullName}
+                    onChange={(e) => setNewFullName(e.target.value)}
+                    style={{
+                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
+                      fontWeight: 600, outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Email Institusi</label>
+                  <input 
+                    type="email"
+                    required
+                    placeholder="nama.staff@koperasi.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    style={{
+                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
+                      fontWeight: 600, outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Kata Sandi Sementara</label>
+                  <input 
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Minimal 6 karakter"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    style={{
+                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
+                      fontWeight: 600, outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Pilih Hak Akses (Role)</label>
+                  <select 
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    style={{
+                      width: '100%', background: '#fff', border: '3px solid #cca334',
+                      borderRadius: '12px', padding: '14px', color: '#02130e', fontSize: '15px',
+                      fontWeight: 800, outline: 'none', cursor: 'pointer'
+                    }}
+                  >
+                    <option value="member">Nasabah (MEMBER)</option>
+                    <option value="teller">Kasir Utama (TELLER)</option>
+                    <option value="customer_service">Customer Service (CS)</option>
+                    <option value="account_officer">Account Officer (AO)</option>
+                    <option value="accounting">Accounting (SAK EP)</option>
+                    <option value="manager">General Manager (GM)</option>
+                    <option value="dps">Dewan Pengawas Syariah (DPS)</option>
+                    <option value="super_user">Super User (IT ADMIN)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '14px', marginTop: '16px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => setIsCreatingUser(false)}
+                    style={{
+                      flexGrow: 1, background: 'transparent', border: '2px solid rgba(255,255,255,0.3)',
+                      color: '#fff', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer'
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSavingNewUser}
+                    style={{
+                      flexGrow: 2, background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
+                      border: 'none', color: '#02130e', padding: '16px', borderRadius: '12px',
+                      fontWeight: 900, fontSize: '15px', cursor: 'pointer',
+                      boxShadow: '0 4px 15px rgba(243,198,83,0.3)'
+                    }}
+                  >
+                    {isSavingNewUser ? '⏳ Memproses...' : '💾 Simpan Akun'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 

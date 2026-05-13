@@ -47,32 +47,32 @@ export function useMemberDashboardData() {
         return;
       }
 
-      // 2. Fetch all accounts for this member (Show All)
-      const { data: acc, error: accErr } = await supabase
-        .from('accounts')
-        .select('*')
-        .eq('member_id', prof.id)
-        .order('created_at', { ascending: false });
-      if (accErr) throw new Error('Gagal mengambil data rekening: ' + accErr.message);
-      setAccounts(acc || []);
+      // OPTIMIZATION: Fetch all secondary dashboard dependencies in PARALLEL (No Waterfall)
+      const [accRes, txRes, conRes] = await Promise.all([
+        supabase
+          .from('accounts')
+          .select('*')
+          .eq('member_id', prof.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('transactions')
+          .select('*')
+          .eq('member_id', prof.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('financing_contracts')
+          .select('*')
+          .eq('member_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
 
-      // 3. Fetch all transactions (Show All)
-      const { data: tx, error: txErr } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('member_id', prof.id)
-        .order('created_at', { ascending: false });
-      if (txErr) throw new Error('Gagal mengambil data transaksi: ' + txErr.message);
-      setTransactions(tx || []);
+      if (accRes.error) throw new Error('Gagal mengambil data rekening: ' + accRes.error.message);
+      if (txRes.error) throw new Error('Gagal mengambil data transaksi: ' + txRes.error.message);
+      if (conRes.error) throw new Error('Gagal mengambil data pengajuan: ' + conRes.error.message);
 
-      // 4. Fetch all financing contracts (Show All)
-      const { data: con, error: conErr } = await supabase
-        .from('financing_contracts')
-        .select('*')
-        .eq('member_id', user.id)
-        .order('created_at', { ascending: false });
-      if (conErr) throw new Error('Gagal mengambil data pengajuan: ' + conErr.message);
-      setContracts(con || []);
+      setAccounts(accRes.data || []);
+      setTransactions(txRes.data || []);
+      setContracts(conRes.data || []);
 
     } catch (err: any) {
       console.error('Fetch Error:', err);
