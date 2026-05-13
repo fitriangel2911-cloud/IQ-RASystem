@@ -9,26 +9,47 @@ export class AccountingService {
   
   /**
    * Records automated journals from transaction events
+   * @param entry Data for the journal entry
    */
-  static async recordTransaction(entry: Omit<JournalEntry, 'id' | 'created_at'>) {
+  static async recordTransaction(entry: Omit<JournalEntry, 'id'>) {
     const supabase = await createClient();
     
-    // Validate constraints (Total Debit must equal Credit implicitly if using standard system)
+    // In a real system, we would validate that Debit == Credit for multi-leg entries.
+    // For simple teller transactions, we record single legs representing the cash flow.
     const { data, error } = await supabase
       .from('journal_entries')
       .insert([entry])
       .select()
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error("AccountingService Error:", error);
+      throw error;
+    }
     return data;
+  }
+
+  /**
+   * Fetches total balance for a specific account code
+   */
+  static async getAccountBalance(accountCode: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .select('debit, credit')
+      .eq('account_code', accountCode);
+      
+    if (error) throw error;
+    
+    return data.reduce((acc, curr) => acc + (Number(curr.debit) - Number(curr.credit)), 0);
   }
 
   /**
    * Generates Balance Sheet / Laporan Posisi Keuangan snapshot
    */
   static async getBalanceSheet(endDate: string) {
-    // Implementation details for querying aggregated account balances...
-    return { status: "UNIMPLEMENTED", endDate };
+    // Implementation for Phase IV
+    return { status: "PHASE_IV_PLANNED", endDate };
   }
 }
+

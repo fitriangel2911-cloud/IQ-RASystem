@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import TellerTerminal from '@/components/dashboard/TellerTerminal';
 
 // Dedicated, immersive Dark Background specifically optimized for the Dashboard to maximize contrast
 function DashboardSiteBackground() {
@@ -57,8 +58,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Tab state (overview, users, members, settings)
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'members' | 'settings'>('overview');
+  // Tab state (overview, users, members, settings, teller)
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'members' | 'settings' | 'teller'>('overview');
   const [usersList, setUsersList] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   
@@ -99,16 +100,29 @@ export default function DashboardPage() {
       .eq('id', currentUser.id)
       .single();
 
-    if (dbProfile) {
-      setProfile(dbProfile);
-      if (dbProfile.role === 'member') {
-        router.push('/members');
-        return;
+        if (dbProfile) {
+          setProfile(dbProfile);
+          
+          // 1. PRIORITAS REDIRECT: Cek role staff khusus dulu
+          if (dbProfile.role === 'customer_service') {
+            router.push('/customer-service');
+            return;
+          }
+          if (dbProfile.role === 'teller') {
+            router.push('/teller');
+            return;
+          }
+          if (dbProfile.role === 'member') {
+            router.push('/members');
+            return;
+          }
+        
+        const isStaffRole = ['super_user', 'manager', 'account_officer', 'accounting'].includes(dbProfile.role);
+        if (isStaffRole) {
+          fetchUsersList();
+        }
       }
-      if (dbProfile.role === 'super_user') {
-        fetchUsersList();
-      }
-    }
+
     
     setLoading(false);
   };
@@ -249,9 +263,12 @@ export default function DashboardPage() {
   }
 
   // ==============================================================
-  // 👑 HIGH CONTRAST VIEW: SUPER USER DASHBOARD
+  // 👑 INTERNAL STAFF VIEW: (SUPER USER, TELLER, MANAGER, ETC)
   // ==============================================================
-  if (profile?.role === 'super_user') {
+  const isStaff = ['super_user', 'teller', 'manager', 'account_officer', 'accounting'].includes(profile?.role);
+  
+  if (isStaff) {
+
     const totalAccounts = usersList.length;
     const totalStaff = usersList.filter(u => u.role !== 'member').length;
     
@@ -465,6 +482,7 @@ export default function DashboardPage() {
               <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
                 {activeTab === 'overview' ? 'Ikhtisar Operasi Sistem' : 
                  activeTab === 'users' ? 'Master Direktori User & Peran' : 
+                 activeTab === 'teller' ? 'Layanan Kasir Syariah' :
                  'Direktori CIF & Data Fisik Anggota'}
               </h1>
               <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', fontWeight: 500 }}>
@@ -472,6 +490,8 @@ export default function DashboardPage() {
                   ? 'Statistik operasi infrastruktur backend IQ-RA System.' 
                   : activeTab === 'users'
                   ? 'Manajemen otoritas, audit sandi, dan penugasan hak akses staf.'
+                  : activeTab === 'teller'
+                  ? 'Pusat pemrosesan setoran, penarikan, dan pembayaran angsuran anggota.'
                   : 'Pusat pengawasan berkas perbankan KYC, NIK, KK, Ibu Kandung, & Profil Finansial.'}
               </p>
             </div>
@@ -580,6 +600,15 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* ==================================== */}
+          {/* TAB: TELLER TERMINAL VIEW           */}
+          {/* ==================================== */}
+          {activeTab === 'teller' && (
+            <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <TellerTerminal userId={user?.id} />
             </div>
           )}
 
@@ -1383,6 +1412,44 @@ export default function DashboardPage() {
             >
               🔌 Keluar Akun
             </button>
+            
+            {profile?.role === 'customer_service' && (
+              <button 
+                onClick={() => router.push('/customer-service')}
+                style={{
+                  background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
+                  border: 'none',
+                  color: '#02130e',
+                  padding: '15px 36px',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  marginLeft: '15px'
+                }}
+              >
+                🚀 Buka Dashboard CS
+              </button>
+            )}
+
+            {profile?.role === 'teller' && (
+              <button 
+                onClick={() => router.push('/teller')}
+                style={{
+                  background: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
+                  border: 'none',
+                  color: '#02130e',
+                  padding: '15px 36px',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  marginLeft: '15px'
+                }}
+              >
+                🏪 Buka Terminal Teller
+              </button>
+            )}
           </div>
 
         </div>

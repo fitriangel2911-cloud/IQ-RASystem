@@ -28,7 +28,6 @@ export interface JournalEntry {
   debit: number;
   credit: number;
   account_code: string; // COA based on SAK EP / PSAK
-  created_by: string;
 }
 
 export type ContractType = 

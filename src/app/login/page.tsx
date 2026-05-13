@@ -86,12 +86,15 @@ export default function LoginPage() {
     }
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+  
   const getInputStyle = (fieldName: string) => ({
     width: '100%',
     background: 'rgba(255, 255, 255, 0.05)',
     border: `1.5px solid ${focusedField === fieldName ? '#cca334' : 'rgba(255, 255, 255, 0.15)'}`,
     borderRadius: '14px',
     padding: '15px 18px',
+    paddingRight: fieldName === 'pass' ? '50px' : '18px', // Extra space for the eye icon
     color: 'white',
     fontSize: '16px',
     outline: 'none',
@@ -187,16 +190,38 @@ export default function LoginPage() {
                   Lupa Sandi?
                 </a>
               </div>
-              <input 
-                type="password" 
-                required
-                placeholder="Masukkan kata sandi Anda"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setFocusedField('pass')}
-                onBlur={() => setFocusedField(null)}
-                style={getInputStyle('pass')}
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  required
+                  placeholder="Masukkan kata sandi Anda"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocusedField('pass')}
+                  onBlur={() => setFocusedField(null)}
+                  style={getInputStyle('pass')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '15px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(255,255,255,0.4)',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '5px'
+                  }}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
 
             <button 
