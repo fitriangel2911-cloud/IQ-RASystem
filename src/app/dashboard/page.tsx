@@ -101,51 +101,64 @@ export default function DashboardPage() {
       return;
     }
     
-    setUser(currentUser);
+    try {
+      setUser(currentUser);
 
-    const { data: dbProfile } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
+      const { data: dbProfile, error: dbError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
 
-        if (dbProfile) {
-          setProfile(dbProfile);
-          
-          // 1. PRIORITAS REDIRECT: Cek role staff khusus dulu
-          if (dbProfile.role === 'customer_service') {
-            router.push('/customer-service');
-            return;
-          }
-          if (dbProfile.role === 'teller') {
-            router.push('/teller');
-            return;
-          }
-          if (dbProfile.role === 'accounting') {
-            router.push('/accounting');
-            return;
-          }
-          if (dbProfile.role === 'manager') {
-            router.push('/manager');
-            return;
-          }
-          if (dbProfile.role === 'dps') {
-            router.push('/dps');
-            return;
-          }
-          if (dbProfile.role === 'member') {
-            router.push('/members');
-            return;
-          }
-        
-        const isStaffRole = ['super_user', 'manager', 'account_officer', 'accounting', 'dps'].includes(dbProfile.role);
-        if (isStaffRole) {
-          fetchUsersList();
-        }
+      if (dbError || !dbProfile) {
+        console.error('Profile fetch error:', dbError);
+        setLoading(false);
+        return;
       }
 
+      setProfile(dbProfile);
+      
+      // 1. PRIORITAS REDIRECT: Cek role staff khusus dulu
+      const role = dbProfile.role;
+      
+      if (role === 'customer_service') {
+        router.push('/customer-service');
+        return;
+      }
+      if (role === 'teller') {
+        router.push('/teller');
+        return;
+      }
+      if (role === 'accounting') {
+        router.push('/accounting');
+        return;
+      }
+      if (role === 'manager') {
+        router.push('/manager');
+        return;
+      }
+      if (role === 'dps') {
+        router.push('/dps');
+        return;
+      }
+      if (role === 'member') {
+        router.push('/members');
+        return;
+      }
+      if (role === 'account_officer' || role === 'ao') {
+        router.push('/ao');
+        return;
+      }
     
-    setLoading(false);
+      const isStaffRole = ['super_user', 'manager', 'account_officer', 'ao', 'accounting', 'dps'].includes(role);
+      if (isStaffRole) {
+        fetchUsersList();
+      }
+    } catch (err) {
+      console.error('Session fetch crash:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchUsersList = async () => {
