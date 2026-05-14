@@ -31,9 +31,9 @@ Peran (Role)
 	Accounting
 	Pembukuan internal, jurnal harian, koreksi, dan cetak laporan.
 	Verifikasi transaksi; tidak melakukan transaksi fisik.
-	Super User (IT)
-	Manajemen akses, backup, parameter sistem, konfigurasi API.
-	Akses penuh backend dan konfigurasi.
+	Super Admin (IT & Ops)
+	Kontrol penuh infrastruktur IT dan akses operasional ke seluruh modul sistem.
+	Akses mutlak (Root) ke seluruh fitur teknis, parameter sistem, dan modul operasional staf.
 	Anggota (Mobile)
 	Cek saldo, transfer, bayar tagihan (PPOB), pengajuan awal.
 	Hanya melihat data miliknya (Client-facing app).

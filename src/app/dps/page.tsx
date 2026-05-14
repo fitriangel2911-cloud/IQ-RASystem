@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import DPSDashboard from '@/components/dashboard/DPSDashboard';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function DPSPage() {
   const router = useRouter();
@@ -35,8 +36,8 @@ export default function DPSPage() {
       if (dbP) {
         setProfile(dbP);
         
-        // Authenticate only 'dps' (Dewan Pengawas Syariah) or 'super_user'
-        const validRoles = ['dps', 'super_user'];
+        // Authenticate only 'dps' (Dewan Pengawas Syariah) or 'super_admin'
+        const validRoles = ['dps', 'super_admin'];
         if (!validRoles.includes(dbP.role)) {
           router.push('/dashboard');
           return;
@@ -85,12 +86,10 @@ export default function DPSPage() {
       }}>
         
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1.5px' }}>
-            iQ-RA System
-            <span style={{ color: '#02130e', fontSize: '10px', display: 'block', fontWeight: 900, textTransform: 'uppercase', marginTop: '8px', background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', padding: '4px 10px', borderRadius: '6px', width: 'max-content' }}>
-              🕌 DEWAN PENGAWAS SYARIAH
-            </span>
-          </h1>
+          <BrandLogo size={40} fontSize="22px" />
+          <span style={{ color: '#02130e', fontSize: '10px', display: 'block', fontWeight: 900, textTransform: 'uppercase', marginTop: '12px', background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', padding: '4px 10px', borderRadius: '6px', width: 'max-content' }}>
+            🕌 DEWAN PENGAWAS SYARIAH
+          </span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>

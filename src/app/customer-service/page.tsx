@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import CSDashboard from '../../components/dashboard/CSDashboard';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function CustomerServicePage() {
   const router = useRouter();
@@ -33,8 +34,8 @@ export default function CustomerServicePage() {
 
       if (dbProfile) {
         setProfile(dbProfile);
-        // Security check: Only allow customer_service and super_user
-        if (dbProfile.role !== 'customer_service' && dbProfile.role !== 'super_user') {
+        // Security check: Only allow customer_service and super_admin
+        if (dbProfile.role !== 'customer_service' && dbProfile.role !== 'super_admin') {
           router.push('/dashboard');
           return;
         }
@@ -80,9 +81,8 @@ export default function CustomerServicePage() {
         boxShadow: '20px 0 50px rgba(0,0,0,0.5)'
       }}>
         <div style={{ marginBottom: '50px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1px' }}>
-            iQ-RA <span style={{ color: '#ffffff', fontSize: '12px', display: 'block', opacity: 0.6 }}>CUSTOMER SERVICE</span>
-          </h1>
+          <BrandLogo size={45} fontSize="22px" />
+          <span style={{ color: '#ffffff', fontSize: '12px', display: 'block', opacity: 0.6, marginTop: '8px' }}>CUSTOMER SERVICE</span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>

@@ -12,15 +12,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Otorisasi ditolak. Sesi tidak valid.' }, { status: 401 });
     }
 
-    // 2. Check if current user is super_user
+    // 2. Check if current user is super_admin
     const { data: profile, error: profErr } = await ssrClient
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single();
       
-    if (profErr || profile?.role !== 'super_user') {
-      return NextResponse.json({ error: 'Akses ditolak. Hanya Administrator Sistem (Super User) yang diizinkan menambah akun staf.' }, { status: 403 });
+    if (profErr || profile?.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Akses ditolak. Hanya Administrator Sistem (Super Admin) yang diizinkan menambah akun staf.' }, { status: 403 });
     }
 
     // 3. Parse and Validate Body
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         id: authData.user.id,
         full_name: fullName,
         email: email,
-        password: password, // Plaintext stored for visual Super User Audit visibility as per existing system design
+        password: password, // Plaintext stored for visual Super Admin Audit visibility as per existing system design
         role: role
       });
 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 function GlobalSiteBackground() {
   return (
@@ -13,32 +14,7 @@ function GlobalSiteBackground() {
   );
 }
 
-function LogoIcon({ size = 48, rounded = 12 }) {
-  return (
-    <div style={{
-      background: '#cca334',
-      width: size,
-      height: size,
-      borderRadius: rounded,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-    }}>
-      <img 
-        src="/logo-recolored.png" 
-        alt="iQ-RA Logo" 
-        style={{ 
-          width: '86%', 
-          height: '86%', 
-          objectFit: 'contain',
-          flexShrink: 0
-        }} 
-      />
-    </div>
-  );
-}
+
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -164,7 +140,7 @@ export default function RegisterPage() {
           {/* Branding Header */}
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '20px' }}>
-              <LogoIcon size={64} rounded={16} />
+              <BrandLogo size={64} fontSize="32px" />
             </div>
             <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>
               Registrasi <span style={{ color: '#cca334' }}>Akun Baru</span>

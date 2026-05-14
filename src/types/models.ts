@@ -9,7 +9,8 @@ export type UserRole =
   | "account_officer"
   | "manager"
   | "accounting"
-  | "super_user"
+  | "super_admin"
+  | "dps"
   | "member";
 
 export interface User {

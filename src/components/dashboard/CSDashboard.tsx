@@ -19,7 +19,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     fullName: '',
     nik: '',
     email: '',
-    phone: ''
+    phone: '',
+    motherName: '',
+    kkNumber: '',
+    ktpAddress: '',
+    domicileAddress: '',
+    occupation: '',
+    monthlyIncome: '',
+    religion: 'Islam'
   });
 
   const fetchStats = async () => {
@@ -52,19 +59,30 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
     const supabase = createClient();
     
-    // Logic: In a real app, CS would create an auth user. 
-    // For this demo, we'll record the member application.
+    // 1. In a real syariah banking system, we create a record in 'members'
+    // 2. This links to a profile in 'users' or stays as a physical record first
     const { error } = await supabase.from('members').insert([{
       nik: formData.nik,
-      status: 'pending',
-      // Store other info in metadata or associated tables if available
+      mother_name: formData.motherName,
+      kk_number: formData.kkNumber,
+      phone_number: formData.phone,
+      ktp_address: formData.ktpAddress,
+      domicile_address: formData.domicileAddress,
+      occupation: formData.occupation,
+      monthly_income: parseInt(formData.monthlyIncome) || 0,
+      religion: formData.religion,
+      status: 'pending'
     }]);
 
     if (error) {
       setMessage({ type: 'error', text: 'Gagal mendaftarkan anggota: ' + error.message });
     } else {
-      setMessage({ type: 'success', text: 'Anggota baru berhasil didaftarkan ke antrian KYC!' });
-      setFormData({ fullName: '', nik: '', email: '', phone: '' });
+      setMessage({ type: 'success', text: 'Data CIF Anggota berhasil didaftarkan! Silakan lanjutkan ke verifikasi dokumen.' });
+      setFormData({
+        fullName: '', nik: '', email: '', phone: '',
+        motherName: '', kkNumber: '', ktpAddress: '', domicileAddress: '',
+        occupation: '', monthlyIncome: '', religion: 'Islam'
+      });
       fetchStats();
     }
     setLoading(false);
@@ -106,7 +124,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         <StatCard label="Bantuan Aktif" value={stats.activeHelp} icon="💬" color="#60a5fa" />
       </div>
 
-      {/* 2. ONBOARDING TAB */}
+      {/* 2. ONBOARDING TAB: COMPREHENSIVE CIF FORM */}
       {activeMenu === 'onboarding' && (
         <div style={{ 
           background: 'rgba(4, 49, 33, 0.85)', 
@@ -116,15 +134,41 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           border: '1px solid rgba(243, 198, 83, 0.2)',
           boxShadow: '0 40px 80px rgba(0,0,0,0.6)'
         }}>
-          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653' }}>
-            <h2 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: 900, letterSpacing: '1px' }}>📝 PENDAFTARAN ANGGOTA BARU</h2>
+          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: 900, letterSpacing: '1px' }}>📝 PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
+            <span style={{ background: 'rgba(243, 198, 83, 0.1)', color: '#f3c653', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid #f3c653' }}>TAHAP: DATA DEMOGRAFI</span>
           </div>
           
-          <form onSubmit={handleRegister} style={{ padding: '50px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-            <CSInputField label="Nama Lengkap Sesuai KTP" placeholder="Contoh: Ahmad Hidayat" value={formData.fullName} onChange={(val: string) => setFormData({...formData, fullName: val})} />
-            <CSInputField label="Nomor Induk Kependudukan (NIK)" placeholder="16 Digit NIK..." value={formData.nik} onChange={(val: string) => setFormData({...formData, nik: val})} />
-            <CSInputField label="Alamat Email Aktif" placeholder="nama@email.com" value={formData.email} onChange={(val: string) => setFormData({...formData, email: val})} />
-            <CSInputField label="Nomor WhatsApp" placeholder="08xxxx..." value={formData.phone} onChange={(val: string) => setFormData({...formData, phone: val})} />
+          <form onSubmit={handleRegister} style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <CSInputField label="Nama Lengkap Anggota" placeholder="Sesuai KTP..." value={formData.fullName} onChange={(val: string) => setFormData({...formData, fullName: val})} />
+            <CSInputField label="Nomor Induk Kependudukan (NIK)" placeholder="16 Digit..." value={formData.nik} onChange={(val: string) => setFormData({...formData, nik: val})} />
+            
+            <CSInputField label="Nomor Kartu Keluarga (KK)" placeholder="16 Digit..." value={formData.kkNumber} onChange={(val: string) => setFormData({...formData, kkNumber: val})} />
+            <CSInputField label="Nama Ibu Kandung" placeholder="Untuk verifikasi keamanan..." value={formData.motherName} onChange={(val: string) => setFormData({...formData, motherName: val})} />
+
+            <div style={{ gridColumn: 'span 2' }}>
+              <CSInputField label="Alamat Sesuai KTP" placeholder="Jalan, No Rumah, RT/RW, Desa/Kelurahan..." value={formData.ktpAddress} onChange={(val: string) => setFormData({...formData, ktpAddress: val})} />
+            </div>
+
+            <div style={{ gridColumn: 'span 2' }}>
+              <CSInputField label="Alamat Domisili Aktif" placeholder="Biarkan kosong jika sama dengan KTP..." value={formData.domicileAddress} onChange={(val: string) => setFormData({...formData, domicileAddress: val})} />
+            </div>
+
+            <CSInputField label="Pekerjaan / Profesi" placeholder="Contoh: Wiraswasta, PNS, Petani..." value={formData.occupation} onChange={(val: string) => setFormData({...formData, occupation: val})} />
+            <CSInputField label="Estimasi Pendapatan Per Bulan" placeholder="Dalam Rupiah..." value={formData.monthlyIncome} onChange={(val: string) => setFormData({...formData, monthlyIncome: val})} />
+
+            <CSInputField label="Nomor WhatsApp/HP" placeholder="08xxxx..." value={formData.phone} onChange={(val: string) => setFormData({...formData, phone: val})} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', fontWeight: 800 }}>Keyakinan / Agama</label>
+              <select 
+                value={formData.religion} 
+                onChange={(e) => setFormData({...formData, religion: e.target.value})}
+                style={{ padding: '16px 20px', background: 'rgba(255,255,255,0.03)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '14px', color: '#ffffff', outline: 'none' }}
+              >
+                <option value="Islam">Islam</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
             
             <div style={{ gridColumn: 'span 2', marginTop: '20px' }}>
               <button 
@@ -133,19 +177,18 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 style={{ 
                   width: '100%', padding: '22px', background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
                   color: '#02130e', border: 'none', borderRadius: '18px', fontWeight: 900, fontSize: '18px',
-                  cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 30px rgba(204, 163, 52, 0.4)', transition: 'all 0.2s',
-                  letterSpacing: '1px'
+                  cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 30px rgba(204, 163, 52, 0.4)', transition: 'all 0.2s'
                 }}
               >
-                {loading ? '⏳ MEMPROSES DATA...' : 'DAFTARKAN ANGGOTA & AJUKAN KYC'}
+                {loading ? '⏳ MENYIMPAN CIF...' : 'DAFTARKAN CIF ANGGOTA'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* 3. KYC TAB */}
-      {activeMenu === 'kyc' && (
+      {/* 3. MEMBERS DATABASE TAB */}
+      {activeMenu === 'members' && (
         <div style={{ 
           background: 'rgba(4, 49, 33, 0.9)', 
           backdropFilter: 'blur(20px)', 
@@ -154,45 +197,49 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           border: '1px solid rgba(243, 198, 83, 0.2)',
           boxShadow: '0 40px 80px rgba(0,0,0,0.6)'
         }}>
-          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653' }}>
-            <h3 style={{ color: '#ffffff', margin: 0, fontWeight: 900, fontSize: '22px' }}>📂 VERIFIKASI DOKUMEN (KYC)</h3>
+          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ color: '#ffffff', margin: 0, fontWeight: 900, fontSize: '22px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
+            <div style={{ color: '#f3c653', fontSize: '14px', fontWeight: 700 }}>Total: {stats.totalMembers} Anggota</div>
           </div>
           <div style={{ padding: '20px 40px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '2px solid rgba(243, 198, 83, 0.2)' }}>
-                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>CALON ANGGOTA</th>
-                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>NIK</th>
-                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>TANGGAL DAFTAR</th>
-                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800, textAlign: 'right' }}>AKSI</th>
+                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>IDENTITAS NASABAH</th>
+                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>NIK / KK</th>
+                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>PEKERJAAN / PENDAPATAN</th>
+                  <th style={{ padding: '20px', color: '#f3c653', fontWeight: 800, textAlign: 'right' }}>STATUS</th>
                 </tr>
               </thead>
               <tbody>
                 {kycList.length > 0 ? kycList.map(item => (
                   <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.1)' }}>
                     <td style={{ padding: '20px' }}>
-                      <div style={{ color: '#ffffff', fontWeight: 800, fontSize: '16px' }}>{item.users?.full_name || 'Anggota Baru'}</div>
-                      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>{item.users?.email || 'Email belum tertaut'}</div>
+                      <div style={{ color: '#ffffff', fontWeight: 800, fontSize: '16px' }}>{item.users?.full_name || 'Anggota Tanpa Akun'}</div>
+                      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>{item.phone_number}</div>
                     </td>
-                    <td style={{ padding: '20px', color: '#4ade80', fontWeight: 800 }}>{item.nik}</td>
-                    <td style={{ padding: '20px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-                      {new Date(item.created_at).toLocaleDateString('id-ID')}
+                    <td style={{ padding: '20px' }}>
+                      <div style={{ color: '#ffffff', fontSize: '14px', fontWeight: 700 }}>{item.nik}</div>
+                      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>KK: {item.kk_number}</div>
+                    </td>
+                    <td style={{ padding: '20px' }}>
+                      <div style={{ color: '#4ade80', fontWeight: 800 }}>{item.occupation}</div>
+                      <div style={{ color: '#ffffff', fontSize: '13px' }}>Rp {item.monthly_income?.toLocaleString('id-ID')}</div>
                     </td>
                     <td style={{ padding: '20px', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleApprove(item.id)}
-                        disabled={loading}
-                        style={{ padding: '12px 28px', borderRadius: '12px', background: '#4ade80', color: '#043121', border: 'none', fontWeight: 900, fontSize: '13px', cursor: 'pointer', boxShadow: '0 5px 15px rgba(74, 222, 128, 0.3)' }}
-                      >
-                        SETUJUI KYC
-                      </button>
+                      <span style={{ 
+                        padding: '6px 16px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
+                        background: item.status === 'active' ? '#4ade80' : '#f3c653',
+                        color: '#043121'
+                      }}>
+                        {item.status.toUpperCase()}
+                      </span>
                     </td>
                   </tr>
                 )) : (
                   <tr>
                     <td colSpan={4} style={{ padding: '80px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontWeight: 800 }}>
-                      <div style={{ fontSize: '50px', marginBottom: '20px' }}>✅</div>
-                      Hore! Semua berkas KYC sudah selesai diproses.
+                      Tidak ada data anggota untuk ditampilkan.
                     </td>
                   </tr>
                 )}

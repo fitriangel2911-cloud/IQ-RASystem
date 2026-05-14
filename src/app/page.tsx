@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 /* ── Static Components ─────────────────────────────────────────── */
 
@@ -14,45 +15,7 @@ function GlobalSiteBackground() {
   );
 }
 
-function LogoIcon({ size = 42, rounded = 10, showBadge = true }: { size?: number; iconSize?: number; rounded?: number; showBadge?: boolean }) {
-  // The premium recolored 3D pixel art icon (Dark Emerald Green)
-  const content = (
-    <img 
-      src="/logo-recolored.png" 
-      alt="iQ-RA Logo" 
-      style={{ 
-        width: '86%', 
-        height: '86%', 
-        objectFit: 'contain',
-        flexShrink: 0
-      }} 
-    />
-  );
 
-  if (!showBadge) {
-    return (
-      <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{
-      background: '#cca334', // The user requested original GOLD / ORANGE color!
-      width: size,
-      height: size,
-      borderRadius: rounded,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-    }}>
-      {content}
-    </div>
-  );
-}
 
 function Navbar() {
   return (
@@ -60,12 +23,8 @@ function Navbar() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center' }}>
         {/* Logo area aligned left */}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-            <LogoIcon />
-            <span style={{ fontWeight: 800, fontSize: 24, letterSpacing: '-0.5px' }}>
-              <span style={{ color: '#ffffff' }}>iQ-RA </span>
-              <span style={{ color: '#cca334', fontWeight: 900 }}>SYSTEM</span>
-            </span>
+          <Link href="/" style={{ textDecoration: 'none' }}>
+            <BrandLogo size={42} fontSize="22px" />
           </Link>
         </div>
 
@@ -236,9 +195,8 @@ function ProfilSection() {
 
         <div className="reveal" style={{ background: '#043121', padding: 40, borderRadius: 32, color: 'white', boxShadow: '0 30px 60px rgba(6,78,59,0.2)' }}>
           <div style={{ textAlign: 'center', marginBottom: 40, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <LogoIcon size={64} iconSize={34} rounded={16} />
-            <h3 style={{ fontSize: 28, fontWeight: 800, color: '#cca334', marginTop: 20 }}>IQ-RA System</h3>
-            <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.7)' }}>Statistik Terkini</p>
+            <BrandLogo size={64} fontSize="32px" />
+            <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.7)', marginTop: '12px' }}>Statistik Terkini</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
             {[
@@ -522,9 +480,8 @@ function Footer() {
     <footer className="page-content-section" style={{ background: '#042f24', color: 'white', padding: '60px 24px', marginTop: 80 }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ marginBottom: 20 }}>
-          <LogoIcon size={56} iconSize={30} rounded={14} />
+          <BrandLogo size={56} fontSize="28px" />
         </div>
-        <h3 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }}>IQ-RA <span style={{ color: '#cca334' }}>System</span></h3>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, maxWidth: 800, margin: '0 auto 32px' }}>
           Keunggulan Syariah dalam Balutan Kecerdasan Teknologi Masa Depan
         </p>

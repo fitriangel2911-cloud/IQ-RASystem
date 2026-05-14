@@ -102,39 +102,41 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
     setMessage(null);
 
     try {
-      const selectedMember = members.find(m => m.user_id === selectedMemberId);
+      const selectedMember = members.find(m => m.id === selectedMemberId);
       const memberName = selectedMember?.users?.full_name || 'Anggota';
       
-      let accountCode = '';
-      let debit = 0;
-      let credit = 0;
+      let entries = [];
       let finalDesc = description || `${trxType.toUpperCase()} - ${memberName} (${selectedMemberId})`;
 
+      // IMPLEMENTASI DOUBLE-ENTRY (DEBIT & KREDIT HARUS SEIMBANG)
       switch (trxType) {
         case 'deposit':
-          accountCode = COA.CASH_ON_HAND;
-          debit = amount;
+          // SETORAN: Debit Kas (Harta Bertambah), Kredit Simpanan (Kewajiban Bertambah)
+          entries.push({ account_code: COA.CASH_ON_HAND, debit: amount, credit: 0 });
+          entries.push({ account_code: COA.SAVINGS_WADIAH, debit: 0, credit: amount });
           break;
         case 'withdrawal':
-          accountCode = COA.CASH_ON_HAND;
-          credit = amount;
+          // PENARIKAN: Debit Simpanan (Kewajiban Berkurang), Kredit Kas (Harta Berkurang)
+          entries.push({ account_code: COA.SAVINGS_WADIAH, debit: amount, credit: 0 });
+          entries.push({ account_code: COA.CASH_ON_HAND, debit: 0, credit: amount });
           break;
         case 'payment':
-          accountCode = COA.RECEIVABLE_MURABAHAH;
-          credit = amount;
+          // ANGSURAN: Debit Kas (Harta Bertambah), Kredit Piutang (Harta Berkurang)
+          entries.push({ account_code: COA.CASH_ON_HAND, debit: amount, credit: 0 });
+          entries.push({ account_code: COA.RECEIVABLE_MURABAHAH, debit: 0, credit: amount });
           break;
       }
 
-      const res = await fetch('/api/accounting/record', {
+      // Kirim seluruh entri dalam satu transaksi accounting
+      const res = await fetch('/api/accounting/record-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: new Date().toISOString().split('T')[0],
-          description: `[PETUGAS: ${tellerName}] ${finalDesc}`,
-          debit,
-          credit,
-          account_code: accountCode,
-          reference_no: `TLR-${Date.now()}`
+          description: `[TELLER: ${tellerName}] ${finalDesc}`,
+          entries,
+          reference_no: `TLR-${Date.now()}`,
+          member_id: selectedMemberId
         })
       });
 
@@ -152,7 +154,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
         }, 1000);
       }
 
-      setMessage({ type: 'success', text: `Transaksi Berhasil! Rp ${amount.toLocaleString('id-ID')} telah disimpan.` });
+      setMessage({ type: 'success', text: `Transaksi Berhasil! Rp ${amount.toLocaleString('id-ID')} telah diposting ke Buku Besar.` });
       setAmount(0);
       setDisplayAmount('');
       setDescription('');
@@ -163,13 +165,15 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
         const { data: trxHistory } = await supabase
           .from('journal_entries')
           .select('*')
-          .contains('description', [selectedMemberId])
+          .eq('member_id', selectedMemberId)
           .order('created_at', { ascending: false });
+        
         if (trxHistory) {
           setHistory(trxHistory);
-          const td = trxHistory.reduce((sum, item) => sum + (Number(item.debit) || 0), 0);
-          const tc = trxHistory.reduce((sum, item) => sum + (Number(item.credit) || 0), 0);
-          setBalance(td - tc);
+          // Recalculate balance for specific savings account (SAVINGS_WADIAH)
+          const totalCredit = trxHistory.filter(h => h.account_code === COA.SAVINGS_WADIAH).reduce((sum, item) => sum + (Number(item.credit) || 0), 0);
+          const totalDebit = trxHistory.filter(h => h.account_code === COA.SAVINGS_WADIAH).reduce((sum, item) => sum + (Number(item.debit) || 0), 0);
+          setBalance(totalCredit - totalDebit);
         }
       }
 

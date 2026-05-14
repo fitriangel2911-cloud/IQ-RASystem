@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function ManagerPage() {
   const router = useRouter();
@@ -35,8 +36,8 @@ export default function ManagerPage() {
       if (dbProfile) {
         setProfile(dbProfile);
         
-        // Safety enforcement: Allow strictly 'manager' or IT Administrator 'super_user'
-        const allowedRoles = ['manager', 'super_user'];
+        // Safety enforcement: Allow strictly 'manager' or IT Administrator 'super_admin'
+        const allowedRoles = ['manager', 'super_admin'];
         if (!allowedRoles.includes(dbProfile.role)) {
           router.push('/dashboard');
           return;
@@ -93,12 +94,10 @@ export default function ManagerPage() {
         
         {/* Command Header */}
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1.5px' }}>
-            iQ-RA System
-            <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '6px', background: '#cca334', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
-              🏢 GENERAL MANAGER
-            </span>
-          </h1>
+          <BrandLogo size={40} fontSize="22px" />
+          <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '12px', background: '#cca334', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
+            🏢 GENERAL MANAGER
+          </span>
         </div>
 
         {/* Manager Navigation Links */}

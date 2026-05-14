@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import AODashboard from '@/components/dashboard/AODashboard';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function AOPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function AOPage() {
           setProfile(dbProfile);
           
           // Allowed roles for this page (Added 'ao' as alias)
-          const allowedRoles = ['account_officer', 'ao', 'super_user', 'manager'];
+          const allowedRoles = ['account_officer', 'ao', 'super_admin', 'manager'];
           if (!allowedRoles.includes(dbProfile.role)) {
             console.warn('Unauthorized role access to AO page:', dbProfile.role);
             router.push('/dashboard');
@@ -95,12 +96,10 @@ export default function AOPage() {
       }}>
         
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1.5px' }}>
-            iQ-RA System
-            <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '6px', background: '#10b981', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
-              💼 ACCOUNT OFFICER
-            </span>
-          </h1>
+          <BrandLogo size={40} fontSize="22px" />
+          <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '12px', background: '#10b981', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
+            💼 ACCOUNT OFFICER
+          </span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>

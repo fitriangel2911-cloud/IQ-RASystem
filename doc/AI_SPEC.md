@@ -16,7 +16,7 @@ Sistem menggunakan kerangka kerja RAG untuk menekan angka halusinasi (*hallucina
 
 - **AI Orchestrator:** **LangChain.js** digunakan untuk mengatur rantai proses (*chaining*), merakit *prompt*, dan menjembatani komunikasi antara LLM dengan *database*.
 - **Vector Database:** Ekstensi **pgvector** di dalam PostgreSQL (via Supabase) bertugas menyimpan dan mencari representasi numerik (*vector embeddings*) dari fragmen teks hukum.
-- **Knowledge Base (Korpus Data):** Tabel `sharia_knowledge` akan diisi secara berkala oleh Super User dengan literatur utama seperti:
+- **Knowledge Base (Korpus Data):** Tabel `sharia_knowledge` akan diisi secara berkala oleh Super Admin dengan literatur utama seperti:
   1. Dokumen resmi Fatwa DSN-MUI (Dewan Syariah Nasional - Majelis Ulama Indonesia).
   2. Standar Operasional Prosedur (SOP) Pembiayaan Koperasi.
   3. Dokumen regulasi PSAK Syariah.
@@ -25,7 +25,7 @@ Sistem menggunakan kerangka kerja RAG untuk menekan angka halusinasi (*hallucina
 
 Siklus kerja kecerdasan buatan ini dibagi menjadi lima tahapan sistematis:
 
-1. **Ingesti (Ingestion):** Super User/Administrator mengunggah dokumen referensi syariah berbentuk PDF atau teks.
+1. **Ingesti (Ingestion):** Super Admin/Administrator mengunggah dokumen referensi syariah berbentuk PDF atau teks.
 2. **Transformasi (Chunking):** Dokumen panjang dipecah-pecah (*chunking*) menjadi fragmen-fragmen pendek (misalnya per pasal atau poin fatwa) agar konteks batasannya lebih spesifik.
 3. **Vektorisasi (Embedding):** Model embedding mengubah teks tersebut menjadi array angka matriks (*embeddings*) yang kemudian disimpan secara permanen di `pgvector`.
 4. **Retrieval (Pencarian Konteks):** Ketika AO menginput data profil pengajuan anggota (contoh kasus: *"Butuh dana 50 juta untuk beli traktor sawah, agunan BPKB"*), LangChain menjalankan *Similarity Search* matematis untuk mencari fatwa atau SOP yang relevan dengan kasus "pembelian alat pertanian beragunan".

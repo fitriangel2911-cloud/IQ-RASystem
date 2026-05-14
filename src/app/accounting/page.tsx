@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function AccountingPage() {
   const router = useRouter();
@@ -35,8 +36,8 @@ export default function AccountingPage() {
       if (dbProfile) {
         setProfile(dbProfile);
         
-        // Route Security Validation: Authorize only 'accounting' or 'super_user' admins
-        const allowedRoles = ['accounting', 'super_user'];
+        // Route Security Validation: Authorize only 'accounting' or 'super_admin' admins
+        const allowedRoles = ['accounting', 'super_admin'];
         if (!allowedRoles.includes(dbProfile.role)) {
           router.push('/dashboard');
           return;
@@ -94,12 +95,10 @@ export default function AccountingPage() {
         
         {/* Brand Header */}
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#f3c653', margin: 0, letterSpacing: '1.5px' }}>
-            iQ-RA System
-            <span style={{ color: '#ffffff', fontSize: '11px', display: 'block', opacity: 0.7, fontWeight: 800, textTransform: 'uppercase', marginTop: '6px', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '6px', width: 'max-content' }}>
-              💼 ACCOUNTING DIV
-            </span>
-          </h1>
+          <BrandLogo size={40} fontSize="22px" />
+          <span style={{ color: '#ffffff', fontSize: '11px', display: 'block', opacity: 0.7, fontWeight: 800, textTransform: 'uppercase', marginTop: '12px', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '6px', width: 'max-content' }}>
+            💼 ACCOUNTING DIV
+          </span>
         </div>
 
         {/* Navigation Links */}

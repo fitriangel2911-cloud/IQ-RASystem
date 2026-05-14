@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 
 import TellerTerminal from '@/components/dashboard/TellerTerminal';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function TellerPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function TellerPage() {
 
       if (dbProfile) {
         setProfile(dbProfile);
-        if (dbProfile.role !== 'teller' && dbProfile.role !== 'super_user') {
+        if (dbProfile.role !== 'teller' && dbProfile.role !== 'super_admin') {
           router.push('/dashboard');
           return;
         }
@@ -103,10 +104,8 @@ export default function TellerPage() {
         zIndex: 100,
         boxShadow: '20px 0 50px rgba(0,0,0,0.3)'
       }}>
-        <div style={{ marginBottom: '50px', textAlign: 'center' }}>
-          <div style={{ fontSize: '28px', fontWeight: 900, color: '#f3c653', letterSpacing: '2px' }}>
-            IQ-RA <span style={{ color: '#ffffff', fontSize: '14px', display: 'block', fontWeight: 600 }}>CORE BANKING</span>
-          </div>
+        <div style={{ marginBottom: '50px', display: 'flex', justifyContent: 'center' }}>
+          <BrandLogo size={50} fontSize="24px" />
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>

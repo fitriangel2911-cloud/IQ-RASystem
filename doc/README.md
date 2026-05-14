@@ -21,7 +21,7 @@ Sistem menerapkan Row-Level Security (RLS) di level *database* untuk berbagai en
 - **Account Officer (AO)**: Analisis pembiayaan, interaksi RAG AI.
 - **Manajer / Komite**: *Approval* pencairan pembiayaan dan pemantauan dasbor analitik.
 - **Accounting**: Verifikasi jurnal harian dan pencetakan laporan.
-- **Super User (IT)**: Konfigurasi sistem penuh.
+- **Super Admin (IT)**: Konfigurasi sistem penuh.
 - **Anggota (Aplikasi Mobile)**: Akses hanya-baca untuk saldo pribadi dan transaksi transfer/PPOB.
 
 ## Arsitektur Teknologi

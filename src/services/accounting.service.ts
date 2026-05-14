@@ -8,25 +8,41 @@ import { JournalEntry } from '@/types/models';
 export class AccountingService {
   
   /**
-   * Records automated journals from transaction events
-   * @param entry Data for the journal entry
+   * Records automated journals from transaction events (supports Double-Entry)
+   * @param data Object containing transaction metadata and entries array
    */
-  static async recordTransaction(entry: Omit<JournalEntry, 'id'>) {
+  static async recordTransaction(data: { date: string, description: string, reference_no: string, member_id?: string, entries: any[] }) {
     const supabase = await createClient();
     
-    // In a real system, we would validate that Debit == Credit for multi-leg entries.
-    // For simple teller transactions, we record single legs representing the cash flow.
-    const { data, error } = await supabase
+    // Validate Double-Entry: Total Debit must equal Total Credit
+    const totalDebit = data.entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0);
+    const totalCredit = data.entries.reduce((sum, e) => sum + (Number(e.credit) || 0), 0);
+
+    if (totalDebit !== totalCredit) {
+      throw new Error(`Accounting Error: Debit (${totalDebit}) does not match Credit (${totalCredit}).`);
+    }
+
+    // Map entries to the database structure
+    const dbEntries = data.entries.map(e => ({
+      date: data.date,
+      description: data.description,
+      reference_no: data.reference_no,
+      member_id: data.member_id,
+      account_code: e.account_code,
+      debit: e.debit,
+      credit: e.credit
+    }));
+
+    const { data: result, error } = await supabase
       .from('journal_entries')
-      .insert([entry])
-      .select()
-      .single();
+      .insert(dbEntries)
+      .select();
       
     if (error) {
       console.error("AccountingService Error:", error);
       throw error;
     }
-    return data;
+    return result;
   }
 
   /**

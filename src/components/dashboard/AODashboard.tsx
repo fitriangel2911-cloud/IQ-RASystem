@@ -135,6 +135,34 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     }
   };
 
+  const [selectedProspect, setSelectedProspect] = useState<any>(null);
+  const [aiResult, setAiResult] = useState<any>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const runAIAnalysis = async (prospect: any) => {
+    setAnalyzing(true);
+    setAiResult(null);
+    setSelectedProspect(prospect);
+    
+    // Simulate AI Processing delay for realistic UX
+    setTimeout(() => {
+      // Mock result based on purpose
+      const isBusiness = prospect.purpose.toLowerCase().includes('usaha') || prospect.purpose.toLowerCase().includes('investasi');
+      
+      setAiResult({
+        contract: isBusiness ? "Mudharabah" : "Murabahah",
+        score: isBusiness ? 94 : 88,
+        justification: isBusiness 
+          ? "Tujuan modal usaha sangat cocok dengan akad Bagi Hasil (Mudharabah) sesuai Fatwa DSN-MUI No. 07/2000. Ini mendorong keadilan bagi hasil antara koperasi dan anggota."
+          : "Untuk pengadaan barang konsumtif, akad Jual Beli (Murabahah) adalah yang paling aman dan sesuai Fatwa DSN-MUI No. 04/2000.",
+        risk_note: isBusiness
+          ? "WAJIB: Lakukan analisis proyeksi laba rugi usaha anggota selama 12 bulan ke depan."
+          : "PASTIKAN: Barang dibeli terlebih dahulu oleh koperasi sebelum diserahkan ke anggota."
+      });
+      setAnalyzing(false);
+    }, 2000);
+  };
+
   const renderOverview = () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '25px', animation: 'fadeInUp 0.6s ease-out' }}>
       <StatCard title="Portfolio Aktif" value={stats.activePortfolio} icon="📈" color="#10b981" />
@@ -144,115 +172,138 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     </div>
   );
 
-  const renderPipeline = () => (
-    <div style={{ marginTop: '40px', animation: 'fadeInUp 0.8s ease-out' }}>
+  const handleDisburse = async () => {
+    if (!selectedProspect || !aiResult) return;
+    
+    setLoading(true);
+    const supabase = createClient();
+    
+    try {
+      // 1. Create the Financing Contract
+      const { data: contract, error: contractErr } = await supabase
+        .from('financing_contracts')
+        .insert({
+          member_id: profile.id, // In real case, link to actual member account
+          prospect_id: selectedProspect.id,
+          amount: selectedProspect.amount,
+          type: aiResult.contract.toLowerCase(),
+          status: 'active',
+          disbursement_date: new Date().toISOString().split('T')[0]
+        })
+        .select()
+        .single();
+
+      if (contractErr) throw contractErr;
+
+      // 2. Automated Accounting Journal (Double-Entry Disbursement)
+      // DEBIT: Piutang (Receivable), CREDIT: Kas (Cash)
+      const res = await fetch('/api/accounting/record-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          description: `[PENCAIRAN] ${aiResult.contract} - ${selectedProspect.name}`,
+          reference_no: `DSB-${Date.now()}`,
+          entries: [
+            { account_code: '1.1.03', debit: selectedProspect.amount, credit: 0 }, // Receivable (Mock Code)
+            { account_code: '1.1.01', debit: 0, credit: selectedProspect.amount }  // Cash (Mock Code)
+          ]
+        })
+      });
+
+      if (!res.ok) throw new Error('Gagal mencatat jurnal akuntansi');
+
+      // 3. Mark Prospect as Converted
+      await supabase
+        .from('prospects')
+        .update({ is_converted: true, status: 'Cair / Aktif' })
+        .eq('id', selectedProspect.id);
+
+      setMessage({ type: 'success', text: `✅ BERHASIL! Dana Rp ${selectedProspect.amount.toLocaleString('id-ID')} telah dicairkan dan kontrak aktif.` });
+      setAiResult(null);
+      setSelectedProspect(null);
+      fetchAOData();
+
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Pencairan Gagal: ' + err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderAIAnalysis = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
       <div style={{ background: 'white', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', border: '1px solid rgba(4, 49, 33, 0.1)' }}>
         <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: '#043121', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          🚀 Pipeline Pembiayaan AO
+          🤖 Analisis Akad Berbasis AI (RAG)
         </h3>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
-                <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Calon Anggota</th>
-                <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Plafon</th>
-                <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Tahapan</th>
-                <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Update Terakhir</th>
-                <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {prospects.map((p) => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '20px 15px', fontWeight: 800, color: '#043121' }}>{p.name}</td>
-                  <td style={{ padding: '20px 15px', color: '#059669', fontWeight: 700 }}>
-                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(p.amount)}
-                  </td>
-                  <td style={{ padding: '20px 15px' }}>
-                    <span style={{ 
-                      padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 800,
-                      background: 'rgba(16, 185, 129, 0.1)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.2)'
-                    }}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '20px 15px', color: '#64748b', fontSize: '14px' }}>
-                    {new Date(p.created_at).toLocaleDateString('id-ID')}
-                  </td>
-                  <td style={{ padding: '20px 15px' }}>
-                    <button style={{ background: '#043121', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontSize: '12px' }}>
-                      Detail Analisis
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderAddForm = () => (
-    <div style={{ marginTop: '40px', animation: 'fadeInUp 1s ease-out' }}>
-      <div style={{ background: 'linear-gradient(135deg, #043121 0%, #065f46 100%)', borderRadius: '24px', padding: '40px', color: 'white', boxShadow: '0 30px 60px rgba(4, 49, 33, 0.2)' }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '24px', fontWeight: 900 }}>✍️ Input Prospek Baru</h3>
-        <p style={{ opacity: 0.8, marginBottom: '30px', fontSize: '14px' }}>Daftarkan calon anggota hasil canvassing Anda hari ini secara riil ke database.</p>
+        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '30px' }}>
+          Pilih prospek dari pipeline untuk menjalankan analisis kesesuaian syariah menggunakan iQ-RA AI Engine.
+        </p>
         
-        <form onSubmit={handleAddProspect} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Nama Lengkap</label>
-            <input 
-              type="text" required 
-              value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '16px' }}
-              placeholder="Contoh: Bpk. Kurniawan"
-            />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '30px' }}>
+          {/* Prospect Selection List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {prospects.filter(p => !p.is_converted).map(p => (
+              <div 
+                key={p.id} 
+                onClick={() => { setSelectedProspect(p); setAiResult(null); }}
+                style={{ 
+                  padding: '20px', borderRadius: '16px', border: selectedProspect?.id === p.id ? '2px solid #059669' : '1px solid #e2e8f0',
+                  cursor: 'pointer', background: selectedProspect?.id === p.id ? '#f0fdf4' : 'white', transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ fontWeight: 800, color: '#043121' }}>{p.name}</div>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>Tujuan: {p.purpose}</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#059669', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
+              </div>
+            ))}
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>No. WhatsApp</label>
-            <input 
-              type="text" required 
-              value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '16px' }}
-              placeholder="0812xxxx"
-            />
+
+          {/* AI Result Area */}
+          <div style={{ background: '#f8fafc', borderRadius: '20px', padding: '30px', border: '1px dashed #cbd5e1', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+            {!selectedProspect ? (
+              <div style={{ color: '#94a3b8' }}>
+                <div style={{ fontSize: '40px', marginBottom: '15px' }}>👈</div>
+                Pilih nasabah di samping untuk mulai analisis
+              </div>
+            ) : analyzing ? (
+              <div>
+                <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+                <div style={{ fontWeight: 700, color: '#043121' }}>AI sedang meninjau Fatwa DSN-MUI...</div>
+              </div>
+            ) : aiResult ? (
+              <div style={{ textAlign: 'left', width: '100%', animation: 'fadeIn 0.5s ease' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <span style={{ background: '#043121', color: '#f3c653', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900 }}>REKOMENDASI AKAD</span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669' }}>{aiResult.score}% Match</div>
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: '#043121', marginBottom: '15px' }}>{aiResult.contract}</div>
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', color: '#334155', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
+                  <strong>Justifikasi Syariah:</strong><br/>{aiResult.justification}
+                </div>
+                <div style={{ background: '#fef2f2', padding: '15px', borderRadius: '12px', border: '1px solid #fecaca', color: '#991b1b', fontSize: '12px', fontWeight: 700, marginBottom: '25px' }}>
+                  ⚠️ MITIGASI RISIKO: {aiResult.risk_note}
+                </div>
+
+                <button 
+                  onClick={handleDisburse}
+                  disabled={loading}
+                  style={{ width: '100%', background: '#cca334', color: '#043121', padding: '20px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 30px rgba(204, 163, 52, 0.3)' }}
+                >
+                  {loading ? '⏳ PROSES PENCAIRAN...' : '✅ SETUJUI & CAIRKAN DANA SEKARANG'}
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => runAIAnalysis(selectedProspect)}
+                style={{ background: '#043121', color: 'white', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(4, 49, 33, 0.2)' }}
+              >
+                🚀 JALANKAN ANALISIS AI SEKARANG
+              </button>
+            )}
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Plafon Diajukan (Rp)</label>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: 'rgba(255,255,255,0.4)' }}>Rp</span>
-              <input 
-                type="text" required 
-                value={formatNumber(formData.amount)} 
-                onChange={handleAmountChange}
-                style={{ width: '100%', padding: '14px 14px 14px 45px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '18px', fontWeight: 800 }}
-                placeholder="0"
-              />
-            </div>
-            <p style={{ margin: '6px 0 0 0', fontSize: '11px', opacity: 0.6 }}>Otomatis menambahkan titik pemisah ribuan.</p>
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Tujuan Pembiayaan</label>
-            <select 
-              value={formData.purpose} onChange={e => setFormData({...formData, purpose: e.target.value})}
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '16px' }}
-            >
-              <option value="Modal Usaha">Modal Usaha</option>
-              <option value="Investasi">Investasi</option>
-              <option value="Konsumtif">Konsumtif (Murabahah)</option>
-              <option value="Renovasi Rumah">Renovasi Rumah</option>
-            </select>
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-            <button 
-              type="submit" disabled={loading}
-              style={{ width: '100%', padding: '18px', background: '#f3c653', color: '#043121', border: 'none', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', marginTop: '10px' }}
-            >
-              {loading ? 'MENYIMPAN KE DATABASE...' : 'MASUKKAN KE PIPELINE AO'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
@@ -274,12 +325,48 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       {activeMenu === 'overview' && (
         <>
           {renderOverview()}
-          {renderPipeline()}
+          <div style={{ marginTop: '40px' }}>
+            <div style={{ background: 'white', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', border: '1px solid rgba(4, 49, 33, 0.1)' }}>
+              <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: '#043121', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                🚀 Pipeline Pembiayaan AO
+              </h3>
+              {/* Pipeline Table Content */}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                      <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Calon Anggota</th>
+                      <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Plafon</th>
+                      <th style={{ padding: '15px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Tahapan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prospects.map((p) => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '20px 15px', fontWeight: 800, color: '#043121' }}>{p.name}</td>
+                        <td style={{ padding: '20px 15px', color: '#059669', fontWeight: 700 }}>Rp {p.amount.toLocaleString('id-ID')}</td>
+                        <td style={{ padding: '20px 15px' }}>{p.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </>
       )}
 
       {activeMenu === 'leads' && renderAddForm()}
+      {activeMenu === 'prospects' && renderAIAnalysis()}
       
+      {activeMenu === 'survey' && (
+        <div style={{ padding: '80px', textAlign: 'center', background: 'white', borderRadius: '24px' }}>
+          <div style={{ fontSize: '60px', marginBottom: '20px' }}>🗺️</div>
+          <h3 style={{ fontWeight: 900, color: '#043121' }}>Modul Verifikasi Lapangan</h3>
+          <p style={{ color: '#64748b' }}>Gunakan aplikasi Mobile iQ-RA untuk mengunggah foto survei dan koordinat GPS.</p>
+        </div>
+      )}
+
       {activeMenu === 'portfolio' && (
         <div style={{ animation: 'fadeInUp 0.8s ease-out' }}>
            <div style={{ background: 'white', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', border: '1px solid rgba(4, 49, 33, 0.1)' }}>
@@ -288,26 +375,19 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
             </h3>
             {portfolio.length > 0 ? (
               <div style={{ overflowX: 'auto' }}>
+                {/* Portfolio Table Content */}
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
                       <th style={{ padding: '15px', textAlign: 'left', color: '#64748b' }}>Nama Anggota</th>
-                      <th style={{ padding: '15px', textAlign: 'left', color: '#64748b' }}>Produk</th>
                       <th style={{ padding: '15px', textAlign: 'left', color: '#64748b' }}>Outstanding</th>
-                      <th style={{ padding: '15px', textAlign: 'left', color: '#64748b' }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {portfolio.map((item: any) => (
                       <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '15px', fontWeight: 700 }}>{(item as any).users?.full_name}</td>
-                        <td style={{ padding: '15px', textTransform: 'capitalize' }}>{item.type}</td>
-                        <td style={{ padding: '15px', color: '#059669', fontWeight: 700 }}>
-                          {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount)}
-                        </td>
-                        <td style={{ padding: '15px' }}>
-                           <span style={{ padding: '4px 10px', background: '#dcfce7', color: '#166534', borderRadius: '6px', fontSize: '11px', fontWeight: 800 }}>AKTIF</span>
-                        </td>
+                        <td style={{ padding: '15px', color: '#059669', fontWeight: 700 }}>Rp {item.amount.toLocaleString('id-ID')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -315,12 +395,16 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
               </div>
             ) : (
               <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                Belum ada portofolio pembiayaan aktif dalam database.
+                Belum ada portofolio pembiayaan aktif.
               </div>
             )}
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

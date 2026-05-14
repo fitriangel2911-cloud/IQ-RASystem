@@ -5,7 +5,7 @@ Dokumen ini mendefinisikan kerangka keamanan informasi, pengelolaan akses, dan p
 ## 1. Otentikasi & Manajemen Sesi
 
 Platform menjamin perlindungan terhadap akun dan akses sistem:
-- **Enkripsi Kredensial (GoTrue):** Seluruh kata sandi pengguna dienkripsi secara sepihak (*hashed and salted*) oleh modul Supabase Auth. Karyawan IT/Super User sekalipun tidak dapat melihat *password* asli anggota secara polos.
+- **Enkripsi Kredensial (GoTrue):** Seluruh kata sandi pengguna dienkripsi secara sepihak (*hashed and salted*) oleh modul Supabase Auth. Karyawan IT/Super Admin sekalipun tidak dapat melihat *password* asli anggota secara polos.
 - **Kedaluwarsa Sesi Otomatis (Auto-Logout):** Sesi pengguna (terutama karyawan koperasi) dikonfigurasi agar tertutup otomatis (*session expiration*) apabila terdeteksi tidak ada aktivitas selama batas waktu tertentu. Ini krusial guna menghindari pembajakan akses fisik.
 - **Proteksi API Publik:** API *endpoint* (khususnya untuk integrasi aplikasi *mobile* anggota) dipasangi pembatasan arus kueri (*Rate-Limiting*) guna menahan serangan *Distributed Denial of Service* (DDoS) dan *brute-force*.
 
