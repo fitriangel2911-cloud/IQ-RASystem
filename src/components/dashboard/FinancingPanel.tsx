@@ -97,7 +97,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#043121', marginBottom: '6px' }}>Kemitraan Pembiayaan Syariah</h2>
-          <p style={{ color: '#4b5563', fontSize: '15px', fontWeight: 600, margin: 0 }}>Kelola dan pantau seluruh akad pembiayaan syariah yang Anda ajukan di IQ-RA.</p>
+          <p style={{ color: '#4b5563', fontSize: '15px', fontWeight: 600, margin: 0 }}>Kelola dan pantau seluruh akad pembiayaan syariah yang Anda ajukan di iQ-RA.</p>
         </div>
 
         {!isApplying && (
@@ -129,7 +129,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       {/* NEW APPLICATION FORM SECTION */}
       {isApplying && (
         <div style={{
-          background: '#032419',
+          background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
           border: '3px solid #cca334',
           borderRadius: '24px',
           padding: '36px',
@@ -239,7 +239,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 
       {/* LIST OF EXISTING CONTRACTS */}
       <div style={{
-        background: '#032419',
+        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         border: '3px solid #cca334',
         borderRadius: '24px',
         overflow: 'hidden',
@@ -252,7 +252,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#021c13', borderBottom: '2px solid #cca334' }}>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', borderBottom: '2px solid #cca334' }}>
                 <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Tanggal Pengajuan</th>
                 <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Produk Akad</th>
                 <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Jumlah Diajukan</th>

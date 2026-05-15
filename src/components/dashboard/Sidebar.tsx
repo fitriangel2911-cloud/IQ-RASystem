@@ -57,7 +57,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile }: SidebarPro
           <img src="/logo-recolored.png" alt="iQ-RA" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
         </div>
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 900, color: '#ffffff', letterSpacing: '0.5px' }}>IQ-RA SYSTEM</div>
+          <div style={{ fontSize: '18px', fontWeight: 900, color: '#ffffff', letterSpacing: '0.5px' }}>iQ-RA SYSTEM</div>
           <div style={{ fontSize: '10px', color: '#cca334', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Portal Anggota</div>
         </div>
       </div>

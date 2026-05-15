@@ -28,7 +28,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
       
       {/* Greeting Banner */}
       <div style={{
-        background: 'linear-gradient(95deg, #032419 0%, #05402d 100%)',
+        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         border: '3px solid #cca334',
         borderRadius: '28px',
         padding: '40px',
@@ -120,7 +120,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
           {/* System Tips */}
           <div style={{
-            background: '#032419',
+            background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
             border: '2px solid rgba(204, 163, 52, 0.2)',
             borderRadius: '20px',
             padding: '24px',
@@ -130,14 +130,14 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
           }}>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#f3c653' }}>💡 Tips Keamanan Finansial</h4>
             <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)' }}>
-              Ingatlah untuk tidak pernah memberikan kata sandi (password) akun IQ-RA Anda kepada siapa pun, termasuk kepada petugas koperasi kami. Petugas resmi tidak akan pernah meminta kredensial pribadi Anda.
+              Ingatlah untuk tidak pernah memberikan kata sandi (password) akun iQ-RA Anda kepada siapa pun, termasuk kepada petugas koperasi kami. Petugas resmi tidak akan pernah meminta kredensial pribadi Anda.
             </p>
           </div>
         </div>
 
         {/* Quick Transaction Preview */}
         <div style={{
-          background: '#032419',
+          background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
           border: '3px solid #cca334',
           borderRadius: '24px',
           padding: '28px',
@@ -164,7 +164,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
                 return (
                   <div key={tx.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: '#021c13', padding: '14px 18px', borderRadius: '14px',
+                    background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '14px 18px', borderRadius: '14px',
                     border: '1px solid rgba(255,255,255,0.03)'
                   }}>
                     <div>
@@ -194,7 +194,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 }
 
 const cardStyle = (borderColor: string) => ({
-  background: '#032419',
+  background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
   border: `2px solid ${borderColor}`,
   borderRadius: '24px',
   padding: '28px',

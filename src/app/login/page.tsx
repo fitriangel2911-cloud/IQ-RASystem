@@ -121,7 +121,7 @@ export default function LoginPage() {
               Selamat Datang <span style={{ color: '#cca334' }}>Kembali</span>
             </h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
-              Masuk untuk mengakses akun IQ-RA System Anda
+              Masuk untuk mengakses akun iQ-RA System Anda
             </p>
           </div>
 

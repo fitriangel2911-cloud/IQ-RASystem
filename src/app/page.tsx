@@ -146,7 +146,7 @@ function HeroSection() {
                 <span>💬 WA: 0812-8231-5795</span>
               </a>
               <a 
-                href="mailto:IQ-RASystem@gmail.com" 
+                href="mailto:iQ-RASystem@gmail.com" 
                 style={{ 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, 
                   background: '#cca334', color: '#043121', textDecoration: 'none', 
@@ -156,7 +156,7 @@ function HeroSection() {
                 onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               >
-                <span>✉️ IQ-RASystem@gmail.com</span>
+                <span>✉️ iQ-RASystem@gmail.com</span>
               </a>
             </div>
           </div>
@@ -176,7 +176,7 @@ function ProfilSection() {
             <span style={{ color: '#084b35' }}>Berbasis Teknologi</span>
           </h2>
           <p style={{ fontSize: 18, lineHeight: 1.8, color: '#4b5563', marginBottom: 32 }}>
-            IQ-RA System lahir dengan visi mengangkat derajat ekonomi masyarakat melalui asas
+            iQ-RA System lahir dengan visi mengangkat derajat ekonomi masyarakat melalui asas
             keadilan, tolong menolong, dan transparansi penuh yang diakomodasi oleh sistem digital mutakhir.
           </p>
           <div style={{ display: 'grid', gap: 20 }}>
@@ -486,7 +486,7 @@ function Footer() {
           Keunggulan Syariah dalam Balutan Kecerdasan Teknologi Masa Depan
         </p>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 32, fontSize: 15, color: 'rgba(255,255,255,0.4)' }}>
-          © 2026 IQ-RA Corporation. Hak Cipta Dilindungi.
+          © 2026 iQ-RA Corporation. Hak Cipta Dilindungi.
         </div>
       </div>
     </footer>

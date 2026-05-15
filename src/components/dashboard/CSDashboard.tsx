@@ -127,14 +127,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       {/* 2. ONBOARDING TAB: COMPREHENSIVE CIF FORM */}
       {activeMenu === 'onboarding' && (
         <div style={{ 
-          background: 'rgba(4, 49, 33, 0.85)', 
-          backdropFilter: 'blur(20px)', 
+          background: 'rgba(4, 49, 33, 0.7)', 
+          backdropFilter: 'blur(16px)', 
           borderRadius: '32px', 
           overflow: 'hidden', 
           border: '1px solid rgba(243, 198, 83, 0.2)',
           boxShadow: '0 40px 80px rgba(0,0,0,0.6)'
         }}>
-          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: 900, letterSpacing: '1px' }}>📝 PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
             <span style={{ background: 'rgba(243, 198, 83, 0.1)', color: '#f3c653', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid #f3c653' }}>TAHAP: DATA DEMOGRAFI</span>
           </div>
@@ -190,14 +190,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       {/* 3. MEMBERS DATABASE TAB */}
       {activeMenu === 'members' && (
         <div style={{ 
-          background: 'rgba(4, 49, 33, 0.9)', 
-          backdropFilter: 'blur(20px)', 
+          background: 'rgba(4, 49, 33, 0.7)', 
+          backdropFilter: 'blur(16px)', 
           borderRadius: '32px', 
           overflow: 'hidden', 
           border: '1px solid rgba(243, 198, 83, 0.2)',
           boxShadow: '0 40px 80px rgba(0,0,0,0.6)'
         }}>
-          <div style={{ background: '#043121', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '30px 40px', borderBottom: '2px solid #f3c653', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ color: '#ffffff', margin: 0, fontWeight: 900, fontSize: '22px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
             <div style={{ color: '#f3c653', fontSize: '14px', fontWeight: 700 }}>Total: {stats.totalMembers} Anggota</div>
           </div>
@@ -253,12 +253,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       {/* 4. AI HELP TAB */}
       {activeMenu === 'ai-help' && (
-        <div style={{ height: '70vh', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(20px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ height: '70vh', background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ padding: '24px 40px', background: 'rgba(4, 49, 33, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <h3 style={{ color: '#f3c653', margin: 0, fontWeight: 900 }}>💬 iQ-RA AI Sharia Assistant</h3>
           </div>
           <div style={{ flexGrow: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.1)', padding: '20px', borderRadius: '0 24px 24px 24px', maxWidth: '70%', color: '#ffffff', fontSize: '15px' }}>
+            <div style={{ alignSelf: 'flex-start', background: '#4b5563', padding: '20px', borderRadius: '0 24px 24px 24px', maxWidth: '70%', color: '#ffffff', fontSize: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
               Halo {profile?.full_name}! Saya asisten AI iQ-RA. Ada yang bisa saya bantu terkait produk simpanan atau pembiayaan syariah hari ini?
             </div>
           </div>
@@ -285,8 +285,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 function StatCard({ label, value, icon, color }: any) {
   return (
     <div style={{ 
-      background: 'rgba(255, 255, 255, 0.05)', 
-      backdropFilter: 'blur(10px)', 
+      background: 'rgba(4, 49, 33, 0.7)', 
+      backdropFilter: 'blur(16px)', 
       padding: '30px', 
       borderRadius: '24px', 
       border: '1px solid rgba(255,255,255,0.1)',

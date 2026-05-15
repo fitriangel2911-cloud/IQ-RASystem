@@ -13,7 +13,7 @@ export default function Navbar() {
         <div className="flex h-16 justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-              IQ-RA System
+              iQ-RA System
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-4">

@@ -43,7 +43,6 @@ export default function BrandLogo({
           fontWeight: 900, 
           color: textColor, 
           letterSpacing: '1px',
-          textTransform: 'uppercase',
           lineHeight: 1
         }}>
           iQ-RA <span style={{ opacity: 0.8, fontSize: '0.5em', display: 'block', marginTop: '2px' }}>System</span>

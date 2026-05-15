@@ -9,7 +9,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "IQ-RA System — Platform Keuangan Syariah Terintegrasi AI",
+  title: "iQ-RA System — Platform Keuangan Syariah Terintegrasi AI",
   description:
     "Platform keuangan mikro syariah berbasis web dengan mekanisme RAG AI untuk rekomendasi akad dan kepatuhan SAK EP secara otomatis.",
 };

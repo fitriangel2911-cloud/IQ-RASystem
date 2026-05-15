@@ -161,10 +161,11 @@ export default function TellerPage() {
           justifyContent: 'space-between', 
           alignItems: 'center', 
           marginBottom: '40px',
-          background: 'rgba(255,255,255,0.02)',
+          background: 'rgba(4, 49, 33, 0.7)',
+          backdropFilter: 'blur(16px)',
           padding: '20px 30px',
           borderRadius: '20px',
-          border: '1px solid rgba(255,255,255,0.05)'
+          border: '1.5px solid rgba(255, 255, 255, 0.08)'
         }}>
           <h2 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: 900 }}>
             {activeMenu === 'terminal' && '🏪 Terminal Kasir Utama'}
@@ -190,7 +191,7 @@ export default function TellerPage() {
               boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
             }}>
               {/* Solid Emerald Header for History Table */}
-              <div style={{ background: '#043121', padding: '24px 40px', borderBottom: '2px solid #f3c653' }}>
+              <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '24px 40px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <h3 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 900 }}>
                   📜 LOG JURNAL KASIR REAL-TIME
                 </h3>
@@ -243,7 +244,7 @@ export default function TellerPage() {
               boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
             }}>
               {/* Solid Emerald Header for Member List */}
-              <div style={{ background: '#043121', padding: '24px 40px', borderBottom: '2px solid #f3c653', marginBottom: '30px' }}>
+              <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '24px 40px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px' }}>
                 <h3 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 900 }}>
                   👥 DIREKTORI ANGGOTA KOPERASI
                 </h3>
@@ -252,7 +253,7 @@ export default function TellerPage() {
               <div style={{ padding: '0 40px 40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
                 {membersList.length > 0 ? membersList.map(member => (
                   <div key={member.id} style={{
-                    background: '#043121', // Solid Emerald Card for better contrast
+                    background: 'rgba(4, 49, 33, 0.7)', // Matching Homepage cards
                     borderRadius: '24px',
                     padding: '28px',
                     border: '1px solid rgba(255,255,255,0.15)',

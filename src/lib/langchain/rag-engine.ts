@@ -4,7 +4,7 @@
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * IQ-RA RAG Pipeline Orchestrator
+ * iQ-RA RAG Pipeline Orchestrator
  * Responsible for generating Sharia compliance recommendations by merging
  * vector query results with dynamic contextual analysis prompts.
  */
@@ -26,7 +26,7 @@ export class ShariaRAGEngine {
     
     // 3. Generate prompt with context
     const template = `
-      Sistem Asisten Ahli Syariah IQ-RA.
+      Sistem Asisten Ahli Syariah iQ-RA.
       Gunakan konteks fatwa DSN-MUI berikut untuk menjawab:
       ---
       {context}

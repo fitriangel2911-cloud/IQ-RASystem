@@ -11,25 +11,9 @@ import AODashboard from '@/components/dashboard/AODashboard';
 import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
 import CSDashboard from '@/components/dashboard/CSDashboard';
 import AIKnowledgeManager from '@/components/dashboard/AIKnowledgeManager';
+import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 
-// Dedicated, immersive Dark Background specifically optimized for the Dashboard to maximize contrast
-function DashboardSiteBackground() {
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 0,
-      background: 'linear-gradient(135deg, #02130e 0%, #042a1d 100%)',
-      overflow: 'hidden'
-    }} aria-hidden="true">
-      {/* Geometric pattern overlay with extreme low opacity to ensure text remains 100% readable */}
-      <div className="site-bg-pattern" style={{ opacity: 0.04 }} />
-    </div>
-  );
-}
+// Removed DashboardSiteBackground in favor of GlobalSiteBackground
 
 // Intensely styled menu button for the dashboard sidebar
 function DashboardMenuButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: string, label: string }) {
@@ -66,7 +50,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   
   // Tab state (overview, users, members, settings, teller, manager, dps, ao, accounting, cs, rules)
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'members' | 'settings' | 'teller' | 'manager' | 'dps' | 'ao' | 'accounting' | 'cs' | 'rules'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'members' | 'settings' | 'teller' | 'manager' | 'dps' | 'ao' | 'accounting' | 'cs' | 'rules' | 'ai_knowledge'>('overview');
   const [userSubTab, setUserSubTab] = useState<'staff' | 'members'>('staff');
   const [activeSubMenu, setActiveSubMenu] = useState<string>('overview');
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -367,10 +351,10 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <>
-        <DashboardSiteBackground />
+        <GlobalSiteBackground />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', gap: '16px', position: 'relative', zIndex: 10 }}>
           <div style={{ border: '3px solid transparent', borderTopColor: '#f3c653', borderRightColor: '#f3c653', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
-          <h3 style={{ fontWeight: 800, fontSize: '18px', color: '#f3c653' }}>Memuat Dasbor IQ-RA...</h3>
+          <h3 style={{ fontWeight: 800, fontSize: '18px', color: '#f3c653' }}>Memuat Dasbor iQ-RA...</h3>
           <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </>
@@ -400,18 +384,19 @@ export default function DashboardPage() {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: '#02130e', // Solid Darkest Emerald Canvas
+        background: 'transparent',
         color: '#ffffff',
         display: 'flex',
         position: 'relative'
       }}>
-        <DashboardSiteBackground />
+        <GlobalSiteBackground />
 
         {/* 1. SIDEBAR: Solid, Bold, Premium Dark Emerald */}
         <aside style={{
           width: '300px',
-          background: 'linear-gradient(180deg, #032419 0%, #021c13 100%)', // Deep saturated Emerald
-          borderRight: '2px solid #cca334', // Rich gold divider
+          background: 'rgba(4, 49, 33, 0.96)',
+          backdropFilter: 'blur(20px)',
+          borderRight: '2px solid #cca334',
           display: 'flex',
           flexDirection: 'column',
           padding: '36px 24px',
@@ -554,7 +539,20 @@ export default function DashboardPage() {
           
           {/* Header */}
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '44px' }}>
-            <div>
+            <div style={{
+              background: 'rgba(4, 49, 33, 0.7)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderLeft: '6px solid #f3c653',
+              borderRadius: '24px',
+              padding: '24px 36px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              flexGrow: 1,
+              marginRight: '30px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span style={{ background: 'rgba(255,255,255,0.1)', color: '#f3c653', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '1px' }}>Pusat Kendali Administrasi</span>
+              </div>
               <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
                 {activeTab === 'overview' ? 'Ikhtisar Operasi Sistem' : 
                  activeTab === 'users' ? 'Master Direktori User & Peran' : 
@@ -568,9 +566,9 @@ export default function DashboardPage() {
                  activeTab === 'settings' ? 'Konfigurasi Sistem' :
                  'Direktori CIF & Data Fisik Anggota'}
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', fontWeight: 500 }}>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', fontWeight: 500, margin: 0 }}>
                 {activeTab === 'overview' 
-                  ? 'Statistik operasi infrastruktur backend IQ-RA System.' 
+                  ? 'Statistik operasi infrastruktur backend iQ-RA System.' 
                   : activeTab === 'users'
                   ? 'Manajemen otoritas, audit sandi, dan penugasan hak akses staf.'
                   : activeTab === 'manager'
@@ -591,7 +589,7 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            <div style={{ background: '#022b1c', border: '2px solid #34d399', borderRadius: '30px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, color: '#34d399', boxShadow: '0 4px 15px rgba(52, 211, 153, 0.2)' }}>
+            <div style={{ background: 'rgba(4, 49, 33, 0.7)', border: '2px solid #34d399', borderRadius: '30px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, color: '#34d399', boxShadow: '0 4px 15px rgba(52, 211, 153, 0.2)' }}>
               <div style={{ width: '10px', height: '10px', background: '#34d399', borderRadius: '50%', boxShadow: '0 0 10px #34d399' }} />
               DATABASE SEHAT (LIVE)
             </div>
@@ -607,7 +605,7 @@ export default function DashboardPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
                 
                 {/* Metric Card 1 */}
-                <div style={{ background: '#032419', border: '2px solid #cca334', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
+                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #cca334', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
                   <div style={{ color: '#f3c653', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Total Rekam Akun 👥
                   </div>
@@ -621,7 +619,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Metric Card 2 */}
-                <div style={{ background: '#032419', border: '2px solid #60a5fa', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
+                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #60a5fa', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
                   <div style={{ color: '#60a5fa', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Pegawai Koperasi Aktif 👔
                   </div>
@@ -635,7 +633,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Metric Card 3: Tied strictly to physical MEMBERS applications table */}
-                <div style={{ background: '#032419', border: '2px solid #34d399', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
+                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #34d399', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
                   <div style={{ color: '#34d399', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Anggota Resmi Terdaftar 💳
                   </div>
@@ -652,7 +650,8 @@ export default function DashboardPage() {
 
               {/* Large Banner Spec Card */}
               <div style={{ 
-                background: 'linear-gradient(90deg, #032419 0%, #043625 100%)', 
+                background: 'rgba(4, 49, 33, 0.8)',
+                backdropFilter: 'blur(16px)',
                 border: '3px solid #cca334', 
                 borderRadius: '28px', 
                 padding: '40px', 
@@ -766,11 +765,11 @@ export default function DashboardPage() {
           {/* ==================================== */}
           {activeTab === 'rules' && (
             <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-              <div style={{ background: '#032419', border: '3px solid #cca334', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
-                <div style={{ padding: '32px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'linear-gradient(90deg, #021c13 0%, #032419 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '3px solid #cca334', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
+                <div style={{ padding: '32px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(4, 49, 33, 0.7) 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h3 style={{ color: '#f3c653', fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>Matriks Otoritas Keamanan (RBAC)</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>Definisi kriteria akses sistem berdasarkan standar prosedur operasional IQ-RA.</p>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>Definisi kriteria akses sistem berdasarkan standar prosedur operasional iQ-RA.</p>
                   </div>
                   <button 
                     onClick={() => setIsCreatingRule(true)}
@@ -891,7 +890,7 @@ export default function DashboardPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       style={{
                         width: '100%',
-                        background: '#021c13',
+                        background: 'rgba(255, 255, 255, 0.05)',
                         border: '2px solid #cca334',
                         borderRadius: '12px',
                         padding: '12px 16px',
@@ -942,7 +941,8 @@ export default function DashboardPage() {
                     onClick={fetchUsersList}
                     disabled={loadingUsers}
                     style={{
-                      background: '#032419',
+                      background: 'rgba(4, 49, 33, 0.7)',
+                      backdropFilter: 'blur(16px)',
                       border: '2px solid #cca334',
                       color: '#f3c653',
                       padding: '12px 24px',
@@ -964,7 +964,8 @@ export default function DashboardPage() {
 
               {/* MASTER TABLE: SOLID CONTRAST CANVAS */}
               <div style={{
-                background: '#032419',
+                background: 'rgba(4, 49, 33, 0.7)',
+                backdropFilter: 'blur(16px)',
                 border: '3px solid #cca334',
                 borderRadius: '24px',
                 overflow: 'hidden',
@@ -973,7 +974,7 @@ export default function DashboardPage() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: '#021c13', borderBottom: '3px solid #cca334' }}>
+                      <tr style={{ background: 'rgba(255, 255, 255, 0.05)', borderBottom: '3px solid #cca334' }}>
                         <th style={{ padding: '24px 20px', fontSize: '14px', fontWeight: 900, color: '#f3c653', textTransform: 'uppercase', letterSpacing: '1px' }}>
                           {userSubTab === 'staff' ? 'Nama Karyawan / Staf' : 'Nama Anggota (Nasabah)'}
                         </th>
@@ -1010,9 +1011,9 @@ export default function DashboardPage() {
                             
                             let badgeColors = { bg: 'rgba(255,255,255,0.1)', border: '#ffffff', text: '#ffffff' };
                             if (u.role === 'super_admin') badgeColors = { bg: '#f3c653', border: '#f3c653', text: '#02130e' };
-                            else if (u.role === 'manager') badgeColors = { bg: '#032b1c', border: '#60a5fa', text: '#60a5fa' };
-                            else if (u.role === 'member') badgeColors = { bg: '#032b1c', border: '#34d399', text: '#34d399' };
-                            else badgeColors = { bg: '#032b1c', border: '#a78bfa', text: '#a78bfa' };
+                            else if (u.role === 'manager') badgeColors = { bg: 'rgba(255, 255, 255, 0.05)', border: '#60a5fa', text: '#60a5fa' };
+                            else if (u.role === 'member') badgeColors = { bg: 'rgba(255, 255, 255, 0.05)', border: '#34d399', text: '#34d399' };
+                            else badgeColors = { bg: 'rgba(255, 255, 255, 0.05)', border: '#a78bfa', text: '#a78bfa' };
 
                             return (
                               <tr 
@@ -1116,7 +1117,7 @@ export default function DashboardPage() {
                     onClick={fetchUsersList}
                     disabled={loadingUsers}
                     style={{
-                      background: '#032419',
+                      background: 'rgba(4, 49, 33, 0.7)',
                       border: '2px solid #cca334',
                       color: '#f3c653',
                       padding: '12px 24px',
@@ -1137,7 +1138,7 @@ export default function DashboardPage() {
 
               {/* CIF DATA TABLE */}
               <div style={{
-                background: '#032419',
+                background: 'rgba(4, 49, 33, 0.7)',
                 border: '3px solid #cca334',
                 borderRadius: '24px',
                 overflow: 'hidden',
@@ -1146,7 +1147,7 @@ export default function DashboardPage() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: '#021c13', borderBottom: '3px solid #cca334' }}>
+                      <tr style={{ background: 'rgba(255, 255, 255, 0.05)', borderBottom: '3px solid #cca334' }}>
                         <th style={{ padding: '24px 20px', fontSize: '13px', fontWeight: 900, color: '#f3c653', textTransform: 'uppercase', letterSpacing: '1px' }}>Identitas & NIK</th>
                         <th style={{ padding: '24px 20px', fontSize: '13px', fontWeight: 900, color: '#f3c653', textTransform: 'uppercase', letterSpacing: '1px' }}>Verifikasi Ibu Kandung</th>
                         <th style={{ padding: '24px 20px', fontSize: '13px', fontWeight: 900, color: '#f3c653', textTransform: 'uppercase', letterSpacing: '1px' }}>Pekerjaan & Pendapatan</th>
@@ -1213,7 +1214,7 @@ export default function DashboardPage() {
                                 <button 
                                   onClick={() => setSelectedCIF(m)}
                                   style={{
-                                    background: '#032b1c',
+                                    background: 'rgba(255, 255, 255, 0.05)',
                                     border: '2px solid #34d399',
                                     color: '#34d399',
                                     padding: '8px 16px',
@@ -1225,7 +1226,7 @@ export default function DashboardPage() {
                                     boxShadow: '0 2px 8px rgba(52,211,153,0.1)'
                                   }}
                                   onMouseOver={(e) => { e.currentTarget.style.background = '#34d399'; e.currentTarget.style.color = '#02130e'; }}
-                                  onMouseOut={(e) => { e.currentTarget.style.background = '#032b1c'; e.currentTarget.style.color = '#34d399'; }}
+                                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#34d399'; }}
                                 >
                                   🔍 Buka Dokumen KYC
                                 </button>
@@ -1259,7 +1260,7 @@ export default function DashboardPage() {
           }}>
             
             <div style={{
-              background: '#032419',
+              background: 'rgba(4, 49, 33, 0.7)',
               border: '4px solid #f3c653', // Heavy Gold Border for clear focus
               borderRadius: '28px',
               width: '100%',
@@ -1378,7 +1379,7 @@ export default function DashboardPage() {
             padding: '20px'
           }}>
             <div style={{
-              background: '#032419',
+              background: 'rgba(4, 49, 33, 0.7)',
               border: '4px solid #cca334',
               borderRadius: '28px',
               width: '100%',
@@ -1422,7 +1423,7 @@ export default function DashboardPage() {
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
                     style={{
-                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
                       borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
                       fontWeight: 600, outline: 'none'
                     }}
@@ -1438,7 +1439,7 @@ export default function DashboardPage() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     style={{
-                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
                       borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
                       fontWeight: 600, outline: 'none'
                     }}
@@ -1455,7 +1456,7 @@ export default function DashboardPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     style={{
-                      width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)',
+                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
                       borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
                       fontWeight: 600, outline: 'none'
                     }}
@@ -1529,7 +1530,7 @@ export default function DashboardPage() {
           }}>
             
             <div style={{
-              background: '#032419',
+              background: 'rgba(4, 49, 33, 0.7)',
               border: '4px solid #34d399', // Vibrant Green security border
               borderRadius: '28px',
               width: '100%',
@@ -1554,7 +1555,7 @@ export default function DashboardPage() {
                 </div>
                 <span style={{
                   fontSize: '11px',
-                  background: '#022b1c',
+                  background: 'rgba(4, 49, 33, 0.7)',
                   color: '#34d399',
                   border: '1px solid #34d399',
                   padding: '6px 12px',
@@ -1575,7 +1576,7 @@ export default function DashboardPage() {
                   <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', borderLeft: '3px solid #f3c653', paddingLeft: '8px' }}>
                     1. Kredensial & Identitas Negara
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: '#021c13', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div>
                       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>NAMA LENGKAP (CIF)</div>
                       <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.users?.full_name || '—'}</div>
@@ -1601,7 +1602,7 @@ export default function DashboardPage() {
                     <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', borderLeft: '3px solid #f3c653', paddingLeft: '8px' }}>
                       2. Keamanan Bank
                     </div>
-                    <div style={{ background: '#021c13', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
                       <div style={{ marginBottom: '12px' }}>
                         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>IBU KANDUNG</div>
                         <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.mother_name}</div>
@@ -1616,7 +1617,7 @@ export default function DashboardPage() {
                     <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', borderLeft: '3px solid #f3c653', paddingLeft: '8px' }}>
                       3. Profil Ekonomi
                     </div>
-                    <div style={{ background: '#021c13', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
                       <div style={{ marginBottom: '12px' }}>
                         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>PROFESI PEKERJAAN</div>
                         <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.occupation}</div>
@@ -1636,7 +1637,7 @@ export default function DashboardPage() {
                   <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', borderLeft: '3px solid #f3c653', paddingLeft: '8px' }}>
                     4. Informasi Geografis & Domisili
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#021c13', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255, 255, 255, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div>
                       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>ALAMAT KTP RESMI</div>
                       <div style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff', lineHeight: 1.4 }}>{selectedCIF.ktp_address}</div>
@@ -1685,7 +1686,7 @@ export default function DashboardPage() {
             background: 'rgba(1, 10, 7, 0.9)', backdropFilter: 'blur(8px)',
             zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
           }}>
-            <div style={{ background: '#032419', border: '4px solid #cca334', borderRadius: '28px', width: '100%', maxWidth: '550px', padding: '36px', boxShadow: '0 30px 80px rgba(0,0,0,0.8)' }}>
+            <div style={{ background: 'rgba(4, 49, 33, 0.7)', border: '4px solid #cca334', borderRadius: '28px', width: '100%', maxWidth: '550px', padding: '36px', boxShadow: '0 30px 80px rgba(0,0,0,0.8)' }}>
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#f3c653', marginBottom: '8px' }}>
                 {editingRule ? '✏️ Edit Aturan Akses' : '➕ Tambah Aturan Baru'}
               </h2>
@@ -1717,22 +1718,22 @@ export default function DashboardPage() {
                 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>NAMA JABATAN / ROLE</label>
-                  <input name="role_name" defaultValue={editingRule?.role_name} required style={{ width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff', fontWeight: 600 }} />
+                  <input name="role_name" defaultValue={editingRule?.role_name} required style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff', fontWeight: 600 }} />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>TANGGUNG JAWAB UTAMA</label>
-                  <input name="responsibility" defaultValue={editingRule?.responsibility} placeholder="Contoh: Operasional Kas & Pelayanan" style={{ width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <input name="responsibility" defaultValue={editingRule?.responsibility} placeholder="Contoh: Operasional Kas & Pelayanan" style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>CAKUPAN OTORITAS</label>
-                  <textarea name="authority_scope" defaultValue={editingRule?.authority_scope} rows={3} style={{ width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <textarea name="authority_scope" defaultValue={editingRule?.authority_scope} rows={3} style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>BATASAN AKSES</label>
-                  <input name="limitations" defaultValue={editingRule?.limitations} placeholder="Contoh: Tidak bisa menghapus jurnal" style={{ width: '100%', background: '#021c13', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <input name="limitations" defaultValue={editingRule?.limitations} placeholder="Contoh: Tidak bisa menghapus jurnal" style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
@@ -1760,7 +1761,7 @@ export default function DashboardPage() {
     <>
       <div style={{
         minHeight: '100vh',
-        background: '#02130e',
+        background: 'transparent',
         color: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
@@ -1769,12 +1770,14 @@ export default function DashboardPage() {
         padding: '24px',
         position: 'relative'
       }}>
-        <DashboardSiteBackground />
+        <GlobalSiteBackground />
         
         <div 
           className="hero-glass-container"
           style={{
-            background: '#032419',
+            background: 'rgba(4, 49, 33, 0.75)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             border: '3px solid #cca334',
             maxWidth: '600px',
             width: '100%',
@@ -1801,7 +1804,8 @@ export default function DashboardPage() {
 
           {/* Info Display Card */}
           <div style={{
-            background: '#010d09',
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(16px)',
             border: '2px solid rgba(204,163,52,0.3)',
             borderRadius: '20px',
             padding: '24px',

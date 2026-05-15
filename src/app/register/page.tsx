@@ -146,7 +146,7 @@ export default function RegisterPage() {
               Registrasi <span style={{ color: '#cca334' }}>Akun Baru</span>
             </h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
-              Buat akun akses digital IQ-RA System Anda
+              Buat akun akses digital iQ-RA System Anda
             </p>
           </div>
 

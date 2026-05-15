@@ -139,7 +139,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
       {/* Main Form / Data Container */}
       <div style={{
-        background: '#032419',
+        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
         border: '3px solid #cca334',
         borderRadius: '24px',
         padding: '36px',
@@ -320,7 +320,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
                   1. Identitas Kewarganegaraan
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#021c13', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div>
                     <div style={labelStyle}>NOMOR KTP (NIK)</div>
                     <div style={valueStyle}>{profile?.nik || '— Belum Diisi —'}</div>
@@ -345,7 +345,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
                   2. Kontak & Finansial
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#021c13', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div>
                     <div style={labelStyle}>NOMOR WHATSAPP</div>
                     <div style={valueStyle}>{profile?.phone_number || profile?.users?.phone_number || '— Belum Diisi —'}</div>
@@ -367,7 +367,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
                 3. Geografis & Domisili
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#021c13', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div>
                   <div style={labelStyle}>ALAMAT KTP</div>
                   <div style={{ ...valueStyle, fontFamily: 'inherit', lineHeight: 1.5 }}>{profile?.ktp_address || '— Belum Diisi —'}</div>

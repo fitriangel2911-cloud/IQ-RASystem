@@ -36,7 +36,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
 
   return (
     <div style={{
-      background: '#032419',
+      background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
       border: '3px solid #cca334',
       borderRadius: '24px',
       overflow: 'hidden',
@@ -52,7 +52,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ background: '#021c13', borderBottom: '2px solid #cca334' }}>
+            <tr style={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', borderBottom: '2px solid #cca334' }}>
               <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Waktu & Tanggal</th>
               <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Tipe Transaksi</th>
               <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Keterangan / Deskripsi</th>

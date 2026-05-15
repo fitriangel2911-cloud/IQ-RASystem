@@ -158,12 +158,12 @@ export default function AOPage() {
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h2 style={{ color: '#043121', fontWeight: 900, fontSize: '28px', margin: 0 }}>
+            <h2 style={{ color: '#ffffff', fontWeight: 900, fontSize: '28px', margin: 0 }}>
               {activeMenu === 'overview' && '📊 Dashboard Operasional AO'}
               {activeMenu === 'leads' && '🎯 Manajemen Prospek & Lead'}
               {activeMenu === 'portfolio' && '📂 Monitoring Portofolio Aktif'}
             </h2>
-            <p style={{ color: '#043121', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
               Kelola ekosistem pembiayaan syariah secara produktif dan amanah.
             </p>
           </div>

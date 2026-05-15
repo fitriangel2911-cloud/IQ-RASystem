@@ -1,5 +1,5 @@
 /**
- * IQ-RA System Domain Models
+ * iQ-RA System Domain Models
  * Statically typed to enforce schema consistency as defined in doc/blueprint.md
  */
 

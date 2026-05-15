@@ -469,7 +469,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             
             {/* Report Header Print Layout */}
             <div style={{ textAlign: 'center', borderBottom: '2px solid rgba(255,255,255,0.2)', paddingBottom: '20px', marginBottom: '30px' }}>
-              <h2 style={{ color: '#f3c653', margin: 0, fontSize: '24px', fontWeight: 900 }}>KOPERASI SIMPAN PINJAM SYARIAH IQ-RA</h2>
+              <h2 style={{ color: '#f3c653', margin: 0, fontSize: '24px', fontWeight: 900 }}>KOPERASI SIMPAN PINJAM SYARIAH iQ-RA</h2>
               <h3 style={{ color: '#fff', margin: '6px 0 0 0', fontSize: '18px', fontWeight: 700 }}>LAPORAN POSISI KEUANGAN (NERACA)</h3>
               <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginTop: '4px' }}>Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Per Tanggal: {new Date().toLocaleDateString('id-ID')}</div>
             </div>

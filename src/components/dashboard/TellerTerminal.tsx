@@ -187,8 +187,8 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div style={{
-        background: 'rgba(4, 49, 33, 0.9)',
-        backdropFilter: 'blur(20px)',
+        background: 'rgba(4, 49, 33, 0.7)',
+        backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderRadius: '32px',
         border: '1px solid rgba(255,255,255,0.1)',
@@ -286,8 +286,8 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                   placeholder="0"
                   style={{
                     width: '100%',
-                    background: '#043121',
-                    border: '2px solid #cca334',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '2px solid rgba(255,255,255,0.2)',
                     borderRadius: '16px',
                     padding: '18px 18px 18px 55px',
                     color: '#ffffff',
