@@ -64,6 +64,11 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-15 (Sesi Pagi - UI/UX Standardization)**:
+    - **Visual & Estetika**: Penyeragaman tema *Emerald Glassmorphism* (hijau kaca) pada keseluruhan panel Dashboard Nasabah dan seluruh halaman Staf.
+    - **Latar Belakang Global**: Implementasi animasi partikel `GlobalSiteBackground` agar aktif secara universal melintasi semua tipe pengguna (Member & Staff/Super Admin).
+    - **Optimasi Kontras**: Menyetel transparansi `rgba(4, 49, 33, 0.75)` dengan `backdropFilter: blur(24px)` untuk menjamin keterbacaan teks dan nuansa premium tanpa kesan *washed-out*.
+
 - **2026-05-14 (Sesi Malam - Final Compliance & DPS Flex)**:
     - **Knowledge Management**: Implementasi modul Ingesti Dokumen bagi Super Admin & DPS untuk melatih AI.
     - **DPS Flexibility**: Penambahan kotak saran opsional bagi DPS dan fitur input rujukan syariah mandiri.
