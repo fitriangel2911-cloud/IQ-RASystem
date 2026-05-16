@@ -99,7 +99,6 @@ export default function MemberPage() {
       overflow: 'hidden'
     }}>
       {/* Immersive Dynamic Animated Homepage Background */}
-      <GlobalSiteBackground />
 
       <Sidebar 
         activeTab={activeTab} 

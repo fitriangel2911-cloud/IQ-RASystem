@@ -98,6 +98,14 @@ body {
    UI COMPONENTS
 ══════════════════════════════════════════════════════════ */
 
+.gold-text-gradient {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+}
+
 .btn-primary-gold {
   background: var(--gold-gradient);
   color: #043121;
@@ -153,12 +161,6 @@ body {
   transform: translateY(0);
 }
 
-.gold-text-gradient {
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 900;
-}
 
 /* ═══════════════════════════════════════════════════════
    RESPONSIVE LAYOUT
