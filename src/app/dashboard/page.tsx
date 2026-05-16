@@ -386,9 +386,7 @@ export default function DashboardPage() {
         background: 'transparent',
         color: 'var(--text-primary)',
         display: 'flex',
-        position: 'relative'
       }}>
-        <GlobalSiteBackground />
 
         <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
 
@@ -1824,7 +1822,6 @@ export default function DashboardPage() {
         padding: '24px',
         position: 'relative'
       }}>
-        <GlobalSiteBackground />
         
         <div 
           className="hero-glass-container"
