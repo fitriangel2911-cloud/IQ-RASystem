@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-sans), 'Inter', sans-serif;
-}
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
 :root {
+  --font-sans: var(--font-sans), 'Inter', sans-serif;
   --emerald-deep: #043121;
   --emerald-mid: #084b35;
   --emerald-light: #bcf72b;
