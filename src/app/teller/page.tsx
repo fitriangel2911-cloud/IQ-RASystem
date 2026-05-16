@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 
 import TellerTerminal from '@/components/dashboard/TellerTerminal';
 import BrandLogo from '@/components/brand/BrandLogo';
+import ThemeToggle from '@/components/dashboard/ThemeToggle';
 
 export default function TellerPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function TellerPage() {
   const [activeMenu, setActiveMenu] = useState('terminal');
   const [journalHistory, setJournalHistory] = useState<any[]>([]);
   const [membersList, setMembersList] = useState<any[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -90,22 +91,68 @@ export default function TellerPage() {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      <GlobalSiteBackground />
       
       {/* 🟢 SIDEBAR EMERALD */}
       <aside style={{
-        width: '280px',
-        background: 'rgba(4, 49, 33, 0.95)',
+        width: isSidebarOpen ? '300px' : '0px',
+        opacity: isSidebarOpen ? 1 : 0,
+        background: 'var(--bg-sidebar)',
         backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(255,255,255,0.1)',
+        borderRight: isSidebarOpen ? '2px solid var(--gold-bright)' : 'none',
         display: 'flex',
         flexDirection: 'column',
-        padding: '40px 20px',
+        padding: isSidebarOpen ? '36px 24px' : '0px',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
         zIndex: 100,
-        boxShadow: '20px 0 50px rgba(0,0,0,0.3)'
+        boxShadow: isSidebarOpen ? '8px 0 25px var(--shadow-color)' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden'
       }}>
-        <div style={{ marginBottom: '50px', display: 'flex', justifyContent: 'center' }}>
-          <BrandLogo size={50} fontSize="24px" />
+        {/* Close Button Toggle */}
+        <button 
+          onClick={() => setIsSidebarOpen(false)}
+          style={{
+            position: 'absolute',
+            right: '15px',
+            top: '15px',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid var(--border-primary)',
+            borderRadius: '8px',
+            color: 'var(--gold-intense)',
+            cursor: 'pointer',
+            padding: '5px 10px',
+            fontWeight: 900
+          }}
+        >
+          ✕
+        </button>
+        <div style={{ 
+          marginBottom: '40px', 
+          display: 'flex', 
+          flexDirection: 'column',
+          gap: '16px',
+          position: 'relative'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <BrandLogo size={42} fontSize="22px" textColor="var(--text-primary)" />
+            <div style={{ marginRight: '35px' }}>
+              <ThemeToggle />
+            </div>
+          </div>
+          <div style={{ 
+            fontSize: '11px', 
+            color: 'var(--text-primary)', 
+            fontWeight: 900, 
+            textTransform: 'uppercase', 
+            letterSpacing: '1.5px', 
+            marginLeft: '56px',
+            opacity: 0.9
+          }}>
+            Layanan Kasir
+          </div>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
@@ -128,21 +175,36 @@ export default function TellerPage() {
 
         <div style={{ 
           marginTop: 'auto', 
-          padding: '20px', 
-          background: 'rgba(255,255,255,0.03)', 
-          borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.05)'
+          padding: '18px', 
+          background: 'var(--border-primary)', 
+          borderRadius: '18px',
+          border: '1px solid var(--gold-bright)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px'
         }}>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Petugas Aktif</div>
-          <div style={{ color: '#ffffff', fontWeight: 700, fontSize: '14px' }}>{profile?.full_name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '38px', height: '38px', borderRadius: '10px', 
+              background: 'var(--gold-intense)', display: 'flex', alignItems: 'center', 
+              justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: '#02130e' 
+            }}>
+              {profile?.full_name?.charAt(0) || 'T'}
+            </div>
+            <div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>Petugas Aktif</div>
+              <div style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '13px' }}>{profile?.full_name}</div>
+            </div>
+          </div>
           <button 
             onClick={handleLogout}
             style={{ 
-              marginTop: '16px', width: '100%', background: '#ef4444', color: 'white', 
-              border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 800, cursor: 'pointer' 
+              width: '100%', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--text-primary)', 
+              border: '2px solid #fca5a5', padding: '10px', borderRadius: '12px', 
+              fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', fontSize: '12px'
             }}
           >
-            Keluar Sistem
+            🔌 Keluar Sistem
           </button>
         </div>
       </aside>
@@ -151,28 +213,58 @@ export default function TellerPage() {
       <main style={{ 
         flexGrow: 1, 
         padding: '40px 60px', 
+        marginLeft: isSidebarOpen ? '300px' : '0px',
         zIndex: 20, 
         overflowY: 'auto',
-        height: '100vh'
+        height: '100vh',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         {/* Header Content */}
         <header style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
-          marginBottom: '40px',
-          background: 'rgba(4, 49, 33, 0.7)',
+          marginBottom: '44px',
+          background: 'var(--bg-header)',
           backdropFilter: 'blur(16px)',
-          padding: '20px 30px',
-          borderRadius: '20px',
-          border: '1.5px solid rgba(255, 255, 255, 0.08)'
+          padding: '24px 36px',
+          borderRadius: '24px',
+          border: '1px solid var(--border-primary)',
+          borderLeft: '6px solid var(--gold-intense)',
+          boxShadow: '0 20px 40px var(--shadow-color)'
         }}>
-          <h2 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: 900 }}>
-            {activeMenu === 'terminal' && '🏪 Terminal Kasir Utama'}
-            {activeMenu === 'history' && '📜 Log Mutasi Jurnal Harian'}
-            {activeMenu === 'members' && '👥 Direktori Anggota Koperasi'}
-          </h2>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {!isSidebarOpen && (
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                style={{
+                  background: 'var(--bg-sidebar)',
+                  border: '2px solid var(--gold-bright)',
+                  borderRadius: '12px',
+                  color: 'var(--gold-intense)',
+                  padding: '12px 18px',
+                  cursor: 'pointer',
+                  fontWeight: 900,
+                  boxShadow: '0 4px 15px var(--shadow-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                ☰ <span style={{ fontSize: '12px' }}>MENU</span>
+              </button>
+            )}
+            <div>
+              <div style={{ background: 'var(--border-primary)', color: 'var(--gold-intense)', padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 900, letterSpacing: '1px', display: 'inline-block', marginBottom: '8px', textTransform: 'uppercase' }}>Terminal Operasional Kas</div>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '28px', fontWeight: 900, letterSpacing: '-0.5px' }}>
+                {activeMenu === 'terminal' && '🏪 Terminal Kasir Utama'}
+                {activeMenu === 'history' && '📜 Log Mutasi Jurnal Harian'}
+                {activeMenu === 'members' && '👥 Direktori Anggota Koperasi'}
+              </h2>
+            </div>
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', fontWeight: 600, textAlign: 'right' }}>
+            <div style={{ color: '#34d399', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>🟢 KONEKSI LIVE</div>
             {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </header>
@@ -182,29 +274,29 @@ export default function TellerPage() {
           
           {activeMenu === 'history' && (
             <div style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'var(--bg-card)',
               backdropFilter: 'blur(20px)',
               borderRadius: '32px',
               padding: '0',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
+              border: '1px solid var(--border-primary)',
+              boxShadow: '0 30px 60px var(--shadow-color)'
             }}>
               {/* Solid Emerald Header for History Table */}
-              <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '24px 40px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <h3 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 900 }}>
+              <div style={{ background: 'var(--bg-header)', padding: '24px 40px', borderBottom: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900 }}>
                   📜 LOG JURNAL KASIR REAL-TIME
                 </h3>
               </div>
               <div style={{ padding: '20px 40px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', color: '#ffffff' }}>
                   <thead>
-                    <tr style={{ textAlign: 'left', borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 800 }}>TANGGAL</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 800 }}>REF NO</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 800 }}>KETERANGAN</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 800, textAlign: 'right' }}>DEBIT</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 800, textAlign: 'right' }}>KREDIT</th>
+                    <tr style={{ textAlign: 'left', borderBottom: '2px solid rgba(243, 198, 83, 0.3)', background: 'rgba(255,255,255,0.03)' }}>
+                      <th style={{ padding: '20px', color: '#f3c653', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase' }}>TANGGAL</th>
+                      <th style={{ padding: '20px', color: '#f3c653', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase' }}>REF NO</th>
+                      <th style={{ padding: '20px', color: '#f3c653', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase' }}>KETERANGAN</th>
+                      <th style={{ padding: '20px', color: '#f3c653', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', textAlign: 'right' }}>DEBIT</th>
+                      <th style={{ padding: '20px', color: '#f3c653', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', textAlign: 'right' }}>KREDIT</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -235,17 +327,17 @@ export default function TellerPage() {
 
           {activeMenu === 'members' && (
             <div style={{ 
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'var(--bg-card)',
               backdropFilter: 'blur(20px)',
               borderRadius: '32px',
               padding: '0',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 30px 60px rgba(0,0,0,0.4)'
+              border: '1px solid var(--border-primary)',
+              boxShadow: '0 30px 60px var(--shadow-color)'
             }}>
               {/* Solid Emerald Header for Member List */}
-              <div style={{ background: 'rgba(4, 49, 33, 0.8)', padding: '24px 40px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px' }}>
-                <h3 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 900 }}>
+              <div style={{ background: 'var(--bg-header)', padding: '24px 40px', borderBottom: '1px solid var(--border-primary)', marginBottom: '30px' }}>
+                <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900 }}>
                   👥 DIREKTORI ANGGOTA KOPERASI
                 </h3>
               </div>
@@ -253,13 +345,19 @@ export default function TellerPage() {
               <div style={{ padding: '0 40px 40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
                 {membersList.length > 0 ? membersList.map(member => (
                   <div key={member.id} style={{
-                    background: 'rgba(4, 49, 33, 0.7)', // Matching Homepage cards
+                    background: 'var(--bg-card)',
                     borderRadius: '24px',
                     padding: '28px',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-                    transition: 'all 0.3s ease'
+                    border: '1px solid var(--gold-bright)',
+                    boxShadow: '0 15px 35px var(--shadow-color)',
+                    transition: 'all 0.3s ease',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
+                    {/* Decorative background logo */}
+                    <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, transform: 'rotate(-15deg) scale(1.5)' }}>
+                      <BrandLogo size={60} showText={false} />
+                    </div>
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                       <div style={{ 
                         width: '64px', height: '64px', borderRadius: '18px', 
@@ -280,26 +378,27 @@ export default function TellerPage() {
                     
                     <div style={{ 
                       marginTop: '24px', padding: '16px', 
-                      background: 'rgba(0,0,0,0.3)', 
+                      background: 'var(--shadow-color)', 
                       borderRadius: '16px',
-                      border: '1px solid rgba(255,255,255,0.05)'
+                      border: '1px solid var(--border-primary)'
                     }}>
-                      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '1px' }}>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '1px' }}>
                         ID Akun / Email
                       </div>
-                      <div style={{ color: '#ffffff', fontSize: '14px', fontWeight: 600, wordBreak: 'break-all' }}>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600, wordBreak: 'break-all' }}>
                         {member.users?.email}
                       </div>
                     </div>
 
                     <button style={{
                       marginTop: '20px', width: '100%', 
-                      background: 'rgba(255,255,255,0.05)', 
-                      border: '1.5px solid rgba(255,255,255,0.1)', 
-                      color: '#ffffff', padding: '12px', 
+                      background: 'rgba(243, 198, 83, 0.1)', 
+                      border: '1.5px solid rgba(243, 198, 83, 0.3)', 
+                      color: '#f3c653', padding: '12px', 
                       borderRadius: '12px', fontSize: '13px', fontWeight: 800, 
-                      cursor: 'pointer', transition: 'all 0.2s'
-                    }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}>
+                      cursor: 'pointer', transition: 'all 0.2s',
+                      position: 'relative', zIndex: 5
+                    }} onMouseOver={e => e.currentTarget.style.background = 'rgba(243, 198, 83, 0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(243, 198, 83, 0.1)'}>
                       Lihat Profil Lengkap
                     </button>
                   </div>
@@ -334,20 +433,22 @@ function MenuButton({ active, onClick, icon, label }: any) {
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        padding: '16px 20px',
-        background: active ? '#cca334' : 'transparent',
-        color: active ? '#043121' : 'rgba(255,255,255,0.6)',
+        padding: '15px 18px',
+        background: active ? 'var(--text-primary)' : 'transparent',
+        color: active ? 'var(--bg-page)' : 'var(--text-primary)',
         border: 'none',
-        borderRadius: '16px',
-        fontSize: '15px',
-        fontWeight: 800,
+        borderRadius: '14px',
+        fontSize: '16px',
+        fontWeight: 900,
         textAlign: 'left',
         cursor: 'pointer',
-        transition: 'all 0.2s'
+        transition: 'all 0.2s',
+        boxShadow: active ? '0 10px 20px var(--shadow-color)' : 'none',
+        width: '100%'
       }}
     >
-      <span style={{ fontSize: '20px' }}>{icon}</span>
-      {label}
+      <span style={{ fontSize: '22px', opacity: active ? 1 : 0.8 }}>{icon}</span>
+      <span style={{ opacity: active ? 1 : 0.9 }}>{label}</span>
     </button>
   );
 }

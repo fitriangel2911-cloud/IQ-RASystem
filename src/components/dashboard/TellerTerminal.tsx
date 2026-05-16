@@ -187,37 +187,38 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <div style={{
-        background: 'rgba(4, 49, 33, 0.7)',
+        background: 'var(--bg-header)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderRadius: '32px',
-        border: '1px solid rgba(255,255,255,0.1)',
+        border: '1px solid var(--border-primary)',
         padding: '40px',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.5)',
-        color: '#ffffff',
+        boxShadow: '0 40px 100px var(--shadow-color)',
+        color: 'var(--text-primary)',
         width: '100%',
         animation: 'fadeInScale 0.4s ease'
       }}>
-        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#f3c653', margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>
+        <div style={{ marginBottom: '40px', textAlign: 'center', position: 'relative' }}>
+          <h2 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--gold-intense)', margin: 0, textTransform: 'uppercase', letterSpacing: '3px' }}>
             Layanan Transaksi
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '8px', fontWeight: 600 }}>
-            Petugas Aktif: <span style={{ color: '#4ade80' }}>{tellerName}</span> | Pusat Operasional Kasir
+          <div style={{ width: '100px', height: '4px', background: 'var(--gold-intense)', margin: '16px auto', borderRadius: '2px', boxShadow: '0 0 10px var(--shadow-color)' }} />
+          <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontWeight: 600, fontSize: '15px' }}>
+            Pusat Operasional Kasir | Petugas: <span style={{ color: 'var(--gold-intense)', fontWeight: 800 }}>{tellerName}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
           <div style={{ 
-            background: 'rgba(255,255,255,0.05)', 
+            background: 'var(--border-primary)', 
             padding: '24px', 
             borderRadius: '20px', 
             display: 'grid', 
             gridTemplateColumns: '1.5fr 1fr', 
             gap: '24px',
             alignItems: 'center',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid var(--border-primary)'
           }}>
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Cari Nama Anggota</label>
@@ -226,11 +227,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                 onChange={(e) => setSelectedMemberId(e.target.value)}
                 style={{
                   width: '100%',
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'var(--bg-page)',
+                  border: '1px solid var(--border-primary)',
                   borderRadius: '12px',
                   padding: '14px',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   fontSize: '15px',
                   fontWeight: 700,
                   outline: 'none'
@@ -245,8 +246,8 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               </select>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#f3c653', textTransform: 'uppercase', marginBottom: '4px' }}>Saldo Terakhir</div>
-              <div style={{ fontSize: '26px', fontWeight: 900, color: balance !== null ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase', marginBottom: '4px' }}>Saldo Terakhir</div>
+              <div style={{ fontSize: '26px', fontWeight: 900, color: balance !== null ? '#4ade80' : 'var(--text-secondary)' }}>
                 {balance !== null ? `Rp ${balance.toLocaleString('id-ID')}` : 'Rp 0'}
               </div>
             </div>
@@ -260,11 +261,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                 onChange={(e) => setTrxType(e.target.value as any)}
                 style={{
                   width: '100%',
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'var(--bg-page)',
+                  border: '1px solid var(--border-primary)',
                   borderRadius: '12px',
                   padding: '16px',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   fontSize: '15px',
                   fontWeight: 700,
                   outline: 'none'
@@ -276,9 +277,9 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '10px', textTransform: 'uppercase' }}>Nominal Transaksi</label>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '10px', textTransform: 'uppercase' }}>Nominal Transaksi</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '20px', top: '18px', fontSize: '20px', fontWeight: 900, color: '#f3c653' }}>Rp</span>
+                <span style={{ position: 'absolute', left: '20px', top: '18px', fontSize: '20px', fontWeight: 900, color: 'var(--gold-intense)' }}>Rp</span>
                 <input 
                   type="text"
                   value={displayAmount}
@@ -286,11 +287,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                   placeholder="0"
                   style={{
                     width: '100%',
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '2px solid rgba(255,255,255,0.2)',
+                    background: 'var(--border-primary)',
+                    border: '2px solid var(--border-primary)',
                     borderRadius: '16px',
                     padding: '18px 18px 18px 55px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '28px',
                     fontWeight: 900,
                     outline: 'none'
@@ -309,11 +310,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               placeholder="Masukkan berita acara transaksi di sini..."
               style={{
                 width: '100%',
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'var(--bg-page)',
+                border: '1px solid var(--border-primary)',
                 borderRadius: '12px',
                 padding: '16px',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 fontSize: '15px',
                 fontWeight: 500,
                 outline: 'none',
@@ -377,20 +378,23 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
             type="submit"
             disabled={loading}
             style={{
-              background: '#cca334',
+              background: 'linear-gradient(135deg, var(--gold-intense) 0%, var(--gold-bright) 100%)',
               border: 'none',
-              padding: '22px',
-              borderRadius: '16px',
-              color: '#043121',
+              padding: '24px',
+              borderRadius: '18px',
+              color: '#02130e',
               fontSize: '18px',
               fontWeight: 900,
               cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 10px 30px rgba(204, 163, 52, 0.3)',
-              transition: 'all 0.2s',
-              letterSpacing: '1px'
+              boxShadow: '0 10px 30px var(--shadow-color)',
+              transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              letterSpacing: '2px',
+              textTransform: 'uppercase'
             }}
+            onMouseOver={(e) => { if(!loading) e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
+            onMouseOut={(e) => { if(!loading) e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
           >
-            {loading ? '⏳ MEMPROSES...' : 'SIMPAN & PROSES CETAK'}
+            {loading ? '⏳ SEDANG MEMPROSES...' : '🔥 SIMPAN & PROSES CETAK'}
           </button>
         </form>
       </div>
@@ -398,13 +402,13 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
       {/* Member Transaction History Section */}
       {selectedMemberId && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'var(--bg-card)',
           backdropFilter: 'blur(16px)',
           borderRadius: '32px',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid var(--border-primary)',
           padding: '40px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          color: '#ffffff',
+          boxShadow: '0 20px 60px var(--shadow-color)',
+          color: 'var(--text-primary)',
           animation: 'fadeInUp 0.5s ease-out'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -419,32 +423,32 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
-                  <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>TANGGAL</th>
-                  <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>KETERANGAN</th>
-                  <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 800, textAlign: 'right' }}>DEBIT</th>
-                  <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 800, textAlign: 'right' }}>KREDIT</th>
-                  <th style={{ padding: '16px', color: 'rgba(255,255,255,0.5)', fontWeight: 800, textAlign: 'right' }}>SALDO</th>
+                <tr style={{ borderBottom: '2px solid var(--gold-bright)', textAlign: 'left', background: 'var(--border-primary)' }}>
+                  <th style={{ padding: '20px', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase' }}>TANGGAL</th>
+                  <th style={{ padding: '20px', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase' }}>KETERANGAN</th>
+                  <th style={{ padding: '20px', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', textAlign: 'right' }}>DEBIT</th>
+                  <th style={{ padding: '20px', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', textAlign: 'right' }}>KREDIT</th>
+                  <th style={{ padding: '20px', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', textAlign: 'right' }}>SALDO</th>
                 </tr>
               </thead>
               <tbody>
                 {history.length > 0 ? history.map((item, idx) => (
-                  <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-primary)', transition: 'background 0.2s' }}>
                     <td style={{ padding: '16px', fontWeight: 600 }}>{new Date(item.date).toLocaleDateString('id-ID')}</td>
-                    <td style={{ padding: '16px', color: 'rgba(255,255,255,0.8)' }}>{item.description}</td>
+                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{item.description}</td>
                     <td style={{ padding: '16px', textAlign: 'right', color: '#4ade80', fontWeight: 800 }}>
                       {item.debit > 0 ? `+Rp ${item.debit.toLocaleString('id-ID')}` : '-'}
                     </td>
                     <td style={{ padding: '16px', textAlign: 'right', color: '#fca5a5', fontWeight: 800 }}>
                       {item.credit > 0 ? `-Rp ${item.credit.toLocaleString('id-ID')}` : '-'}
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 900, color: '#f3c653' }}>
+                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 900, color: 'var(--gold-intense)' }}>
                       Rp {(balance || 0).toLocaleString('id-ID')}
                     </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+                    <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.5, fontWeight: 600 }}>
                       Belum ada riwayat transaksi untuk anggota ini.
                     </td>
                   </tr>

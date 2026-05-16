@@ -233,11 +233,11 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 
   const renderAIAnalysis = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
-      <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-        <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
+        <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           🤖 Analisis Akad Berbasis AI (RAG)
         </h3>
-        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '30px' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
           Pilih prospek dari pipeline untuk menjalankan analisis kesesuaian syariah menggunakan iQ-RA AI Engine.
         </p>
         
@@ -249,37 +249,37 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 key={p.id} 
                 onClick={() => { setSelectedProspect(p); setAiResult(null); }}
                 style={{ 
-                  padding: '20px', borderRadius: '16px', border: selectedProspect?.id === p.id ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
-                  cursor: 'pointer', background: selectedProspect?.id === p.id ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)', transition: 'all 0.2s'
+                  padding: '20px', borderRadius: '16px', border: selectedProspect?.id === p.id ? '2px solid #10b981' : '1px solid var(--border-primary)',
+                  cursor: 'pointer', background: selectedProspect?.id === p.id ? 'rgba(16, 185, 129, 0.1)' : 'var(--border-primary)', transition: 'all 0.2s'
                 }}
               >
-                <div style={{ fontWeight: 800, color: '#ffffff' }}>{p.name}</div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>Tujuan: {p.purpose}</div>
+                <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Tujuan: {p.purpose}</div>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
               </div>
             ))}
           </div>
 
           {/* AI Result Area */}
-          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '20px', padding: '30px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '20px', padding: '30px', border: '1px dashed var(--border-primary)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
             {!selectedProspect ? (
-              <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <div style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
                 <div style={{ fontSize: '40px', marginBottom: '15px' }}>👈</div>
                 Pilih nasabah di samping untuk mulai analisis
               </div>
             ) : analyzing ? (
               <div>
-                <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
-                <div style={{ fontWeight: 700, color: '#043121' }}>AI sedang meninjau Fatwa DSN-MUI...</div>
+                <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid var(--border-primary)', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>AI sedang meninjau Fatwa DSN-MUI...</div>
               </div>
             ) : aiResult ? (
               <div style={{ textAlign: 'left', width: '100%', animation: 'fadeIn 0.5s ease' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <span style={{ background: 'rgba(255,255,255,0.1)', color: '#f3c653', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900 }}>REKOMENDASI AKAD</span>
+                  <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900 }}>REKOMENDASI AKAD</span>
                   <div style={{ fontSize: '24px', fontWeight: 900, color: '#10b981' }}>{aiResult.score}% Match</div>
                 </div>
-                <div style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', marginBottom: '15px' }}>{aiResult.contract}</div>
-                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '15px' }}>{aiResult.contract}</div>
+                <div style={{ background: 'var(--border-primary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', opacity: 0.9, fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
                   <strong>Justifikasi Syariah:</strong><br/>{aiResult.justification}
                 </div>
                 <div style={{ background: '#fef2f2', padding: '15px', borderRadius: '12px', border: '1px solid #fecaca', color: '#991b1b', fontSize: '12px', fontWeight: 700, marginBottom: '25px' }}>
@@ -289,7 +289,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 <button 
                   onClick={handleDisburse}
                   disabled={loading}
-                  style={{ width: '100%', background: '#cca334', color: '#043121', padding: '20px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 30px rgba(204, 163, 52, 0.3)' }}
+                  style={{ width: '100%', background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '20px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 30px var(--shadow-color)' }}
                 >
                   {loading ? '⏳ PROSES PENCAIRAN...' : '✅ SETUJUI & CAIRKAN DANA SEKARANG'}
                 </button>
@@ -297,7 +297,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
             ) : (
               <button 
                 onClick={() => runAIAnalysis(selectedProspect)}
-                style={{ background: '#043121', color: 'white', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(4, 49, 33, 0.2)' }}
+                style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px var(--shadow-color)' }}
               >
                 🚀 JALANKAN ANALISIS AI SEKARANG
               </button>
@@ -310,61 +310,61 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 
   const renderAddForm = () => (
     <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeInUp 0.5s ease-out' }}>
-      <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-        <h3 style={{ margin: '0 0 30px 0', fontSize: '24px', fontWeight: 900, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '15px' }}>
+      <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
+        <h3 style={{ margin: '0 0 30px 0', fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '15px' }}>
           📝 Input Prospek Pembiayaan Baru
         </h3>
         
         <form onSubmit={handleAddProspect} style={{ display: 'grid', gap: '20px' }}>
           <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>Nama Lengkap Calon Anggota</label>
+            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nama Lengkap Calon Anggota</label>
             <input 
               type="text" 
               required
               placeholder="Contoh: Budi Santoso"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              style={{ padding: '15px 20px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', fontSize: '16px', outline: 'none', transition: 'border-color 0.2s' }}
+              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none', transition: 'border-color 0.2s' }}
             />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div style={{ display: 'grid', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>Nomor WhatsApp / HP</label>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nomor WhatsApp / HP</label>
               <input 
                 type="tel" 
                 required
                 placeholder="0812xxxx"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', fontSize: '16px', outline: 'none' }}
+                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
               />
             </div>
             <div style={{ display: 'grid', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>Nominal Pengajuan (Rp)</label>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nominal Pengajuan (Rp)</label>
               <input 
                 type="text" 
                 required
                 placeholder="10.000.000"
                 value={formatNumber(formData.amount)}
                 onChange={handleAmountChange}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: '16px', fontWeight: 700, color: '#10b981', outline: 'none' }}
+                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', fontSize: '16px', fontWeight: 700, color: '#10b981', outline: 'none' }}
               />
             </div>
           </div>
 
           <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>Tujuan Penggunaan Dana</label>
+            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Tujuan Penggunaan Dana</label>
             <select 
               value={formData.purpose}
               onChange={(e) => setFormData({...formData, purpose: e.target.value})}
-              style={{ padding: '15px 20px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', fontSize: '16px', outline: 'none' }}
+              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
             >
-              <option value="Modal Usaha" style={{ color: '#043121' }}>Modal Usaha (Mudharabah/Musyarakah)</option>
-              <option value="Pembelian Barang" style={{ color: '#043121' }}>Pembelian Barang/Aset (Murabahah)</option>
-              <option value="Pendidikan" style={{ color: '#043121' }}>Biaya Pendidikan (Ijarah)</option>
-              <option value="Renovasi Rumah" style={{ color: '#043121' }}>Renovasi Rumah (Murabahah/Imbt)</option>
-              <option value="Lainnya" style={{ color: '#043121' }}>Lainnya</option>
+              <option value="Modal Usaha">Modal Usaha (Mudharabah/Musyarakah)</option>
+              <option value="Pembelian Barang">Pembelian Barang/Aset (Murabahah)</option>
+              <option value="Pendidikan">Biaya Pendidikan (Ijarah)</option>
+              <option value="Renovasi Rumah">Renovasi Rumah (Murabahah/Imbt)</option>
+              <option value="Lainnya">Lainnya</option>
             </select>
           </div>
 
@@ -372,9 +372,9 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
             type="submit"
             disabled={loading}
             style={{ 
-              marginTop: '10px', background: '#043121', color: 'white', padding: '18px', borderRadius: '14px', 
+              marginTop: '10px', background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '18px', borderRadius: '14px', 
               border: 'none', fontWeight: 900, cursor: 'pointer', transition: 'all 0.3s',
-              boxShadow: '0 10px 20px rgba(4, 49, 33, 0.2)', opacity: loading ? 0.7 : 1
+              boxShadow: '0 10px 20px var(--shadow-color)', opacity: loading ? 0.7 : 1
             }}
           >
             {loading ? '⏳ MENYIMPAN DATA...' : '🚀 DAFTARKAN PROSPEK KE PIPELINE'}
@@ -390,8 +390,8 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         <div style={{ 
           padding: '20px', borderRadius: '16px', marginBottom: '30px',
           background: message.type === 'success' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-          color: message.type === 'success' ? '#4ade80' : '#fca5a5',
-          border: `1px solid ${message.type === 'success' ? '#4ade80' : '#fca5a5'}`,
+          color: message.type === 'success' ? '#10b981' : '#fca5a5',
+          border: `1px solid ${message.type === 'success' ? '#10b981' : '#fca5a5'}`,
           fontWeight: 700, textAlign: 'center'
         }}>
           {message.text}
@@ -402,26 +402,26 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         <>
           {renderOverview()}
           <div style={{ marginTop: '40px' }}>
-            <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
+              <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 🚀 Pipeline Pembiayaan AO
               </h3>
               {/* Pipeline Table Content */}
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Calon Anggota</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Plafon</th>
-                      <th style={{ padding: '15px', color: '#f3c653', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Tahapan</th>
+                    <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Calon Anggota</th>
+                      <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Plafon</th>
+                      <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Tahapan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {prospects.map((p) => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <td style={{ padding: '20px 15px', fontWeight: 800, color: '#ffffff' }}>{p.name}</td>
+                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border-primary)', opacity: 0.9 }}>
+                        <td style={{ padding: '20px 15px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</td>
                         <td style={{ padding: '20px 15px', color: '#10b981', fontWeight: 700 }}>Rp {p.amount.toLocaleString('id-ID')}</td>
-                        <td style={{ padding: '20px 15px', color: 'rgba(255,255,255,0.7)' }}>{p.status}</td>
+                        <td style={{ padding: '20px 15px', color: 'var(--text-secondary)' }}>{p.status}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -436,17 +436,17 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       {activeMenu === 'prospects' && renderAIAnalysis()}
       
       {activeMenu === 'survey' && (
-        <div style={{ padding: '80px', textAlign: 'center', background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div style={{ padding: '80px', textAlign: 'center', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', border: '1px solid var(--border-primary)' }}>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>🗺️</div>
-          <h3 style={{ fontWeight: 900, color: '#ffffff' }}>Modul Verifikasi Lapangan</h3>
-          <p style={{ color: 'rgba(255,255,255,0.7)' }}>Gunakan aplikasi Mobile iQ-RA untuk mengunggah foto survei dan koordinat GPS.</p>
+          <h3 style={{ fontWeight: 900, color: 'var(--text-primary)' }}>Modul Verifikasi Lapangan</h3>
+          <p style={{ color: 'var(--text-secondary)' }}>Gunakan aplikasi Mobile iQ-RA untuk mengunggah foto survei dan koordinat GPS.</p>
         </div>
       )}
 
       {activeMenu === 'portfolio' && (
         <div style={{ animation: 'fadeInUp 0.8s ease-out' }}>
-           <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+           <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
+            <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
               📂 Daftar Portofolio Anggota Aktif
             </h3>
             {portfolio.length > 0 ? (
@@ -454,15 +454,15 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 {/* Portfolio Table Content */}
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                      <th style={{ padding: '15px', textAlign: 'left', color: '#f3c653', fontWeight: 700 }}>Nama Anggota</th>
-                      <th style={{ padding: '15px', textAlign: 'left', color: '#f3c653', fontWeight: 700 }}>Outstanding</th>
+                    <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700 }}>Nama Anggota</th>
+                      <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700 }}>Outstanding</th>
                     </tr>
                   </thead>
                   <tbody>
                     {portfolio.map((item: any) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <td style={{ padding: '15px', fontWeight: 700, color: '#ffffff' }}>{(item as any).users?.full_name}</td>
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                        <td style={{ padding: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{(item as any).users?.full_name}</td>
                         <td style={{ padding: '15px', color: '#10b981', fontWeight: 700 }}>Rp {item.amount.toLocaleString('id-ID')}</td>
                       </tr>
                     ))}
@@ -470,7 +470,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 </table>
               </div>
             ) : (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 Belum ada portofolio pembiayaan aktif.
               </div>
             )}
@@ -488,8 +488,8 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 function StatCard({ title, value, icon, color }: any) {
   return (
     <div style={{ 
-      background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', padding: '30px', borderRadius: '24px', 
-      boxShadow: '0 15px 40px rgba(0,0,0,0.04)', border: '1px solid rgba(255,255,255, 0.1)',
+      background: 'var(--bg-card)', backdropFilter: 'blur(16px)', padding: '30px', borderRadius: '24px', 
+      boxShadow: '0 15px 40px var(--shadow-color)', border: '1px solid var(--border-primary)',
       display: 'flex', alignItems: 'center', gap: '20px'
     }}>
       <div style={{ 
@@ -499,8 +499,8 @@ function StatCard({ title, value, icon, color }: any) {
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</div>
-        <div style={{ fontSize: '24px', fontWeight: 900, color: '#ffffff', marginTop: '4px' }}>{value}</div>
+        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</div>
+        <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px' }}>{value}</div>
       </div>
     </div>
   );

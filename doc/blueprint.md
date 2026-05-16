@@ -1,4 +1,4 @@
-﻿Dokumen Rancangan Sistem: IQ-RA System
+Dokumen Rancangan Sistem: IQ-RA System
 Platform Keuangan Mikro Syariah Terintegrasi dengan Mekanisme Retrieval-Augmented Generation (RAG) Sebagai Rekomendasi Akad dan Kepatuhan SAK EP
 Spesifikasi Teknologi: Next.js (React), TypeScript, Tailwind CSS, Supabase (PostgreSQL & pgvector), LangChain.js
 1.     Ringkasan Eksekutif
@@ -36,6 +36,14 @@ Komponen Teknologi
 ●      Manajemen Data: Supabase sebagai platform Backend-as-a-Service (BaaS) dengan kapabilitas database PostgreSQL relasional dan ekstensi pgvector untuk penyimpanan data vektor AI.
 ●      Mesin Kecerdasan Buatan: LangChain.js beroperasi sebagai orkestrator jalur pipa RAG untuk ekstraksi teks dokumen regulasi, pembuatan embeddings, dan pencarian konteks spesifik.
 ●      Siklus Pengembangan: Pemanfaatan Vercel untuk deployment berkinerja tinggi serta GitHub Actions yang terintegrasi dengan SonarCloud untuk tinjauan kualitas kode secara otomatis.
+
+3.1. Sistem Desain Antarmuka (Premium UI/UX)
+Untuk menjamin kepercayaan pengguna pada platform finansial, IQ-RA System mengadopsi standar estetika "Premium Sharia FinTech" dengan dukungan multi-tema:
+●      Sistem Tema Dinamis: Implementasi Mode Terang (Light) dan Mode Gelap (Dark/Emerald) yang dapat diganti secara real-time melalui ThemeToggle berbasis React Context API.
+●      Palet Warna (Light Mode): Menggunakan *Dark Emerald Green* (`#043121`) sebagai warna teks utama dan *Gold* (`#f3c653`) sebagai latar belakang sidebar untuk kesan premium.
+●      Palet Warna (Dark Mode): Dominasi *Dark Emerald Green* (`#043121`) yang melambangkan pertumbuhan, dipadukan dengan aksen *Gold* (`#f3c653`) pada border dan ikon.
+●      Standardisasi Dasbor: Penggunaan Sidebar dinamis terpadu dengan fitur *Collapsible*. Komponen layanan utama (seperti Layanan Kasir) diberikan penekanan visual (ukuran lebih besar & warna kontras) untuk kemudahan akses operasional.
+●      Optimasi Aksesibilitas: Penyesuaian kontras warna pada seluruh mode untuk memastikan teks tetap terbaca tajam di atas latar belakang kaca (*glassmorphism*).
 4.     Spesifikasi Modul Fungsional
 4.1. Manajemen Keanggotaan dan Data Utama
 

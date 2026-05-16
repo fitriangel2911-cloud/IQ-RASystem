@@ -28,19 +28,19 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
       
       {/* Greeting Banner */}
       <div style={{
-        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        border: '3px solid #cca334',
+        background: 'var(--bg-card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+        border: '3px solid var(--border-primary)',
         borderRadius: '28px',
         padding: '40px',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+        boxShadow: '0 20px 50px var(--shadow-color)',
         position: 'relative',
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', marginBottom: '12px' }}>
-            Assalamualaikum, <span style={{ color: '#f3c653' }}>{profile?.users?.full_name || 'Saudara/i'}</span>
+          <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            Assalamualaikum, <span style={{ color: 'var(--text-primary)', opacity: 0.8 }}>{profile?.users?.full_name || 'Saudara/i'}</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.6, margin: 0 }}>
             Selamat datang kembali di portal layanan syariah mandiri Anda. Anda dapat mengelola tabungan, melihat imbal hasil mudharabah, dan mengajukan pembiayaan tanpa riba dari sini.
           </p>
         </div>
@@ -54,7 +54,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
       {/* Metrics Cards Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
         {/* Total Balance Card */}
-        <div style={cardStyle('#cca334')}>
+        <div style={cardStyle('var(--text-primary)')}>
           <div style={cardHeaderStyle}>💵 Total Saldo Keseluruhan</div>
           <div style={cardValueStyle}>{formatCurrency(totalBalance)}</div>
           <div style={cardSubText}>{accounts.length} Rekening terdaftar</div>
@@ -62,17 +62,17 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
         </div>
 
         {/* Transactions Counter Card */}
-        <div style={cardStyle('#34d399')}>
+        <div style={cardStyle('#10b981')}>
           <div style={cardHeaderStyle}>📊 Volume Transaksi</div>
-          <div style={cardValueStyle}>{transactions.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>Aktivitas</span></div>
+          <div style={cardValueStyle}>{transactions.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.5 }}>Aktivitas</span></div>
           <div style={cardSubText}>Pembukuan mutasi real-time</div>
           <button onClick={() => setActiveTab('transactions')} style={cardButtonStyle}>Mutasi Rekening ↗</button>
         </div>
 
         {/* Financing Card */}
-        <div style={cardStyle('#60a5fa')}>
+        <div style={cardStyle('#3b82f6')}>
           <div style={cardHeaderStyle}>🤝 Akad Pembiayaan</div>
-          <div style={cardValueStyle}>{contracts.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>Pengajuan</span></div>
+          <div style={cardValueStyle}>{contracts.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.5 }}>Pengajuan</span></div>
           <div style={cardSubText}>{contracts.filter(c => c.status === 'pending').length} Menunggu Tinjauan</div>
           <button onClick={() => setActiveTab('financing')} style={cardButtonStyle}>Status Akad ↗</button>
         </div>
@@ -83,19 +83,19 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
         
         {/* Action Checklist Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#043121', margin: 0 }}>Tugas & Checklist Anggota</h3>
+          <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Tugas & Checklist Anggota</h3>
 
           {/* KYC Alert if incomplete */}
           {!isProfileComplete && (
             <div style={{
-              background: '#7f1d1d', // Solid premium deep red background for maximum readability
+              background: '#991b1b',
               border: '2px solid #fca5a5',
               borderRadius: '20px',
               padding: '24px',
               display: 'flex',
               flexDirection: 'column',
               gap: '14px',
-              boxShadow: '0 15px 30px rgba(127, 29, 29, 0.3)'
+              boxShadow: '0 15px 30px var(--shadow-color)'
             }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <span style={{ fontSize: '24px' }}>🚨</span>
@@ -120,16 +120,16 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
           {/* System Tips */}
           <div style={{
-            background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            border: '2px solid rgba(204, 163, 52, 0.2)',
+            background: 'var(--bg-card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            border: '2px solid var(--border-primary)',
             borderRadius: '20px',
             padding: '24px',
             display: 'flex',
             flexDirection: 'column',
             gap: '12px'
           }}>
-            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#f3c653' }}>💡 Tips Keamanan Finansial</h4>
-            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)' }}>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>💡 Tips Keamanan Finansial</h4>
+            <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
               Ingatlah untuk tidak pernah memberikan kata sandi (password) akun iQ-RA Anda kepada siapa pun, termasuk kepada petugas koperasi kami. Petugas resmi tidak akan pernah meminta kredensial pribadi Anda.
             </p>
           </div>
@@ -137,17 +137,17 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
         {/* Quick Transaction Preview */}
         <div style={{
-          background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          border: '3px solid #cca334',
+          background: 'var(--bg-card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+          border: '3px solid var(--border-primary)',
           borderRadius: '24px',
           padding: '28px',
-          boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
+          boxShadow: '0 15px 40px var(--shadow-color)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#f3c653', margin: 0 }}>Aktivitas Terkini</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Aktivitas Terkini</h3>
             <button 
               onClick={() => setActiveTab('transactions')}
-              style={{ background: 'transparent', border: 'none', color: '#34d399', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', color: '#10b981', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
             >
               Lihat Semua →
             </button>
@@ -155,7 +155,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {previewTx.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>
+              <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-secondary)', opacity: 0.4, fontSize: '14px' }}>
                 Belum memiliki riwayat transaksi.
               </div>
             ) : (
@@ -164,20 +164,20 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
                 return (
                   <div key={tx.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '14px 18px', borderRadius: '14px',
-                    border: '1px solid rgba(255,255,255,0.03)'
+                    background: 'var(--bg-page)', backdropFilter: 'blur(16px)', padding: '14px 18px', borderRadius: '14px',
+                    border: '1px solid var(--border-primary)'
                   }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
                         {tx.type.toLowerCase().includes('deposit') ? '📥 Setoran' : isOut ? '📤 Penarikan' : '💸 Transaksi'}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         {new Date(tx.created_at).toLocaleDateString('id-ID')}
                       </div>
                     </div>
                     <div style={{
                       fontSize: '15px', fontWeight: 900,
-                      color: isOut ? '#fca5a5' : '#34d399'
+                      color: isOut ? '#ef4444' : '#10b981'
                     }}>
                       {isOut ? '-' : '+'} {formatCurrency(tx.amount)}
                     </div>
@@ -194,11 +194,11 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 }
 
 const cardStyle = (borderColor: string) => ({
-  background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+  background: 'var(--bg-card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
   border: `2px solid ${borderColor}`,
   borderRadius: '24px',
   padding: '28px',
-  boxShadow: '0 15px 35px rgba(0,0,0,0.3)',
+  boxShadow: '0 15px 35px var(--shadow-color)',
   display: 'flex',
   flexDirection: 'column' as any,
   position: 'relative' as any
@@ -207,7 +207,7 @@ const cardStyle = (borderColor: string) => ({
 const cardHeaderStyle = {
   fontSize: '13px',
   fontWeight: 800,
-  color: '#ffffff',
+  color: 'var(--text-primary)',
   opacity: 0.6,
   textTransform: 'uppercase' as any,
   letterSpacing: '1px',
@@ -217,21 +217,21 @@ const cardHeaderStyle = {
 const cardValueStyle = {
   fontSize: '28px',
   fontWeight: 900,
-  color: '#ffffff',
+  color: 'var(--text-primary)',
   marginBottom: '6px'
 };
 
 const cardSubText = {
   fontSize: '12px',
-  color: 'rgba(255,255,255,0.4)',
+  color: 'var(--text-secondary)',
   fontWeight: 600,
   marginBottom: '24px'
 };
 
 const cardButtonStyle = {
-  background: 'rgba(255, 255, 255, 0.05)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  color: '#ffffff',
+  background: 'var(--border-primary)',
+  border: '1px solid var(--border-primary)',
+  color: 'var(--text-primary)',
   padding: '8px 16px',
   borderRadius: '10px',
   fontSize: '12px',

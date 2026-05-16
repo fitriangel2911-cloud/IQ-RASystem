@@ -8,251 +8,189 @@
 html { scroll-behavior: smooth; }
 
 :root {
-  --emerald-deep: #043121; /* Deep forest green matching user image background & navbar */
+  --emerald-deep: #043121;
   --emerald-mid: #084b35;
-  --emerald-light: #bcf72b; /* Neon green for Demo System button */
+  --emerald-light: #bcf72b;
   --gold-deep: #a67e26;
-  --gold-bright: #cca334; /* Matte gold matching the text & logo badge */
+  --gold-bright: #cca334;
+  --gold-intense: #f3c653;
+
+  /* Theme Defaults (Dark Mode / Emerald) */
+  --bg-page: #02130e;
+  --bg-sidebar: rgba(4, 49, 33, 0.96);
+  --bg-card: rgba(4, 49, 33, 0.7);
+  --bg-header: rgba(4, 49, 33, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --pattern-opacity: 0.25;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --gold-gradient: linear-gradient(135deg, #f3c653 0%, #cca334 100%);
+}
+
+.light-mode {
+  --bg-page: #f8fafc;
+  --bg-sidebar: linear-gradient(180deg, #f3c653 0%, #cca334 100%);
+  --bg-card: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.9);
+  --text-primary: #043121;
+  --text-secondary: #064e3b;
+  --border-primary: rgba(4, 49, 33, 0.2);
+  --pattern-opacity: 0.15;
+  --shadow-color: rgba(4, 49, 33, 0.1);
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
-  background-color: #f8faf9;
-  color: #111827;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
 /* ═══════════════════════════════════════════════════════
-   ANIMATED BACKGROUND - USER PATTERN CENTERPIECE
+   ANIMATED BACKGROUND - ISLAMIC GIRIH PATTERN
 ══════════════════════════════════════════════════════════ */
 
-/* The fundamental global background setup that repeats and moves across the site */
 .site-bg-wrapper {
   position: fixed;
   inset: 0;
   z-index: -10;
-  background-color: #f9fdfb;
+  background-color: var(--bg-page);
   overflow: hidden;
+  transition: background-color 0.5s ease;
 }
 
-/* The active moving image itself. Fully visible (opacity 1) as the core backdrop concept. */
-.site-bg-pattern {
+.islamic-pattern-overlay {
   position: absolute;
-  top: -600px;
-  left: -600px;
-  right: -600px;
-  bottom: -600px;
-  background-image: url('/pattern-bg.png');
-  background-repeat: repeat;
-  background-size: 600px 600px;
-  opacity: 0.95;
-  /* Optimize rendering: move to GPU layer & bypass repaint */
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-  animation: scrollContinuous 30s linear infinite;
+  inset: -100px;
+  width: calc(100% + 200px);
+  height: calc(100% + 200px);
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='white' stroke-width='1.5' stroke-opacity='0.6'%3E%3Cpath d='M60 0 L75 15 L105 15 L120 30 L120 60 L105 75 L105 105 L75 120 L60 120 L45 105 L15 105 L0 90 L0 60 L15 45 L15 15 L45 0 Z'/%3E%3Cpath d='M60 30 L80 50 L80 70 L60 90 L40 70 L40 50 Z'/%3E%3Cpath d='M0 0 L30 30 M90 30 L120 0 M0 120 L30 90 M90 90 L120 120'/%3E%3Crect x='45' y='45' width='30' height='30' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  opacity: var(--pattern-opacity);
+  animation: movePattern 40s linear infinite;
   pointer-events: none;
 }
 
-/* Subtly apply the Emerald & Gold additional colors as ambient washes OVER the pattern */
-.site-bg-overlay {
+.light-mode .islamic-pattern-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23043121' stroke-width='1.5' stroke-opacity='0.4'%3E%3Cpath d='M60 0 L75 15 L105 15 L120 30 L120 60 L105 75 L105 105 L75 120 L60 120 L45 105 L15 105 L0 90 L0 60 L15 45 L15 15 L45 0 Z'/%3E%3Cpath d='M60 30 L80 50 L80 70 L60 90 L40 70 L40 50 Z'/%3E%3Cpath d='M0 0 L30 30 M90 30 L120 0 M0 120 L30 90 M90 90 L120 120'/%3E%3Crect x='45' y='45' width='30' height='30' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+@keyframes movePattern {
+  0% { background-position: 0 0; }
+  100% { background-position: 240px 240px; }
+}
+
+.site-bg-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
-              radial-gradient(circle at 85% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 45%);
-  pointer-events: none;
-  transform: translateZ(0); /* Push overlay to GPU as well */
-}
-
-@keyframes scrollContinuous {
-  0% {
-    transform: translate3d(0px, 0px, 0) scale(1.0);
-  }
-  50% {
-    transform: translate3d(300px, 300px, 0) scale(1.02); /* Extremely subtle scale, gentle on GPU */
-  }
-  100% {
-    transform: translate3d(600px, 600px, 0) scale(1.0); /* Seamless 600px match size */
-  }
+  /* Dark Emerald & Gold blend in background */
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(4, 49, 33, 0.4) 0%, transparent 70%),
+    radial-gradient(circle at 80% 70%, rgba(204, 163, 52, 0.15) 0%, transparent 70%);
+  z-index: -5;
+  opacity: 1;
 }
 
 /* ═══════════════════════════════════════════════════════
-   PREMIUM BLOCKS (EMERALD & GOLD ACCENTS)
+   UI COMPONENTS
 ══════════════════════════════════════════════════════════ */
-
-/* Main container that gives background visibility through the page whitespace */
-.page-content-section {
-  position: relative;
-  z-index: 1;
-  background: transparent; /* Allow bg pattern to show through */
-}
-
-/* Hero Gradient Accent Box */
-.hero-glass-container {
-  background: rgba(4, 49, 33, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 32px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
-}
-
-/* Shimmer gold text effect */
-.shimmer-gold {
-  background: linear-gradient(90deg, #cca334 0%, #fcd34d 40%, #cca334 60%, #fcd34d 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: goldPulse 4s linear infinite;
-}
-
-@keyframes goldPulse {
-  to { background-position: 200% center; }
-}
-
-/* ═══════════════════════════════════════════════════════
-   GLOBAL COMPONENTS
-══════════════════════════════════════════════════════════ */
-
-.navbar {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(4, 49, 33, 0.85); /* Dark translucent green matching image */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
 
 .btn-primary-gold {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 16px 36px;
-  background: var(--gold-bright);
-  color: var(--emerald-deep) !important; /* Force dark text on gold button as in image */
-  font-weight: 700; font-size: 17px;
-  border-radius: 12px; text-decoration: none;
-  box-shadow: 0 4px 12px rgba(204, 163, 52, 0.2);
-  transition: all 0.2s ease;
+  background: var(--gold-gradient);
+  color: #043121;
+  border-radius: 14px;
+  border: none;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 25px rgba(204, 163, 52, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
+
 .btn-primary-gold:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(204, 163, 52, 0.3);
-  opacity: 0.95;
+  box-shadow: 0 12px 30px rgba(204, 163, 52, 0.4);
+  filter: brightness(1.1);
 }
 
-.btn-outline-emerald {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 16px 36px;
-  border: 1.5px solid #bcf72b; /* Matching neon border */
-  background: transparent;
-  color: #bcf72b; 
-  font-weight: 700; font-size: 17px;
-  border-radius: 12px; text-decoration: none;
-  transition: all 0.2s ease;
-}
-.btn-outline-emerald:hover {
-  background: rgba(188, 247, 43, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(188, 247, 43, 0.15);
-}
-
-.btn-nav-neon {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 10px 26px;
-  background: #bcf72b; /* Neon bright green matching the Demo button */
-  color: #043121 !important; /* Dark text */
-  font-weight: 700; font-size: 16px;
-  border-radius: 999px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-.btn-nav-neon:hover {
-  transform: scale(1.03);
-  box-shadow: 0 4px 20px rgba(188, 247, 43, 0.4);
+.hero-glass-container {
+  background: rgba(4, 49, 33, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
   border-radius: 24px;
-  padding: 40px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-  transition: transform 0.3s, box-shadow 0.3s;
+  padding: 32px;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-primary);
 }
+
 .feature-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(16, 185, 129, 0.1);
-  border-color: var(--emerald-mid);
+  border-color: var(--gold-bright);
 }
 
-.glass-dark {
-  background: linear-gradient(135deg, #064e3b 0%, #033d2e 100%);
-  color: white;
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-}
-
-/* Scroll triggers */
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
+.gold-text-gradient {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+}
+
 /* ═══════════════════════════════════════════════════════
-   FINAL AESTHETIC POLISH & MOBILE OPTIMIZATIONS
-   ═══════════════════════════════════════════════════════ */
+   RESPONSIVE LAYOUT
+══════════════════════════════════════════════════════════ */
 
-/* Premium Floating Interactivity for Laporan Cards */
-.laporan-card {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  transform: translateY(0) scale(1);
+.main-content-layout {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
 }
 
-.laporan-card:hover {
-  transform: translateY(-10px) scale(1.02) !important;
-  border-color: rgba(204, 163, 52, 0.6) !important;
-  box-shadow: 0 30px 60px rgba(4, 49, 33, 0.4), 0 0 20px rgba(204, 163, 52, 0.15) !important;
-  background: rgba(4, 49, 33, 0.85) !important;
-}
-
-/* Interactive Glow for statistics inside cards */
-.laporan-card:hover svg {
-  stroke: var(--gold-bright) !important;
-  transform: translateY(2px);
-  transition: all 0.2s ease;
-}
-
-/* High-Performance Profil Grid Breakpoints */
-.profil-grid-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .nav-menu-section {
-    display: none !important; /* Collapses menu links to prevent crowding on phones */
-  }
-  
-  .navbar .btn-primary-gold {
-    padding: 10px 24px !important;
-    font-size: 15px !important;
-  }
-  
-  .hero-glass-container {
-    padding: 60px 24px !important;
-  }
-  
-  .ai-flow-arrow {
-    display: none !important; /* Remove arrows in wrapped flow charts on mobile */
+@media (min-width: 1024px) {
+  .sidebar-open .main-content-layout {
+    margin-left: 280px;
+    width: calc(100% - 280px);
   }
 }
 
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}

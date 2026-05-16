@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useMemberDashboardData } from '@/hooks/useMemberDashboardData';
-import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import Sidebar from '@/components/dashboard/Sidebar';
 import OverviewPanel from '@/components/dashboard/OverviewPanel';
 import AccountsTable from '@/components/dashboard/AccountsTable';
@@ -15,6 +14,7 @@ type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile
 export default function MemberPage() {
   const { profile, accounts, transactions, contracts, loading, error, refetch } = useMemberDashboardData();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   if (loading) {
     return (
@@ -90,10 +90,10 @@ export default function MemberPage() {
   }
 
   return (
-    <div style={{
+    <div className={isSidebarOpen ? 'sidebar-open' : ''} style={{
       minHeight: '100vh',
       background: 'transparent',
-      color: '#1f2937',
+      color: 'var(--text-primary)',
       display: 'flex',
       position: 'relative',
       overflow: 'hidden'
@@ -101,15 +101,18 @@ export default function MemberPage() {
       {/* Immersive Dynamic Animated Homepage Background */}
       <GlobalSiteBackground />
 
-      {/* 1. PREMIUM VERTICAL SIDEBAR */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         profile={profile}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
+      <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
+
       {/* 2. MAIN SCROLLABLE CONTENT AREA */}
-      <main style={{
+      <main className="main-content-layout" style={{
         flexGrow: 1,
         height: '100vh',
         overflowY: 'auto',
@@ -125,21 +128,43 @@ export default function MemberPage() {
           alignItems: 'center',
           marginBottom: '44px'
         }}>
-          <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#043121', letterSpacing: '-0.5px', margin: '0 0 6px 0' }}>
-              {activeTab === 'overview' && 'Ikhtisar Ringkasan'}
-              {activeTab === 'accounts' && 'Portofolio Rekening'}
-              {activeTab === 'transactions' && 'Log Aktivitas Finansial'}
-              {activeTab === 'financing' && 'Layanan Pembiayaan'}
-              {activeTab === 'profile' && 'Verifikasi Kredensial Dokumen'}
-            </h1>
-            <p style={{ color: '#4b5563', fontSize: '15px', fontWeight: 600, margin: 0 }}>
-              {activeTab === 'overview' && 'Status ringkasan menyeluruh rekening & transaksi syariah Anda.'}
-              {activeTab === 'accounts' && 'Rincian dan rupa saldo dari seluruh wadiah & mudharabah Anda.'}
-              {activeTab === 'transactions' && 'Catatan terperinci mutasi debit & kredit riil tanpa jeda.'}
-              {activeTab === 'financing' && 'Pengajuan kemitraan produktif & pemantauan akad aktif Anda.'}
-              {activeTab === 'profile' && 'Lengkapi dokumen KYC fisik untuk kelayakan penjaminan syariah.'}
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{
+                background: 'var(--bg-sidebar)',
+                border: '2px solid var(--text-primary)',
+                borderRadius: '14px',
+                color: 'var(--text-primary)',
+                padding: '12px 20px',
+                cursor: 'pointer',
+                fontWeight: 900,
+                boxShadow: '0 4px 15px var(--shadow-color)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'all 0.3s ease',
+                zIndex: 50
+              }}
+            >
+              {isSidebarOpen ? '✕' : '☰'} <span style={{ fontSize: '13px', letterSpacing: '1px' }}>MENU PORTAL</span>
+            </button>
+            <div>
+              <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '0 0 6px 0' }}>
+                {activeTab === 'overview' && 'Ikhtisar Ringkasan'}
+                {activeTab === 'accounts' && 'Portofolio Rekening'}
+                {activeTab === 'transactions' && 'Log Aktivitas Finansial'}
+                {activeTab === 'financing' && 'Layanan Pembiayaan'}
+                {activeTab === 'profile' && 'Verifikasi Kredensial Dokumen'}
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>
+                {activeTab === 'overview' && 'Status ringkasan menyeluruh rekening & transaksi syariah Anda.'}
+                {activeTab === 'accounts' && 'Rincian dan rupa saldo dari seluruh wadiah & mudharabah Anda.'}
+                {activeTab === 'transactions' && 'Catatan terperinci mutasi debit & kredit riil tanpa jeda.'}
+                {activeTab === 'financing' && 'Pengajuan kemitraan produktif & pemantauan akad aktif Anda.'}
+                {activeTab === 'profile' && 'Lengkapi dokumen KYC fisik untuk kelayakan penjaminan syariah.'}
+              </p>
+            </div>
           </div>
 
           {/* Auto-Refresh Badge Indicator */}

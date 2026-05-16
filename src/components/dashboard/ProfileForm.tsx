@@ -108,28 +108,26 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
       
       {/* Status Badge Box */}
       <div style={{
-        background: isProfileComplete ? '#064e3b' : '#7f1d1d', // Solid background colors for absolute legibility
+        background: isProfileComplete ? '#065f46' : '#991b1b', 
         border: `2px solid ${isProfileComplete ? '#34d399' : '#fca5a5'}`,
         borderRadius: '20px',
         padding: '24px',
         display: 'flex',
         alignItems: 'center',
         gap: '20px',
-        boxShadow: isProfileComplete 
-          ? '0 15px 35px rgba(6, 78, 59, 0.25)' 
-          : '0 15px 35px rgba(127, 29, 29, 0.25)'
+        boxShadow: '0 15px 35px var(--shadow-color)'
       }}>
         <div style={{ fontSize: '48px' }}>{isProfileComplete ? '✅' : '⚠️'}</div>
         <div>
           <h4 style={{ 
             fontSize: '18px', 
             fontWeight: 900, 
-            color: isProfileComplete ? '#34d399' : '#fca5a5',
+            color: '#ffffff',
             margin: '0 0 4px 0'
           }}>
             {isProfileComplete ? 'Dokumen Profil Anda Sudah Lengkap!' : 'Perhatian: Dokumen Belum Lengkap'}
           </h4>
-          <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: 500, lineHeight: 1.5, margin: 0 }}>
+          <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px', fontWeight: 500, lineHeight: 1.5, margin: 0 }}>
             {isProfileComplete 
               ? 'Semua berkas KYC (Know Your Customer) telah tervalidasi. Anda berhak mengajukan pembiayaan produk syariah kapan saja.'
               : 'Sesuai regulasi Dewan Pengawas Syariah, Anda WAJIB melengkapi data NIK, KK, Nama Ibu Kandung, dan Slip Gaji sebelum dapat memohon pengajuan pembiayaan.'}
@@ -139,25 +137,26 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
       {/* Main Form / Data Container */}
       <div style={{
-        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        border: '3px solid #cca334',
+        background: 'var(--bg-card)', 
+        backdropFilter: 'blur(24px)', 
+        border: '3px solid var(--border-primary)',
         borderRadius: '24px',
         padding: '36px',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
+        boxShadow: '0 25px 50px var(--shadow-color)',
         position: 'relative'
       }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '2px solid rgba(204, 163, 52, 0.2)', paddingBottom: '20px' }}>
-          <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#f3c653', margin: 0 }}>🗂️ Berkas Dokumen & KYC Fisik</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid var(--border-primary)', paddingBottom: '20px' }}>
+          <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>🗂️ Berkas Dokumen & KYC Fisik</h3>
           {!editing && (
             <button
               onClick={() => setEditing(true)}
               style={{
-                background: '#f3c653', color: '#02130e',
+                background: 'var(--text-primary)', color: 'var(--bg-page)',
                 border: 'none', padding: '10px 24px', borderRadius: '12px',
                 fontSize: '14px', fontWeight: 800, cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(243, 198, 83, 0.3)',
+                boxShadow: '0 4px 15px var(--shadow-color)',
                 transition: 'transform 0.2s'
               }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -174,7 +173,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               {/* Left Col */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Nomor Induk Kependudukan (NIK KTP)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Induk Kependudukan (NIK KTP)</label>
                   <input 
                     type="text" maxLength={16} required
                     value={formData.nik}
@@ -185,7 +184,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Nomor Kartu Keluarga (KK)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kartu Keluarga (KK)</label>
                   <input 
                     type="text" maxLength={16} required
                     value={formData.kk_number}
@@ -196,7 +195,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Nama Kandung Ibu (Untuk Verifikasi Bank)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Kandung Ibu (Untuk Verifikasi Bank)</label>
                   <input 
                     type="text" required
                     value={formData.mother_name}
@@ -207,7 +206,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Agama / Kepercayaan</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Agama / Kepercayaan</label>
                   <select
                     value={formData.religion}
                     onChange={e => setFormData({...formData, religion: e.target.value})}
@@ -226,7 +225,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               {/* Right Col */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Nomor Kontak Aktif (WhatsApp)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kontak Aktif (WhatsApp)</label>
                   <input 
                     type="tel" required
                     value={formData.phone_number}
@@ -237,7 +236,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Profesi / Pekerjaan Utama</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Profesi / Pekerjaan Utama</label>
                   <input 
                     type="text" required
                     value={formData.occupation}
@@ -248,7 +247,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Penghasilan Rata-rata Per Bulan (Rp)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Penghasilan Rata-rata Per Bulan (Rp)</label>
                   <input 
                     type="number" min={0} required
                     value={formData.monthly_income}
@@ -263,7 +262,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
             {/* Full width addresses */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Alamat KTP Asli</label>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat KTP Asli</label>
                 <textarea 
                   required rows={2}
                   value={formData.ktp_address}
@@ -274,7 +273,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Alamat Domisili Tinggal (Sekarang)</label>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Domisili Tinggal (Sekarang)</label>
                 <textarea 
                   required rows={2}
                   value={formData.domicile_address}
@@ -290,8 +289,8 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               <button 
                 type="button" onClick={() => setEditing(false)} disabled={saving}
                 style={{
-                  background: 'transparent', border: '2px solid rgba(255,255,255,0.3)',
-                  color: '#ffffff', padding: '14px 30px', borderRadius: '12px',
+                  background: 'transparent', border: '2px solid var(--border-primary)',
+                  color: 'var(--text-primary)', padding: '14px 30px', borderRadius: '12px',
                   fontSize: '15px', fontWeight: 800, cursor: 'pointer'
                 }}
               >
@@ -300,10 +299,10 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               <button 
                 type="submit" disabled={saving}
                 style={{
-                  background: '#34d399', border: 'none',
-                  color: '#02130e', padding: '14px 40px', borderRadius: '12px',
+                  background: '#10b981', border: 'none',
+                  color: 'var(--bg-page)', padding: '14px 40px', borderRadius: '12px',
                   fontSize: '15px', fontWeight: 900, cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(52, 211, 153, 0.3)'
+                  boxShadow: '0 4px 15px var(--shadow-color)'
                 }}
               >
                 {saving ? '🔄 Mengunggah...' : '💾 Simpan Dokumen'}
@@ -317,10 +316,10 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
               
               {/* Group 1 */}
               <div>
-                <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
+                <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
                   1. Identitas Kewarganegaraan
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                   <div>
                     <div style={labelStyle}>NOMOR KTP (NIK)</div>
                     <div style={valueStyle}>{profile?.nik || '— Belum Diisi —'}</div>
@@ -342,10 +341,10 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
               {/* Group 2 */}
               <div>
-                <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
+                <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
                   2. Kontak & Finansial
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                   <div>
                     <div style={labelStyle}>NOMOR WHATSAPP</div>
                     <div style={valueStyle}>{profile?.phone_number || profile?.users?.phone_number || '— Belum Diisi —'}</div>
@@ -356,7 +355,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                   </div>
                   <div>
                     <div style={labelStyle}>PENDAPATAN BULANAN</div>
-                    <div style={{ ...valueStyle, color: '#34d399', fontSize: '18px' }}>{profile?.monthly_income ? formatCurrency(profile.monthly_income) : '— Belum Diisi —'}</div>
+                    <div style={{ ...valueStyle, color: '#10b981', fontSize: '18px' }}>{profile?.monthly_income ? formatCurrency(profile.monthly_income) : '— Belum Diisi —'}</div>
                   </div>
                 </div>
               </div>
@@ -364,15 +363,15 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
             {/* Group 3 */}
             <div>
-              <div style={{ color: '#f3c653', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid #cca334', paddingLeft: '10px' }}>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
                 3. Geografis & Domisili
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                 <div>
                   <div style={labelStyle}>ALAMAT KTP</div>
                   <div style={{ ...valueStyle, fontFamily: 'inherit', lineHeight: 1.5 }}>{profile?.ktp_address || '— Belum Diisi —'}</div>
                 </div>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                <div style={{ borderTop: '1px solid var(--border-primary)', paddingTop: '16px' }}>
                   <div style={labelStyle}>ALAMAT TINGGAL SEKARANG</div>
                   <div style={{ ...valueStyle, fontFamily: 'inherit', lineHeight: 1.5 }}>{profile?.domicile_address || '— Belum Diisi —'}</div>
                 </div>
@@ -387,11 +386,11 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 }
 
 const inputStyle = {
-  background: '#ffffff',
-  border: '2px solid #cca334',
+  background: 'var(--bg-page)',
+  border: '2px solid var(--border-primary)',
   borderRadius: '12px',
   padding: '14px 16px',
-  color: '#02130e',
+  color: 'var(--text-primary)',
   fontSize: '15px',
   fontWeight: 700,
   outline: 'none',
@@ -400,7 +399,7 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: '11px',
-  color: 'rgba(255,255,255,0.4)',
+  color: 'var(--text-secondary)',
   fontWeight: 700,
   marginBottom: '4px'
 };
@@ -408,6 +407,6 @@ const labelStyle = {
 const valueStyle = {
   fontSize: '16px',
   fontWeight: 800,
-  color: '#ffffff',
+  color: 'var(--text-primary)',
   fontFamily: 'monospace'
 };

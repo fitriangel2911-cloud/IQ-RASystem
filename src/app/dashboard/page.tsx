@@ -11,34 +11,33 @@ import AODashboard from '@/components/dashboard/AODashboard';
 import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
 import CSDashboard from '@/components/dashboard/CSDashboard';
 import AIKnowledgeManager from '@/components/dashboard/AIKnowledgeManager';
-import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
-
-// Removed DashboardSiteBackground in favor of GlobalSiteBackground
+import ThemeToggle from '@/components/dashboard/ThemeToggle';
 
 // Intensely styled menu button for the dashboard sidebar
-function DashboardMenuButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: string, label: string }) {
+function DashboardMenuButton({ active, onClick, icon, label, isSpecial = false }: { active: boolean, onClick: () => void, icon: string, label: string, isSpecial?: boolean }) {
   return (
     <button 
       onClick={onClick}
       style={{
-        background: active ? '#f3c653' : 'transparent',
-        border: 'none',
+        background: active ? 'var(--text-primary)' : 'transparent',
+        border: isSpecial ? '2px solid var(--emerald-deep)' : 'none',
         textAlign: 'left',
-        padding: '15px 18px',
+        padding: isSpecial ? '18px 20px' : '15px 18px',
         borderRadius: '14px',
-        color: active ? '#02130e' : 'rgba(255,255,255,0.8)',
-        fontWeight: 800,
-        fontSize: '15px',
+        color: active ? 'var(--bg-page)' : 'var(--text-primary)',
+        fontWeight: isSpecial ? 900 : 800,
+        fontSize: isSpecial ? '18px' : '16px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         transition: 'all 0.2s',
-        boxShadow: active ? '0 4px 15px rgba(243, 198, 83, 0.3)' : 'none'
+        boxShadow: active ? '0 8px 20px var(--shadow-color)' : 'none',
+        width: '100%'
       }}
     >
-      <span style={{ fontSize: '18px' }}>{icon}</span>
-      {label}
+      <span style={{ fontSize: isSpecial ? '24px' : '22px', opacity: active ? 1 : 0.8 }}>{icon}</span>
+      <span style={{ opacity: active ? 1 : 0.9 }}>{label}</span>
     </button>
   );
 }
@@ -86,6 +85,9 @@ export default function DashboardPage() {
   // Real-time Search Query & Real Membership count states
   const [searchQuery, setSearchQuery] = useState('');
   const [totalApprovedMembers, setTotalApprovedMembers] = useState(0);
+  
+  // Sidebar open/close state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   // CIF / Physical Membership data states
   const [membersList, setMembersList] = useState<any[]>([]);
@@ -350,14 +352,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <>
-        <GlobalSiteBackground />
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', gap: '16px', position: 'relative', zIndex: 10 }}>
-          <div style={{ border: '3px solid transparent', borderTopColor: '#f3c653', borderRightColor: '#f3c653', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
-          <h3 style={{ fontWeight: 800, fontSize: '18px', color: '#f3c653' }}>Memuat Dasbor iQ-RA...</h3>
-          <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      </>
+      <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-page)', transition: 'background 0.5s ease', alignItems: 'center', justifyContent: 'center', color: 'white', gap: '16px', position: 'relative', zIndex: 10 }}>
+        <div style={{ border: '3px solid transparent', borderTopColor: '#f3c653', borderRightColor: '#f3c653', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
+        <h3 style={{ fontWeight: 800, fontSize: '18px', color: '#f3c653' }}>Memuat Dasbor iQ-RA...</h3>
+        <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
     );
   }
 
@@ -382,40 +381,68 @@ export default function DashboardPage() {
     });
 
     return (
-      <div style={{ 
+      <div className={isSidebarOpen ? 'sidebar-open' : ''} style={{ 
         minHeight: '100vh', 
         background: 'transparent',
-        color: '#ffffff',
+        color: 'var(--text-primary)',
         display: 'flex',
         position: 'relative'
       }}>
         <GlobalSiteBackground />
 
+        <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
+
         {/* 1. SIDEBAR: Solid, Bold, Premium Dark Emerald */}
         <aside style={{
-          width: '300px',
-          background: 'rgba(4, 49, 33, 0.96)',
-          backdropFilter: 'blur(20px)',
-          borderRight: '2px solid #cca334',
+          width: isSidebarOpen ? '320px' : '0px',
+          opacity: isSidebarOpen ? 1 : 0,
+          background: 'var(--bg-sidebar)',
+          backdropFilter: 'blur(25px)',
+          borderRight: isSidebarOpen ? '4px solid var(--gold-intense)' : 'none',
           display: 'flex',
           flexDirection: 'column',
-          padding: '36px 24px',
-          position: 'sticky',
+          padding: isSidebarOpen ? '40px 24px' : '0px',
+          position: 'fixed',
           top: 0,
+          left: 0,
           height: '100vh',
-          zIndex: 30,
-          boxShadow: '8px 0 25px rgba(0,0,0,0.5)'
+          zIndex: 100,
+          boxShadow: isSidebarOpen ? '10px 0 30px var(--shadow-color)' : 'none',
+          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden'
         }}>
-          {/* Sidebar Brand */}
-          <div style={{ marginBottom: '40px' }}>
-            <BrandLogo size={44} fontSize="20px" />
-            <div style={{ fontSize: '11px', color: '#f3c653', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '4px', marginLeft: '56px' }}>IT Administrator</div>
-          </div>
+          {/* Sidebar Close Toggle - Enhanced Spacing */}
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            style={{
+              position: 'absolute',
+              right: '16px',
+              top: '16px',
+              background: 'rgba(0,0,0,0.15)',
+              border: '2px solid var(--text-primary)',
+              borderRadius: '12px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 900,
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+              zIndex: 110
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'rotate(90deg) scale(1.1)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
+          >
+            ✕
+          </button>
 
-          {/* Admin Identity Card */}
           <div style={{
-            background: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(243, 198, 83, 0.2)', // Subtle gold glow
+            background: 'var(--border-primary)',
+            border: '1px solid var(--gold-bright)',
             borderRadius: '18px',
             padding: '18px',
             marginBottom: '36px',
@@ -427,21 +454,21 @@ export default function DashboardPage() {
               width: '42px', 
               height: '42px', 
               borderRadius: '12px', 
-              background: '#f3c653', // Intense Gold
+              background: 'var(--gold-intense)',
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
               fontSize: '18px', 
               fontWeight: 900, 
               color: '#02130e',
-              boxShadow: '0 4px 10px rgba(243, 198, 83, 0.3)',
+              boxShadow: '0 4px 10px var(--shadow-color)',
               flexShrink: 0
             }}>
               {profile?.full_name ? profile.full_name.charAt(0) : 'A'}
             </div>
             <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontWeight: 800, fontSize: '15px', color: '#ffffff' }}>{profile?.full_name}</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>{profile?.email}</div>
+              <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>{profile?.full_name}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>{profile?.email}</div>
             </div>
           </div>
 
@@ -462,7 +489,13 @@ export default function DashboardPage() {
             )}
 
             {/* KASIR (TELLER) */}
-            <DashboardMenuButton active={activeTab === 'teller'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} icon="🏪" label="Layanan Kasir / Teller" />
+            <DashboardMenuButton 
+              active={activeTab === 'teller'} 
+              onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} 
+              icon="🏪" 
+              label="Layanan Kasir / Teller" 
+              isSpecial={true}
+            />
 
             {/* PEMBIAYAAN (AO) */}
             <DashboardMenuButton active={activeTab === 'ao'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="🤝" label="Manajemen Pembiayaan" />
@@ -528,7 +561,7 @@ export default function DashboardPage() {
         </aside>
 
         {/* 2. MAIN CONTENT AREA: Crystal Clear High Contrast */}
-        <main style={{
+        <main className="main-content-layout" style={{
           flexGrow: 1,
           padding: '48px',
           overflowY: 'auto',
@@ -539,21 +572,42 @@ export default function DashboardPage() {
           
           {/* Header */}
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '44px' }}>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{
+                background: 'var(--bg-sidebar)',
+                border: '2px solid var(--text-primary)',
+                borderRadius: '14px',
+                color: 'var(--text-primary)',
+                padding: '12px 20px',
+                marginRight: '24px',
+                cursor: 'pointer',
+                fontWeight: 900,
+                boxShadow: '0 4px 15px var(--shadow-color)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'all 0.3s ease',
+                zIndex: 50
+              }}
+            >
+              {isSidebarOpen ? '✕' : '☰'} <span style={{ fontSize: '13px', letterSpacing: '1px' }}>KONTROL PANEL</span>
+            </button>
             <div style={{
-              background: 'rgba(4, 49, 33, 0.7)',
+              background: 'var(--bg-header)',
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderLeft: '6px solid #f3c653',
+              border: '1px solid var(--border-primary)',
+              borderLeft: '6px solid var(--gold-intense)',
               borderRadius: '24px',
               padding: '24px 36px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              boxShadow: '0 20px 40px var(--shadow-color)',
               flexGrow: 1,
               marginRight: '30px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                <span style={{ background: 'rgba(255,255,255,0.1)', color: '#f3c653', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '1px' }}>Pusat Kendali Administrasi</span>
+                <span style={{ background: 'var(--border-primary)', color: 'var(--gold-intense)', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, letterSpacing: '1px' }}>Pusat Kendali Administrasi</span>
               </div>
-              <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+              <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '6px' }}>
                 {activeTab === 'overview' ? 'Ikhtisar Operasi Sistem' : 
                  activeTab === 'users' ? 'Master Direktori User & Peran' : 
                  activeTab === 'teller' ? 'Layanan Kasir Syariah' :
@@ -589,8 +643,8 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            <div style={{ background: 'rgba(4, 49, 33, 0.7)', border: '2px solid #34d399', borderRadius: '30px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, color: '#34d399', boxShadow: '0 4px 15px rgba(52, 211, 153, 0.2)' }}>
-              <div style={{ width: '10px', height: '10px', background: '#34d399', borderRadius: '50%', boxShadow: '0 0 10px #34d399' }} />
+            <div style={{ background: 'var(--bg-card)', border: '2px solid #10b981', borderRadius: '30px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, color: '#10b981', boxShadow: '0 4px 15px var(--shadow-color)' }}>
+              <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 10px #10b981' }} />
               DATABASE SEHAT (LIVE)
             </div>
           </header>
@@ -605,63 +659,63 @@ export default function DashboardPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
                 
                 {/* Metric Card 1 */}
-                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #cca334', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
-                  <div style={{ color: '#f3c653', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', border: '2px solid var(--gold-bright)', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px var(--shadow-color)' }}>
+                  <div style={{ color: 'var(--gold-intense)', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Total Rekam Akun 👥
                   </div>
-                  <div style={{ fontSize: '44px', fontWeight: 900, color: '#ffffff' }}>
-                    {totalAccounts} <span style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Akun</span>
+                  <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    {totalAccounts} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.6 }}>Akun</span>
                   </div>
-                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', margin: '20px 0' }}>
-                    <div style={{ height: '100%', background: '#f3c653', width: '100%', borderRadius: '3px', boxShadow: '0 0 8px #f3c653' }} />
+                  <div style={{ height: '6px', background: 'var(--border-primary)', borderRadius: '3px', margin: '20px 0' }}>
+                    <div style={{ height: '100%', background: 'var(--gold-intense)', width: '100%', borderRadius: '3px', boxShadow: '0 0 8px var(--gold-bright)' }} />
                   </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Sinkron dengan modul keamanan Supabase Auth</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>Sinkron dengan modul keamanan Supabase Auth</div>
                 </div>
 
                 {/* Metric Card 2 */}
-                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #60a5fa', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
-                  <div style={{ color: '#60a5fa', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', border: '2px solid #3b82f6', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px var(--shadow-color)' }}>
+                  <div style={{ color: '#3b82f6', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Pegawai Koperasi Aktif 👔
                   </div>
-                  <div style={{ fontSize: '44px', fontWeight: 900, color: '#ffffff' }}>
-                    {totalStaff} <span style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Staf</span>
+                  <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    {totalStaff} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.6 }}>Staf</span>
                   </div>
-                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', margin: '20px 0' }}>
-                    <div style={{ height: '100%', background: '#60a5fa', width: `${totalAccounts ? (totalStaff/totalAccounts)*100 : 0}%`, borderRadius: '3px', boxShadow: '0 0 8px #60a5fa' }} />
+                  <div style={{ height: '6px', background: 'var(--border-primary)', borderRadius: '3px', margin: '20px 0' }}>
+                    <div style={{ height: '100%', background: '#3b82f6', width: `${totalAccounts ? (totalStaff/totalAccounts)*100 : 0}%`, borderRadius: '3px', boxShadow: '0 0 8px #3b82f6' }} />
                   </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Mencakup Level CS, Kasir, & Manajerial</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>Mencakup Level CS, Kasir, & Manajerial</div>
                 </div>
 
-                {/* Metric Card 3: Tied strictly to physical MEMBERS applications table */}
-                <div style={{ background: 'rgba(4, 49, 33, 0.7)', backdropFilter: 'blur(16px)', border: '2px solid #34d399', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)' }}>
-                  <div style={{ color: '#34d399', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {/* Metric Card 3 */}
+                <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', border: '2px solid #10b981', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px var(--shadow-color)' }}>
+                  <div style={{ color: '#10b981', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Anggota Resmi Terdaftar 💳
                   </div>
-                  <div style={{ fontSize: '44px', fontWeight: 900, color: '#ffffff' }}>
-                    {totalApprovedMembers} <span style={{ fontSize: '18px', fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>Jiwa</span>
+                  <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    {totalApprovedMembers} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.6 }}>Jiwa</span>
                   </div>
-                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', margin: '20px 0' }}>
-                    <div style={{ height: '100%', background: '#34d399', width: `${totalAccounts ? (totalApprovedMembers/totalAccounts)*100 : 0}%`, borderRadius: '3px', boxShadow: '0 0 8px #34d399' }} />
+                  <div style={{ height: '6px', background: 'var(--border-primary)', borderRadius: '3px', margin: '20px 0' }}>
+                    <div style={{ height: '100%', background: '#10b981', width: `${totalAccounts ? (totalApprovedMembers/totalAccounts)*100 : 0}%`, borderRadius: '3px', boxShadow: '0 0 8px #10b981' }} />
                   </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Aktualisasi riil pengajuan dari modul registrasi Anggota</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>Aktualisasi riil pengajuan dari modul registrasi Anggota</div>
                 </div>
 
               </div>
 
               {/* Large Banner Spec Card */}
               <div style={{ 
-                background: 'rgba(4, 49, 33, 0.8)',
+                background: 'var(--bg-card)',
                 backdropFilter: 'blur(16px)',
-                border: '3px solid #cca334', 
+                border: '3px solid var(--gold-bright)', 
                 borderRadius: '28px', 
                 padding: '40px', 
                 position: 'relative', 
                 overflow: 'hidden',
-                boxShadow: '0 25px 60px rgba(0,0,0,0.4)'
+                boxShadow: '0 25px 60px var(--shadow-color)'
               }}>
                 <div style={{ position: 'relative', zIndex: 2 }}>
-                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#f3c653', marginBottom: '12px' }}>Spesifikasi Inti Kendali IT</h2>
-                  <p style={{ color: '#ffffff', fontSize: '16px', maxWidth: '750px', lineHeight: 1.7, fontWeight: 500 }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px' }}>Spesifikasi Inti Kendali IT</h2>
+                  <p style={{ color: 'var(--text-primary)', fontSize: '16px', maxWidth: '750px', lineHeight: 1.7, fontWeight: 500 }}>
                     Sistem Anda saat ini beroperasi di atas kerangka kerja Next.js modern yang disinkronkan secara real-time dengan <strong>Supabase Cloud PostgreSQL</strong>. Panel ini memberikan wewenang mutlak kepada Anda untuk memantau aktivitas digital klerikal koperasi.
                   </p>
                   <button 

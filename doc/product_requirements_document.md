@@ -33,7 +33,7 @@ Peran (Role)
 	Verifikasi transaksi; tidak melakukan transaksi fisik.
 	Super Admin (IT & Ops)
 	Kontrol penuh infrastruktur IT dan akses operasional ke seluruh modul sistem.
-	Akses mutlak (Root) ke seluruh fitur teknis, parameter sistem, dan modul operasional staf.
+	Akses mutlak (Root) ke seluruh fitur teknis, parameter sistem, dan modul operasional staf. Memiliki kendali penuh atas manajemen tema dan pengaturan UI sistem.
 	Anggota (Mobile)
 	Cek saldo, transfer, bayar tagihan (PPOB), pengajuan awal.
 	Hanya melihat data miliknya (Client-facing app).
@@ -66,7 +66,8 @@ Peran (Role)
 ●      IQ-RA Mobile Gateway: API khusus untuk menghubungkan aplikasi Mobile Banking anggota dengan database core system secara real-time.
 5. Arsitektur Teknis & Infrastruktur
 Sistem dibangun dengan arsitektur Full-stack Serverless untuk keandalan dan efisiensi biaya:
-●      Frontend Web: Next.js (React), TypeScript (untuk type-safety/menghindari error), Tailwind CSS.
+●      Frontend Web: Next.js (React), TypeScript (untuk type-safety/menghindari error), Tailwind CSS, dan sistem tema dinamis (CSS Variables).
+●      Desain UI/UX: Mengadopsi standar **Premium Sharia FinTech** dengan navigasi Sidebar kolapsibel dan dashboard responsif yang dioptimalkan untuk Mode Terang.
 ●      Backend & Database: Supabase (PostgreSQL relasional untuk data keuangan + ekstensi pgvector untuk penyimpanan knowledge base AI).
 ●      AI Engine: LangChain.js untuk orkestrasi pemrosesan Prompt dan ekstraksi RAG.
 ●      Keamanan & Audit Kode: * Row-Level Security (RLS) di database.

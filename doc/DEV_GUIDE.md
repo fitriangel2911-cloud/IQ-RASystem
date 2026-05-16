@@ -22,7 +22,9 @@ Dokumen ini berisi standar teknis, konvensi, dan alur kerja (*workflow*) yang wa
 - **Wajib TypeScript (Type-Safety):** Penggunaan tipe `any` sangat dilarang kecuali dalam keadaan darurat. Semua objek respons *database* (misal: *JournalEntry*, *CIF*, *FinancingContract*) harus memiliki definisi antarmuka (`interface` atau `type`) yang tegas untuk memblokir *bug* sebelum fase *runtime*.
 - **Arsitektur React:** Gunakan *Functional Components*. Disarankan untuk mengisolasi logika UI (presentasional) dari logika pengambilan data (*fetching*).
 - **Server Components (Next.js):** Manfaatkan *Server Components* sebisa mungkin untuk mengurangi ukuran *bundle* di *client* dan untuk menyembunyikan logika serta *API keys* yang bersifat rahasia.
-- **Desain UI:** Gunakan standar utilitas Tailwind CSS. Hindari penulisan *file* CSS kustom (`.css`) di luar indeks global.
+- **Desain UI:** Gunakan standar utilitas Tailwind CSS. Hindari penulisan *file* CSS kustom (`.css`) di luar indeks global. Seluruh komponen harus responsif terhadap perubahan ukuran layar (Mobile-First).
+- **Sidebar & Navigasi:** Gunakan komponen `Sidebar` yang mendukung *state management* `isOpen`. Pastikan konten utama menggunakan margin dinamis atau transisi yang halus agar tidak menutupi (*overlap*) elemen navigasi. Pada area Sidebar Staff, pastikan `ThemeToggle` memiliki margin atas yang cukup agar tidak bertumpukan dengan tombol tutup (✕).
+- **Penekanan Visual (Special Props):** Untuk layanan inti operasional (seperti Layanan Kasir), gunakan prop `isSpecial={true}` pada `DashboardMenuButton` untuk memberikan penekanan visual berupa ukuran teks yang lebih besar dan warna *Dark Emerald Green* yang tegas.
 
 ## 3. Aturan Manajemen Database (Supabase)
 

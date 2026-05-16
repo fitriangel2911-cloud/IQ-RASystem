@@ -17,34 +17,36 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     switch (type.toLowerCase()) {
       case 'deposit':
       case 'simpanan': 
-        return { label: '📥 SETORAN TUNAI', color: '#34d399', sign: '+' };
+        return { label: '📥 SETORAN TUNAI', color: '#10b981', sign: '+' };
       case 'withdrawal':
       case 'penarikan': 
-        return { label: '📤 PENARIKAN TUNAI', color: '#fca5a5', sign: '-' };
+        return { label: '📤 PENARIKAN TUNAI', color: '#ef4444', sign: '-' };
       case 'transfer_in': 
-        return { label: '📥 TRANSFER MASUK', color: '#34d399', sign: '+' };
+        return { label: '📥 TRANSFER MASUK', color: '#10b981', sign: '+' };
       case 'transfer_out': 
-        return { label: '📤 TRANSFER KELUAR', color: '#fca5a5', sign: '-' };
+        return { label: '📤 TRANSFER KELUAR', color: '#ef4444', sign: '-' };
       case 'profit_share': 
-        return { label: '💎 BAGI HASIL (NISBAH)', color: '#f3c653', sign: '+' };
+        return { label: '💎 BAGI HASIL (NISBAH)', color: 'var(--text-primary)', sign: '+' };
       case 'financing_disbursement': 
-        return { label: '🤝 PENCAIRAN PEMBIAYAAN', color: '#60a5fa', sign: '+' };
+        return { label: '🤝 PENCAIRAN PEMBIAYAAN', color: '#3b82f6', sign: '+' };
       default: 
-        return { label: type.toUpperCase(), color: '#ffffff', sign: '' };
+        return { label: type.toUpperCase(), color: 'var(--text-primary)', sign: '' };
     }
   };
 
   return (
     <div style={{
-      background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-      border: '3px solid #cca334',
+      background: 'var(--bg-card)', 
+      backdropFilter: 'blur(24px)', 
+      WebkitBackdropFilter: 'blur(24px)',
+      border: '2px solid var(--border-primary)',
       borderRadius: '24px',
       overflow: 'hidden',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.4)'
+      boxShadow: '0 20px 50px var(--shadow-color)'
     }}>
-      <div style={{ padding: '24px 30px', borderBottom: '2px solid rgba(204, 163, 52, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#f3c653', margin: 0 }}>Catatan Histori Seluruh Transaksi</h3>
-        <span style={{ background: 'rgba(243, 198, 83, 0.1)', color: '#f3c653', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 800, border: '1px solid rgba(243,198,83,0.3)' }}>
+      <div style={{ padding: '24px 30px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Catatan Histori Seluruh Transaksi</h3>
+        <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 800, border: '1px solid var(--border-primary)' }}>
           {transactions.length} Riwayat
         </span>
       </div>
@@ -52,19 +54,19 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', borderBottom: '2px solid #cca334' }}>
-              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Waktu & Tanggal</th>
-              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Tipe Transaksi</th>
-              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Keterangan / Deskripsi</th>
-              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'right' }}>Nominal Rupiah</th>
+            <tr style={{ background: 'var(--border-primary)', borderBottom: '2px solid var(--border-primary)' }}>
+              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Waktu & Tanggal</th>
+              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Tipe Transaksi</th>
+              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Keterangan / Deskripsi</th>
+              <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'right' }}>Nominal Rupiah</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '16px', fontWeight: 600 }}>
+                <td colSpan={4} style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 600 }}>
                   Belum ada rekaman mutasi keuangan.<br/>
-                  <span style={{ fontSize: '13px', color: '#cca334', display: 'inline-block', marginTop: '8px' }}>Semua riwayat setoran, penarikan, dan pencairan akan tampil secara real-time di sini.</span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-primary)', opacity: 0.6, display: 'inline-block', marginTop: '8px' }}>Semua riwayat setoran, penarikan, dan pencairan akan tampil secara real-time di sini.</span>
                 </td>
               </tr>
             ) : (
@@ -75,16 +77,16 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                   <tr 
                     key={tx.id}
                     style={{
-                      borderBottom: '1px solid rgba(204, 163, 52, 0.1)',
-                      background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.02)',
+                      borderBottom: '1px solid var(--border-primary)',
+                      background: idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)',
                     }}
                   >
                     {/* Date */}
                     <td style={{ padding: '20px' }}>
-                      <div style={{ color: '#ffffff', fontWeight: 800, fontSize: '15px' }}>
+                      <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '15px' }}>
                         {dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </div>
-                      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>
                         {dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
                       </div>
                     </td>
@@ -95,9 +97,9 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                         display: 'inline-block',
                         padding: '6px 14px',
                         borderRadius: '8px',
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: 900,
-                        background: 'rgba(2, 28, 19, 0.6)',
+                        background: 'rgba(0,0,0,0.02)',
                         border: `1.5px solid ${info.color}`,
                         color: info.color,
                       }}>
@@ -106,7 +108,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                     </td>
 
                     {/* Desc */}
-                    <td style={{ padding: '20px', color: '#ffffff', fontSize: '14px', fontWeight: 500, maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500, maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {tx.description || 'Catatan Teller / Sistem'}
                     </td>
 

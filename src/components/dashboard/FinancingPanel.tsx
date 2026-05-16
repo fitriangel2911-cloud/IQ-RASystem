@@ -62,12 +62,12 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 
   const formatStatus = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'pending': return { label: '⏳ DALAM TINJAUAN', color: '#f3c653' };
-      case 'approved': return { label: '✅ DISETUJUI', color: '#34d399' };
-      case 'active': return { label: '💼 AKTIF (BERJALAN)', color: '#60a5fa' };
+      case 'pending': return { label: '⏳ DALAM TINJAUAN', color: 'var(--text-primary)' };
+      case 'approved': return { label: '✅ DISETUJUI', color: '#10b981' };
+      case 'active': return { label: '💼 AKTIF (BERJALAN)', color: '#3b82f6' };
       case 'rejected': return { label: '❌ DITOLAK', color: '#ef4444' };
-      case 'completed': return { label: '🏁 SELESAI (LUNAS)', color: '#ffffff' };
-      default: return { label: status?.toUpperCase() || 'MENUNGGU', color: '#ffffff' };
+      case 'completed': return { label: '🏁 SELESAI (LUNAS)', color: 'var(--text-primary)' };
+      default: return { label: status?.toUpperCase() || 'MENUNGGU', color: 'var(--text-primary)' };
     }
   };
 
@@ -96,175 +96,152 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       {/* Header Action */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#043121', marginBottom: '6px' }}>Kemitraan Pembiayaan Syariah</h2>
-          <p style={{ color: '#4b5563', fontSize: '15px', fontWeight: 600, margin: 0 }}>Kelola dan pantau seluruh akad pembiayaan syariah yang Anda ajukan di iQ-RA.</p>
+          <h2 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '6px' }}>Kemitraan Pembiayaan Syariah</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>Kelola dan pantau seluruh akad pembiayaan syariah yang Anda ajukan di iQ-RA.</p>
         </div>
-
-        {!isApplying && (
-          <button
-            onClick={() => setIsApplying(true)}
-            style={{
-              background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
-              color: '#02130e',
-              border: 'none',
-              padding: '16px 30px',
-              borderRadius: '14px',
-              fontSize: '15px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 8px 25px rgba(204, 163, 52, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          >
-            🤝 Ajukan Pembiayaan Baru
-          </button>
-        )}
+        <button 
+          onClick={() => setIsApplying(!isApplying)}
+          style={{
+            background: isApplying ? 'rgba(239, 68, 68, 0.1)' : 'var(--text-primary)',
+            color: isApplying ? '#ef4444' : 'var(--bg-page)',
+            border: isApplying ? '2px solid #ef4444' : 'none',
+            padding: '16px 28px',
+            borderRadius: '16px',
+            fontWeight: 900,
+            fontSize: '15px',
+            cursor: 'pointer',
+            boxShadow: '0 10px 25px var(--shadow-color)',
+            transition: 'all 0.3s'
+          }}
+        >
+          {isApplying ? '✕ Batalkan' : '🤝 Ajukan Pembiayaan Baru'}
+        </button>
       </div>
 
-      {/* NEW APPLICATION FORM SECTION */}
+      {/* Application Form */}
       {isApplying && (
-        <div style={{
-          background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          border: '3px solid #cca334',
-          borderRadius: '24px',
-          padding: '36px',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.4)',
-          animation: 'fadeIn 0.3s ease'
+        <div style={{ 
+          background: 'var(--bg-card)', 
+          backdropFilter: 'blur(32px)', 
+          borderRadius: '32px', 
+          padding: '44px',
+          border: '1px solid var(--border-primary)',
+          boxShadow: '0 30px 70px var(--shadow-color)',
+          animation: 'fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', borderBottom: '2px solid rgba(204, 163, 52, 0.2)', paddingBottom: '16px' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#f3c653', margin: 0 }}>Formulir Permohonan Pembiayaan</h3>
-            <button onClick={() => setIsApplying(false)} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '24px', cursor: 'pointer' }}>✕</button>
-          </div>
-
-          {!isProfileComplete ? (
-            /* BLOCKER STATE FOR MISSING DOCUMENTS */
-            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ fontSize: '64px', marginBottom: '20px' }}>🛡️</div>
-              <h4 style={{ color: '#fca5a5', fontSize: '20px', fontWeight: 800, marginBottom: '12px' }}>Akses Pengajuan Terkunci</h4>
-              <p style={{ color: '#ffffff', fontSize: '15px', maxWidth: '500px', margin: '0 auto 28px', lineHeight: 1.6 }}>
-                Mohon maaf, demi kepatuhan regulasi KYC Perbankan Syariah dan penilaian kelayakan akad, Anda <strong>WAJIB</strong> melengkapi berkas profil & identitas fisik Anda terlebih dahulu.
-              </p>
-              <button
-                onClick={navigateToProfile}
-                style={{
-                  background: '#f3c653', color: '#02130e',
-                  border: 'none', padding: '14px 36px', borderRadius: '12px',
-                  fontSize: '15px', fontWeight: 900, cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(243, 198, 83, 0.3)'
-                }}
-              >
-                ✍️ Lengkapi Dokumen Sekarang
-              </button>
+          {!isProfileComplete && (
+            <div style={{ 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              border: '1.5px solid #ef4444', 
+              borderRadius: '16px', 
+              padding: '20px', 
+              marginBottom: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <span style={{ fontSize: '32px' }}>⚠️</span>
+              <div>
+                <div style={{ color: '#ef4444', fontWeight: 900, fontSize: '16px' }}>Lengkapi Profil Anda Terlebih Dahulu</div>
+                <button 
+                  onClick={navigateToProfile}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', padding: 0, fontWeight: 800, textDecoration: 'underline', cursor: 'pointer', fontSize: '14px', marginTop: '4px' }}
+                >
+                  Ke Halaman Profil & Dokumen ↗
+                </button>
+              </div>
             </div>
-          ) : (
-            /* INPUT FORM */
-            <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                
-                {/* Product Select */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Akad Pembiayaan Syariah</label>
-                  <select 
-                    value={contractType}
-                    onChange={e => setContractType(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="murabahah">Murabahah (Jual Beli Barang)</option>
-                    <option value="mudharabah">Mudharabah (Penyertaan Modal Kerja)</option>
-                    <option value="musyarakah">Musyarakah (Bagi Hasil Syirkah Proyek)</option>
-                    <option value="ijarah">Ijarah (Pembiayaan Sewa / Multi Jasa)</option>
-                    <option value="istishna">Istishna (Konstruksi Bertahap)</option>
-                    <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Sosial Tanpa Tambahan)</option>
-                  </select>
-                </div>
-
-                {/* Amount Input */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#cca334' }}>Jumlah Pengajuan Pembiayaan (Rp)</label>
-                  <input 
-                    type="number" required min={100000} step={100000}
-                    value={amount}
-                    onChange={e => setAmount(Number(e.target.value))}
-                    style={inputStyle}
-                    placeholder="Contoh: 10000000"
-                  />
-                </div>
-              </div>
-
-              {/* Sharia Disclaimer */}
-              <div style={{
-                background: 'rgba(243, 198, 83, 0.05)',
-                border: '1px solid rgba(243, 198, 83, 0.2)',
-                borderRadius: '14px',
-                padding: '20px',
-                fontSize: '13px',
-                color: '#ffffff',
-                lineHeight: 1.6
-              }}>
-                ℹ️ <strong>Catatan Penting Fatwa DSN-MUI:</strong> Melalui penyerahan formulir ini, Anda menyatakan kesediaan untuk tunduk pada ketentuan akad hukum Syariah terkait produk pilihan Anda, bebas dari unsur Riba, Gharar, dan Maisir. Persetujuan final tunduk pada analisis tim audit internal.
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
-                <button
-                  type="button" onClick={() => setIsApplying(false)}
-                  style={{
-                    background: 'transparent', border: '2px solid rgba(255,255,255,0.2)',
-                    color: '#ffffff', padding: '14px 24px', borderRadius: '12px',
-                    fontSize: '15px', fontWeight: 800, cursor: 'pointer'
-                  }}
-                >
-                  Batalkan
-                </button>
-                <button
-                  type="submit" disabled={submitting}
-                  style={{
-                    background: '#34d399', border: 'none',
-                    color: '#02130e', padding: '14px 40px', borderRadius: '12px',
-                    fontSize: '15px', fontWeight: 900, cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(52, 211, 153, 0.3)'
-                  }}
-                >
-                  {submitting ? '⏳ Mengirim Pengajuan...' : '🚀 Ajukan Berkas Sekarang'}
-                </button>
-              </div>
-            </form>
           )}
+
+          <form onSubmit={handleApply} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Jumlah Pembiayaan (Rupiah)</label>
+              <input 
+                type="number" 
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                style={inputStyle}
+                placeholder="Min Rp 1.000.000"
+              />
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.7 }}>Nominal yang Anda butuhkan (Tanpa titik/koma)</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Pilih Akad Syariah</label>
+              <select 
+                value={contractType}
+                onChange={(e) => setContractType(e.target.value)}
+                style={inputStyle}
+              >
+                <option value="murabahah">Murabahah (Jual Beli Barang)</option>
+                <option value="mudharabah">Mudharabah (Bagi Hasil Usaha)</option>
+                <option value="musyarakah">Musyarakah (Kerjasama Proyek)</option>
+                <option value="ijarah">Ijarah (Manfaat Jasa/Sewa)</option>
+                <option value="istishna">Istishna (Pesanan Barang Baru)</option>
+                <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
+              </select>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.7 }}>Petugas kami akan membantu memvalidasi akad terbaik untuk Anda.</div>
+            </div>
+
+            <div style={{ gridColumn: 'span 2', background: 'var(--border-primary)', padding: '24px', borderRadius: '16px', display: 'flex', gap: '16px' }}>
+              <span style={{ fontSize: '24px' }}>🛡️</span>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                <strong>Deklarasi Syariah:</strong> Dengan mengirimkan pengajuan ini, saya bersedia mengikuti prinsip-prinsip syariah yang berlaku di iQ-RA Banking System dan bersedia memberikan data yang jujur untuk proses *Assesment* kelayakan pembiayaan.
+              </p>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={submitting || !isProfileComplete}
+              style={{
+                gridColumn: 'span 2',
+                background: submitting || !isProfileComplete ? 'var(--border-primary)' : 'var(--text-primary)',
+                color: submitting || !isProfileComplete ? 'var(--text-secondary)' : 'var(--bg-page)',
+                padding: '22px',
+                borderRadius: '18px',
+                border: 'none',
+                fontWeight: 900,
+                fontSize: '18px',
+                cursor: submitting || !isProfileComplete ? 'not-allowed' : 'pointer',
+                boxShadow: submitting ? 'none' : '0 15px 40px var(--shadow-color)',
+                transition: 'all 0.3s'
+              }}
+            >
+              {submitting ? '⏳ Sedang Mengirim Pengajuan...' : '🚀 KIRIM PERMOHONAN AKAD SEKARANG'}
+            </button>
+          </form>
         </div>
       )}
 
-      {/* LIST OF EXISTING CONTRACTS */}
-      <div style={{
-        background: 'rgba(4, 49, 33, 0.75)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-        border: '3px solid #cca334',
-        borderRadius: '24px',
-        overflow: 'hidden',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.4)'
+      {/* History Table */}
+      <div style={{ 
+        background: 'var(--bg-card)', 
+        backdropFilter: 'blur(16px)', 
+        borderRadius: '28px', 
+        overflow: 'hidden', 
+        border: '1px solid var(--border-primary)',
+        boxShadow: '0 20px 50px var(--shadow-color)'
       }}>
-        <div style={{ padding: '24px 30px', borderBottom: '2px solid rgba(204, 163, 52, 0.2)' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#f3c653', margin: 0 }}>Status Seluruh Pengajuan Anda</h3>
+        <div style={{ padding: '24px 30px', borderBottom: '1px solid var(--border-primary)' }}>
+          <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Status Seluruh Pengajuan Anda</h3>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', borderBottom: '2px solid #cca334' }}>
-                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Tanggal Pengajuan</th>
-                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Produk Akad</th>
-                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px' }}>Jumlah Diajukan</th>
-                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: '#cca334', textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>Status Audit</th>
+              <tr style={{ background: 'var(--border-primary)', borderBottom: '2px solid var(--border-primary)' }}>
+                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Tanggal Pengajuan</th>
+                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Produk Akad</th>
+                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>Jumlah Diajukan</th>
+                <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>Status Audit</th>
               </tr>
             </thead>
             <tbody>
               {contracts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '16px', fontWeight: 600 }}>
+                  <td colSpan={4} style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 600 }}>
                     Belum ada riwayat permohonan pembiayaan.<br/>
-                    <span style={{ fontSize: '13px', color: '#cca334', display: 'inline-block', marginTop: '8px' }}>Ajukan kemitraan Syariah Anda dengan mengeklik tombol di sudut kanan atas.</span>
+                    <span style={{ fontSize: '13px', color: 'var(--text-primary)', opacity: 0.6, display: 'inline-block', marginTop: '8px' }}>Ajukan kemitraan Syariah Anda dengan mengeklik tombol di sudut kanan atas.</span>
                   </td>
                 </tr>
               ) : (
@@ -275,22 +252,22 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
                     <tr 
                       key={con.id}
                       style={{
-                        borderBottom: '1px solid rgba(204, 163, 52, 0.1)',
-                        background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.02)',
+                        borderBottom: '1px solid var(--border-primary)',
+                        background: idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)',
                       }}
                     >
                       {/* Date */}
-                      <td style={{ padding: '20px', color: '#ffffff', fontSize: '15px', fontWeight: 700 }}>
+                      <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '15px', fontWeight: 700 }}>
                         {dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </td>
 
                       {/* Product Type */}
-                      <td style={{ padding: '20px', color: '#ffffff', fontSize: '15px', fontWeight: 800 }}>
+                      <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '15px', fontWeight: 800 }}>
                         {getContractLabel(con.type)}
                       </td>
 
                       {/* Amount */}
-                      <td style={{ padding: '20px', color: '#ffffff', fontSize: '16px', fontWeight: 900 }}>
+                      <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '16px', fontWeight: 900 }}>
                         {currencyFormatter.format(con.amount)}
                       </td>
 
@@ -305,7 +282,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
                           letterSpacing: '0.5px',
                           border: `1.5px solid ${st.color}`,
                           color: st.color,
-                          background: 'rgba(0,0,0,0.2)'
+                          background: 'rgba(0,0,0,0.02)'
                         }}>
                           {st.label}
                         </span>
@@ -324,11 +301,11 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 }
 
 const inputStyle = {
-  background: '#ffffff',
-  border: '2px solid #cca334',
+  background: 'var(--bg-page)',
+  border: '2px solid var(--border-primary)',
   borderRadius: '12px',
   padding: '14px 16px',
-  color: '#02130e',
+  color: 'var(--text-primary)',
   fontSize: '15px',
   fontWeight: 700,
   outline: 'none',

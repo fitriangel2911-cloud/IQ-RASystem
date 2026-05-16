@@ -7,9 +7,11 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: any) => void;
   profile: any;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, profile }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onClose }: SidebarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -33,125 +35,166 @@ export default function Sidebar({ activeTab, setActiveTab, profile }: SidebarPro
 
   return (
     <aside style={{
-      width: '280px',
-      background: 'linear-gradient(180deg, #032419 0%, #021c13 100%)',
-      borderRight: '2px solid #cca334',
+      width: isOpen ? '300px' : '0px',
+      opacity: isOpen ? 1 : 0,
+      background: 'var(--bg-sidebar)',
+      backdropFilter: 'blur(25px)',
+      borderRight: isOpen ? '3px solid var(--gold-intense)' : 'none',
       display: 'flex',
       flexDirection: 'column',
-      padding: '32px 20px',
-      position: 'sticky',
+      padding: isOpen ? '40px 24px' : '0px',
+      position: 'fixed',
       top: 0,
+      left: 0,
       height: '100vh',
-      zIndex: 30,
-      boxShadow: '6px 0 20px rgba(0,0,0,0.4)',
-      flexShrink: 0
+      zIndex: 100,
+      boxShadow: isOpen ? '10px 0 30px var(--shadow-color)' : 'none',
+      flexShrink: 0,
+      transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+      overflow: 'hidden'
     }}>
+      {/* Sidebar Close Toggle - Enhanced Spacing & Visibility */}
+      <button 
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          right: '24px',
+          top: '24px',
+          background: 'rgba(0,0,0,0.15)',
+          border: '2px solid var(--text-primary)',
+          borderRadius: '12px',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          width: '40px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+          fontWeight: 900,
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+          zIndex: 110
+        }}
+        onMouseOver={(e) => { e.currentTarget.style.transform = 'rotate(90deg) scale(1.1)'; }}
+        onMouseOut={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
+        title="Tutup Navigasi"
+      >
+        ✕
+      </button>
+
       {/* Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '36px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px', marginTop: '10px' }}>
         <div style={{
-          background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
-          width: '40px', height: '40px', borderRadius: '10px',
+          background: 'var(--text-primary)',
+          width: '45px', height: '45px', borderRadius: '12px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(204, 163, 52, 0.3)'
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
         }}>
-          <img src="/logo-recolored.png" alt="iQ-RA" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+          <img src="/logo-recolored.png" alt="iQ-RA" style={{ width: '75%', height: '75%', objectFit: 'contain' }} />
         </div>
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 900, color: '#ffffff', letterSpacing: '0.5px' }}>iQ-RA SYSTEM</div>
-          <div style={{ fontSize: '10px', color: '#cca334', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Portal Anggota</div>
+          <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>iQ-RA SYSTEM</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Portal Anggota</div>
         </div>
       </div>
 
-      {/* Miniature Profile Widget */}
+      {/* Profile Widget */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(204, 163, 52, 0.2)',
-        borderRadius: '16px',
-        padding: '16px',
+        background: 'rgba(0,0,0,0.05)',
+        border: '1px solid var(--border-primary)',
+        borderRadius: '20px',
+        padding: '20px',
         marginBottom: '32px',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px'
+        gap: '15px',
+        boxShadow: '0 4px 15px var(--shadow-color)'
       }}>
         <div style={{
-          width: '40px', height: '40px', borderRadius: '10px',
-          background: '#f3c653', color: '#02130e',
+          width: '45px', height: '45px', borderRadius: '12px',
+          background: 'var(--text-primary)', color: 'var(--bg-page)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '16px', fontWeight: 900, boxShadow: '0 4px 10px rgba(243, 198, 83, 0.3)'
+          fontSize: '18px', fontWeight: 900
         }}>
           {profile?.users?.full_name ? profile.users.full_name.charAt(0).toUpperCase() : 'A'}
         </div>
         <div style={{ overflow: 'hidden' }}>
-          <div style={{ fontWeight: 800, fontSize: '14px', color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {profile?.users?.full_name || 'Memuat...'}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '4px' }}>
             <div style={{
               width: '8px', height: '8px', borderRadius: '50%',
-              background: isProfileComplete ? '#34d399' : '#ef4444',
-              boxShadow: isProfileComplete ? '0 0 8px #34d399' : '0 0 8px #ef4444'
+              background: isProfileComplete ? '#10b981' : '#ef4444'
             }} />
-            <span style={{ fontSize: '11px', color: isProfileComplete ? '#34d399' : '#fca5a5', fontWeight: 700 }}>
-              {isProfileComplete ? 'Dokumen Lengkap' : 'Dokumen Belum Lengkap'}
+            <span style={{ fontSize: '11px', color: 'var(--text-primary)', opacity: 0.9, fontWeight: 700 }}>
+              {isProfileComplete ? 'Terverifikasi' : 'Belum Verifikasi'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Sidebar Navigation Links */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+      {/* Navigation */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
         {menuItems.map(item => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             style={{
-              background: activeTab === item.id ? '#f3c653' : 'transparent',
+              background: activeTab === item.id ? 'var(--text-primary)' : 'transparent',
               border: 'none',
               textAlign: 'left',
-              padding: '14px 16px',
-              borderRadius: '12px',
-              color: activeTab === item.id ? '#02130e' : 'rgba(255,255,255,0.8)',
+              padding: '16px 20px',
+              borderRadius: '16px',
+              color: activeTab === item.id ? 'var(--bg-page)' : 'var(--text-primary)',
               fontWeight: 800,
-              fontSize: '14px',
+              fontSize: '15px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              transition: 'all 0.2s ease',
-              boxShadow: activeTab === item.id ? '0 4px 15px rgba(243, 198, 83, 0.3)' : 'none'
-            }}
-            onMouseOver={(e) => {
-              if (activeTab !== item.id) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }}
-            onMouseOut={(e) => {
-              if (activeTab !== item.id) e.currentTarget.style.background = 'transparent';
+              gap: '15px',
+              transition: 'all 0.3s ease',
+              boxShadow: activeTab === item.id ? '0 10px 20px var(--shadow-color)' : 'none'
             }}
           >
-            <span style={{ fontSize: '18px' }}>{item.icon}</span>
+            <span style={{ fontSize: '20px' }}>{item.icon}</span>
             {item.label}
           </button>
         ))}
       </nav>
 
-      {/* Logout Trigger Button */}
+      {/* Logout */}
       <button
         onClick={handleLogout}
         style={{
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '2px solid #fca5a5',
-          color: '#ffffff',
-          padding: '14px',
-          borderRadius: '12px',
-          fontWeight: 800,
+          background: 'rgba(0, 0, 0, 0.1)',
+          border: '1.5px solid var(--text-primary)',
+          color: 'var(--text-primary)',
+          padding: '16px',
+          borderRadius: '16px',
+          fontWeight: 900,
           fontSize: '14px',
           cursor: 'pointer',
-          transition: 'all 0.2s',
-          marginTop: '20px'
+          transition: 'all 0.3s',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px'
         }}
-        onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; }}
-        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; }}
+        onMouseOver={(e) => { 
+          e.currentTarget.style.background = '#ef4444'; 
+          e.currentTarget.style.borderColor = '#ef4444';
+          e.currentTarget.style.color = '#fff';
+        }}
+        onMouseOut={(e) => { 
+          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'; 
+          e.currentTarget.style.borderColor = 'var(--text-primary)';
+          e.currentTarget.style.color = 'var(--text-primary)';
+        }}
       >
-        🔌 Keluar Sesi Portal
+        <span>🚪</span> Keluar Sesi
       </button>
     </aside>
   );

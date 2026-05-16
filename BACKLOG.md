@@ -64,6 +64,17 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-16 (Sesi Sore - Multi-Theme Support)**:
+    - **Theme Engine**: Implementasi `ThemeContext` berbasis React Context API untuk manajemen state Mode Terang/Gelap di seluruh aplikasi.
+    - **UI Theme Switcher**: Penambahan komponen `ThemeToggle` di Sidebar untuk perpindahan tema instan dengan persistensi `localStorage`.
+    - **Refaktor CSS Global**: Konversi seluruh pewarnaan *hardcoded* menjadi variabel CSS dinamis di `globals.css`.
+    - **Standardisasi Dokumentasi**: Pembaruan `blueprint.md` dan `DEV_GUIDE.md` untuk mencakup standar desain multi-tema.
+
+- **2026-05-16 (Standarisasi UI & Dokumentasi)**:
+    - **UI Teller**: Penyeragaman halaman Teller dengan standar Dashboard Admin premium (Sidebar border emas, Header aksen kiri emas, dan tema Emerald Glassmorphism).
+    - **Komponen Terminal**: Upgrade visual pada `TellerTerminal` termasuk gradasi emas premium pada tombol aksi dan optimasi tabel riwayat.
+    - **Dokumentasi Teknis**: Pembaruan `blueprint.md` dan `DEV_GUIDE.md` untuk mencantumkan standar desain "Premium Sharia FinTech" sebagai pedoman pengembangan masa depan.
+
 - **2026-05-15 (Sesi Pagi - UI/UX Standardization)**:
     - **Visual & Estetika**: Penyeragaman tema *Emerald Glassmorphism* (hijau kaca) pada keseluruhan panel Dashboard Nasabah dan seluruh halaman Staf.
     - **Latar Belakang Global**: Implementasi animasi partikel `GlobalSiteBackground` agar aktif secara universal melintasi semua tipe pengguna (Member & Staff/Super Admin).

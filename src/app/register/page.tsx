@@ -5,14 +5,6 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import BrandLogo from '@/components/brand/BrandLogo';
 
-function GlobalSiteBackground() {
-  return (
-    <div className="site-bg-wrapper" aria-hidden="true">
-      <div className="site-bg-pattern" />
-      <div className="site-bg-overlay" />
-    </div>
-  );
-}
 
 
 
@@ -114,7 +106,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <GlobalSiteBackground />
       
       <div style={{
         minHeight: '100vh',

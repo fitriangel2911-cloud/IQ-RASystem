@@ -5,15 +5,6 @@ import BrandLogo from '@/components/brand/BrandLogo';
 
 /* ── Static Components ─────────────────────────────────────────── */
 
-// The persistent global animated backdrop (the star of the show)
-function GlobalSiteBackground() {
-  return (
-    <div className="site-bg-wrapper" aria-hidden="true">
-      <div className="site-bg-pattern" />
-      <div className="site-bg-overlay" />
-    </div>
-  );
-}
 
 
 
@@ -509,7 +500,6 @@ export default function Home() {
 
   return (
     <>
-      <GlobalSiteBackground />
       <Navbar />
       <HeroSection />
       <ProfilSection />

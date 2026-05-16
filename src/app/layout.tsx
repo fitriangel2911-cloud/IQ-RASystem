@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     "Platform keuangan mikro syariah berbasis web dengan mekanisme RAG AI untuk rekomendasi akad dan kepatuhan SAK EP secara otomatis.",
 };
 
+import { ThemeProvider } from "@/context/ThemeContext";
+import GlobalSiteBackground from "@/components/dashboard/GlobalSiteBackground";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,13 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${plusJakartaSans.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[#02130e] relative">
-        {/* Global background pattern */}
-        <div className="site-bg-wrapper" style={{ backgroundColor: '#02130e' }}>
-          <div className="site-bg-pattern" />
-          <div className="site-bg-overlay" />
-        </div>
-        {children}
+      <body className="min-h-full relative transition-colors duration-300">
+        <ThemeProvider>
+          <GlobalSiteBackground />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

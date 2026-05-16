@@ -45,7 +45,7 @@ export default function BrandLogo({
           letterSpacing: '1px',
           lineHeight: 1
         }}>
-          iQ-RA <span style={{ opacity: 0.8, fontSize: '0.5em', display: 'block', marginTop: '2px' }}>System</span>
+          iQ-RA <span style={{ opacity: 0.9, fontSize: '0.7em', display: 'block', marginTop: '1px' }}>System</span>
         </div>
       )}
     </div>

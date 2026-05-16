@@ -6,29 +6,21 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import BrandLogo from '@/components/brand/BrandLogo';
 
-function GlobalSiteBackground() {
-  return (
-    <div className="site-bg-wrapper" aria-hidden="true">
-      <div className="site-bg-pattern" />
-      <div className="site-bg-overlay" />
-    </div>
-  );
-}
-
-
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [resetMode, setResetMode] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     setLoading(true);
 
     const supabase = createClient();
@@ -40,7 +32,6 @@ export default function LoginPage() {
       });
 
       if (error) {
-        // Friendly user error remapping for Supabase standard codes
         if (error.message.toLowerCase().includes('email not confirmed')) {
           setErrorMsg('Email Anda belum diaktivasi. Silakan periksa kotak masuk email Anda untuk tautan konfirmasi.');
         } else if (error.message.toLowerCase().includes('invalid login credentials')) {
@@ -53,11 +44,35 @@ export default function LoginPage() {
       }
 
       if (data?.user) {
-        // Redirect on successful login to Dashboard
         router.push('/dashboard');
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Terjadi gangguan teknis.');
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setLoading(true);
+
+    const supabase = createClient();
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        setSuccessMsg('Tautan reset kata sandi telah dikirim ke email Anda. Silakan periksa kotak masuk.');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Gagal mengirim email reset.');
+    } finally {
       setLoading(false);
     }
   };
@@ -70,7 +85,7 @@ export default function LoginPage() {
     border: `1.5px solid ${focusedField === fieldName ? '#cca334' : 'rgba(255, 255, 255, 0.15)'}`,
     borderRadius: '14px',
     padding: '15px 18px',
-    paddingRight: fieldName === 'pass' ? '50px' : '18px', // Extra space for the eye icon
+    paddingRight: fieldName === 'pass' ? '50px' : '18px',
     color: 'white',
     fontSize: '16px',
     outline: 'none',
@@ -89,7 +104,6 @@ export default function LoginPage() {
 
   return (
     <>
-      <GlobalSiteBackground />
       
       <div style={{
         minHeight: '100vh',
@@ -112,20 +126,21 @@ export default function LoginPage() {
           }}
         >
           
-          {/* Branding Header */}
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '24px' }}>
               <BrandLogo size={64} fontSize="32px" />
             </div>
             <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>
-              Selamat Datang <span style={{ color: '#cca334' }}>Kembali</span>
+              {resetMode ? 'Reset Kata Sandi' : <>Selamat Datang <span style={{ color: '#cca334' }}>Kembali</span></>}
             </h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
-              Masuk untuk mengakses akun iQ-RA System Anda
+              {resetMode 
+                ? 'Masukkan email Anda untuk menerima tautan pemulihan' 
+                : 'Masuk untuk mengakses akun iQ-RA System Anda'}
             </p>
           </div>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={resetMode ? handleResetPassword : handleLogin}>
             
             {errorMsg && (
               <div style={{
@@ -145,6 +160,23 @@ export default function LoginPage() {
               </div>
             )}
 
+            {successMsg && (
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.15)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                color: '#6ee7b7',
+                fontSize: '14px',
+                fontWeight: 600,
+                marginBottom: '24px',
+                textAlign: 'center',
+                lineHeight: '1.5'
+              }}>
+                ✅ {successMsg}
+              </div>
+            )}
+
             <div style={{ marginBottom: '24px' }}>
               <label style={labelStyle}>Alamat Email</label>
               <input 
@@ -159,46 +191,54 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: '36px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <label style={{ ...labelStyle, marginBottom: 0 }}>Kata Sandi</label>
-                <a href="#" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontWeight: 600 }} onMouseOver={(e) => e.currentTarget.style.color = '#cca334'} onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
-                  Lupa Sandi?
-                </a>
+            {!resetMode && (
+              <div style={{ marginBottom: '36px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ ...labelStyle, marginBottom: 0 }}>Kata Sandi</label>
+                  <button 
+                    type="button"
+                    onClick={() => { setResetMode(true); setErrorMsg(null); setSuccessMsg(null); }}
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }} 
+                    onMouseOver={(e) => e.currentTarget.style.color = '#cca334'} 
+                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                  >
+                    Lupa Sandi?
+                  </button>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    required
+                    placeholder="Masukkan kata sandi Anda"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField('pass')}
+                    onBlur={() => setFocusedField(null)}
+                    style={getInputStyle('pass')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '15px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'rgba(255,255,255,0.4)',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '5px'
+                    }}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  required
-                  placeholder="Masukkan kata sandi Anda"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField('pass')}
-                  onBlur={() => setFocusedField(null)}
-                  style={getInputStyle('pass')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '15px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: 'rgba(255,255,255,0.4)',
-                    cursor: 'pointer',
-                    fontSize: '18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '5px'
-                  }}
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
-              </div>
-            </div>
+            )}
 
             <button 
               type="submit" 
@@ -214,15 +254,29 @@ export default function LoginPage() {
                 fontWeight: 800 
               }}
             >
-              {loading ? 'Memproses Masuk...' : 'Masuk ke Sistem'}
+              {loading 
+                ? (resetMode ? 'Mengirim...' : 'Memproses...') 
+                : (resetMode ? 'Kirim Tautan Reset' : 'Masuk ke Sistem')}
             </button>
 
             <div style={{ textAlign: 'center', marginTop: '28px' }}>
               <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
-                Belum memiliki akun?{' '}
-                <Link href="/register" style={{ color: '#cca334', textDecoration: 'none', fontWeight: 700, transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
-                  Daftar Akun Baru
-                </Link>
+                {resetMode ? (
+                  <button 
+                    type="button"
+                    onClick={() => { setResetMode(false); setErrorMsg(null); setSuccessMsg(null); }}
+                    style={{ background: 'none', border: 'none', color: '#cca334', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Kembali ke Login
+                  </button>
+                ) : (
+                  <>
+                    Belum memiliki akun?{' '}
+                    <Link href="/register" style={{ color: '#cca334', textDecoration: 'none', fontWeight: 700, transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                      Daftar Akun Baru
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
 

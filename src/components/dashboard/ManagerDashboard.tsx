@@ -105,11 +105,11 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
       {message && (
         <div style={{ 
           padding: '20px', borderRadius: '16px', marginBottom: '30px',
-          background: message.type === 'success' ? 'rgba(4, 49, 33, 0.95)' : 'rgba(239, 68, 68, 0.95)',
+          background: message.type === 'success' ? 'var(--bg-sidebar)' : 'rgba(239, 68, 68, 0.95)',
           color: message.type === 'success' ? '#34d399' : '#fca5a5',
-          border: `2px solid ${message.type === 'success' ? '#f3c653' : '#fca5a5'}`,
+          border: `2px solid ${message.type === 'success' ? 'var(--gold-intense)' : '#fca5a5'}`,
           fontWeight: 800, textAlign: 'center',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+          boxShadow: '0 10px 30px var(--shadow-color)'
         }}>
           {message.text}
         </div>
@@ -130,9 +130,9 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
 
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '30px' }}>
             {/* Liquidity Health Chart Simulation */}
-            <div className="glass-dark" style={{ padding: '36px', border: '2px solid #cca334', background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(16px)' }}>
-              <h3 style={{ color: '#f3c653', margin: '0 0 10px 0', fontWeight: 900 }}>📈 POSISI KESEHATAN KEUANGAN KOPERASI</h3>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginBottom: '30px' }}>Parameter Likuiditas, Risiko, dan Kecukupan Modal secara Real-Time.</p>
+            <div className="glass-dark" style={{ padding: '36px', border: '2px solid var(--gold-bright)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', boxShadow: '0 20px 40px var(--shadow-color)' }}>
+              <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 10px 0', fontWeight: 900 }}>📈 POSISI KESEHATAN KEUANGAN KOPERASI</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '30px' }}>Parameter Likuiditas, Risiko, dan Kecukupan Modal secara Real-Time.</p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <HealthIndicator label="Rasio Kecukupan Modal (CAR)" value={18.5} target={12} color="#34d399" unit="%" />
@@ -146,16 +146,16 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
             </div>
 
             {/* Top Pending Approval Quick Peek */}
-            <div className="glass-dark" style={{ padding: '36px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(16px)' }}>
-              <h3 style={{ color: '#ffffff', margin: '0 0 20px 0', fontWeight: 900 }}>📢 Memo Antrian Terkini</h3>
+            <div className="glass-dark" style={{ padding: '36px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', boxShadow: '0 20px 40px var(--shadow-color)' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontWeight: 900 }}>📢 Memo Antrian Terkini</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {contracts.filter(c => c.status === 'pending').slice(0, 3).map((c) => (
-                  <div key={c.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '16px', borderLeft: '4px solid #f3c653' }}>
+                  <div key={c.id} style={{ background: 'var(--shadow-color)', padding: '16px', borderRadius: '16px', borderLeft: '4px solid var(--gold-intense)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '15px' }}>{c.users?.full_name || 'Pemohon'}</span>
-                      <span style={{ color: '#f3c653', fontWeight: 900, fontSize: '13px' }}>AI COMPLIANT</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '15px' }}>{c.users?.full_name || 'Pemohon'}</span>
+                      <span style={{ color: 'var(--gold-intense)', fontWeight: 900, fontSize: '13px' }}>AI COMPLIANT</span>
                     </div>
-                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>Akad: {getFriendlyContractType(c.type)}</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Akad: {getFriendlyContractType(c.type)}</div>
                     <div style={{ color: '#34d399', fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
                   </div>
                 ))}
@@ -173,44 +173,44 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
       {/* =========================================== */}
       {activeMenu === 'approvals' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          <div style={{ background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '3px solid #cca334', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
-            <div style={{ background: '#043121', padding: '24px 36px', borderBottom: '2.5px solid #cca334', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: '#ffffff', margin: 0, fontSize: '22px', fontWeight: 900 }}>⚖️ OTORISASI PENGAJUAN PEMBIAYAAN (PIPELINE)</h2>
-              <button onClick={fetchFinancingPipeline} style={{ background: 'transparent', border: 'none', color: '#f3c653', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>🔄 Refresh Pipeline</button>
+          <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '3px solid var(--gold-bright)', boxShadow: '0 30px 60px var(--shadow-color)' }}>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '2.5px solid var(--gold-bright)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '22px', fontWeight: 900 }}>⚖️ OTORISASI PENGAJUAN PEMBIAYAAN (PIPELINE)</h2>
+              <button onClick={fetchFinancingPipeline} style={{ background: 'transparent', border: 'none', color: 'var(--gold-intense)', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>🔄 Refresh Pipeline</button>
             </div>
 
             <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {loadingContracts ? (
-                <div style={{ color: '#fff', textAlign: 'center', padding: '40px', fontWeight: 700 }}>Memuat berkas pengajuan dari Supabase Cloud...</div>
+                <div style={{ color: 'var(--text-primary)', textAlign: 'center', padding: '40px', fontWeight: 700 }}>Memuat berkas pengajuan dari Supabase Cloud...</div>
               ) : contracts.filter(c => c.status === 'pending').length > 0 ? (
                 contracts.filter(c => c.status === 'pending').map((c) => {
                   const score = getAIScore(c.id);
                   return (
-                    <div key={c.id} style={{ background: 'rgba(0,0,0,0.25)', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '30px', display: 'grid', gridTemplateColumns: '2.5fr 1fr 1.5fr 2fr', gap: '20px', alignItems: 'center', transition: 'transform 0.2s' }}>
+                    <div key={c.id} style={{ background: 'var(--shadow-color)', border: '1.5px solid var(--border-primary)', borderRadius: '24px', padding: '30px', display: 'grid', gridTemplateColumns: '2.5fr 1fr 1.5fr 2fr', gap: '20px', alignItems: 'center', transition: 'transform 0.2s' }}>
                       
                       {/* 1. Member Profile */}
                       <div>
-                        <div style={{ color: '#fff', fontSize: '18px', fontWeight: 900 }}>{c.users?.full_name || 'Calon Penerima'}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '2px' }}>{c.users?.email || 'email@tertaut.com'}</div>
-                        <div style={{ background: '#032419', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', color: '#cca334', fontWeight: 800, fontSize: '12px', marginTop: '12px', border: '1px solid #cca334' }}>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 900 }}>{c.users?.full_name || 'Calon Penerima'}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '2px' }}>{c.users?.email || 'email@tertaut.com'}</div>
+                        <div style={{ background: 'var(--border-primary)', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', color: 'var(--gold-bright)', fontWeight: 800, fontSize: '12px', marginTop: '12px', border: '1px solid var(--gold-bright)' }}>
                           📋 {getFriendlyContractType(c.type)}
                         </div>
                       </div>
 
                       {/* 2. Amount Plafond */}
                       <div>
-                        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Plafon Diajukan</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Plafon Diajukan</div>
                         <div style={{ color: '#34d399', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
                       </div>
 
                       {/* 3. AI Assessment RAG Result */}
                       <div>
-                        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Rekomendasi AI RAG</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Rekomendasi AI RAG</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ background: score >= 85 ? 'rgba(52, 211, 153, 0.15)' : 'rgba(251, 191, 36, 0.15)', color: score >= 85 ? '#34d399' : '#fcd34d', padding: '8px 12px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', border: `1.5px solid ${score >= 85 ? '#34d399' : '#fcd34d'}` }}>
                             🛡️ {score}%
                           </div>
-                          <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>PRIMA (PATUH)</span>
+                          <span style={{ color: 'var(--text-primary)', fontSize: '11px', fontWeight: 700 }}>PRIMA (PATUH)</span>
                         </div>
                       </div>
 
@@ -226,7 +226,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                         <button 
                           onClick={() => handleDecision(c.id, 'approved')}
                           disabled={loading}
-                          style={{ padding: '14px 30px', background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', border: 'none', color: '#02130e', borderRadius: '14px', fontWeight: 900, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(243, 198, 83, 0.3)' }}
+                          style={{ padding: '14px 30px', background: 'linear-gradient(135deg, var(--gold-intense) 0%, var(--gold-bright) 100%)', border: 'none', color: '#02130e', borderRadius: '14px', fontWeight: 900, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 15px var(--shadow-color)' }}
                         >
                           ✅ SETUJUI PENCAIRAN
                         </button>
@@ -250,19 +250,19 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
       {/* 📑 TAB 3: CONTRACT AUDIT LOG (HISTORICAL)  */}
       {/* =========================================== */}
       {activeMenu === 'contracts' && (
-        <div style={{ background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
-          <div style={{ background: '#043121', padding: '24px 36px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-            <h3 style={{ color: '#ffffff', margin: 0, fontWeight: 900 }}>📋 RIWAYAT KEPUTUSAN OTORISASI AKAD</h3>
+        <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1px solid var(--border-primary)', boxShadow: '0 30px 60px var(--shadow-color)' }}>
+          <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1px solid var(--border-primary)' }}>
+            <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900 }}>📋 RIWAYAT KEPUTUSAN OTORISASI AKAD</h3>
           </div>
           <div style={{ padding: '20px 36px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid rgba(243, 198, 83, 0.2)' }}>
-                  <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>TANGGAL PROSES</th>
-                  <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>NAMA ANGGOTA</th>
-                  <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>AKAD</th>
-                  <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>PLAFON</th>
-                  <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>KEPUTUSAN FINAL</th>
+                <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--gold-bright)' }}>
+                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>TANGGAL PROSES</th>
+                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>NAMA ANGGOTA</th>
+                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>AKAD</th>
+                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>PLAFON</th>
+                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>KEPUTUSAN FINAL</th>
                 </tr>
               </thead>
               <tbody>
@@ -318,22 +318,22 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
 function ExecCard({ label, value, icon, color, comment }: any) {
   return (
     <div style={{ 
-      background: 'rgba(4, 49, 33, 0.85)', 
+      background: 'var(--bg-card)', 
       backdropFilter: 'blur(12px)', 
       padding: '26px', 
       borderRadius: '28px', 
       border: `2px solid ${color}55`,
-      boxShadow: '0 20px 45px rgba(0,0,0,0.25)',
+      boxShadow: '0 20px 45px var(--shadow-color)',
       display: 'flex',
       flexDirection: 'column',
       gap: '12px'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
-          <div style={{ color: '#ffffff', fontSize: '22px', fontWeight: 900, marginTop: '6px' }}>{value}</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
+          <div style={{ color: 'var(--text-primary)', fontSize: '22px', fontWeight: 900, marginTop: '6px' }}>{value}</div>
         </div>
-        <div style={{ fontSize: '34px', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '16px' }}>{icon}</div>
+        <div style={{ fontSize: '34px', background: 'var(--border-primary)', padding: '10px', borderRadius: '16px' }}>{icon}</div>
       </div>
       <div style={{ fontSize: '11px', color: color, fontWeight: 900, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', letterSpacing: '0.5px' }}>
         {comment}

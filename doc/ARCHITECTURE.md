@@ -65,6 +65,7 @@ graph TD
 - **Framework Utama:** **Next.js (React)** digunakan untuk merender antarmuka pengguna dengan dukungan penuh terhadap *Server-Side Rendering* (SSR) yang optimal untuk performa.
 - **Bahasa Pemrograman:** **TypeScript** diimplementasikan untuk menjamin keamanan pengetikan (*type-safety*) demi meminimalisasi *bug* tidak terduga pada saat *runtime*.
 - **Styling:** **Tailwind CSS** untuk perancangan UI (User Interface) yang cepat, modular, dan responsif terhadap berbagai ukuran layar.
+- **Sistem Tema:** Implementasi **Tema Dinamis (Light/Dark Mode)** menggunakan variabel CSS global yang memungkinkan perubahan estetika sistem secara instan sesuai preferensi pengguna.
 
 ### 3.2. Backend & Database
 IQ-RA System memanfaatkan **Supabase** sebagai *Backend-as-a-Service* (BaaS):

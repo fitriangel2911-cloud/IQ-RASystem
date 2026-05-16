@@ -247,7 +247,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                     <span>{Math.round((stats.totalEquity / stats.totalAssets) * 100)}%</span>
                   </div>
                   <div style={{ height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(stats.totalEquity / stats.totalAssets) * 100}%`, background: '#f3c653', boxShadow: '0 0 10px #f3c653' }} />
+                    <div style={{ height: '100%', width: `${(stats.totalEquity / stats.totalAssets) * 100}%`, background: 'var(--text-primary)', boxShadow: '0 0 10px var(--text-primary)' }} />
                   </div>
                 </div>
 
@@ -625,11 +625,11 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
 const inputStyle = {
   width: '100%',
-  background: 'rgba(255, 255, 255, 0.05)',
-  border: '2px solid rgba(255, 255, 255, 0.2)',
+  background: 'var(--bg-page)',
+  border: '2px solid var(--border-primary)',
   borderRadius: '12px',
   padding: '14px 16px',
-  color: '#ffffff',
+  color: 'var(--text-primary)',
   fontSize: '15px',
   fontWeight: 600,
   outline: 'none',
@@ -651,10 +651,10 @@ function StatCard({ label, value, icon, color, subtitle }: any) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
-          <div style={{ color: '#ffffff', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{value}</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
+          <div style={{ color: 'var(--text-primary)', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{value}</div>
         </div>
-        <div style={{ fontSize: '32px', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '14px' }}>{icon}</div>
+        <div style={{ fontSize: '32px', background: 'var(--border-primary)', padding: '10px', borderRadius: '14px' }}>{icon}</div>
       </div>
       <div style={{ fontSize: '11px', color: color, fontWeight: 800, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>{subtitle}</div>
     </div>
@@ -663,8 +663,8 @@ function StatCard({ label, value, icon, color, subtitle }: any) {
 
 function ReportLine({ label, value, isRed = false }: any) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', padding: '6px 0', color: isRed ? '#fca5a5' : '#fff', fontWeight: 600 }}>
-      <span style={{ color: 'rgba(255,255,255,0.8)' }}>{label}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', padding: '6px 0', color: isRed ? '#fca5a5' : 'var(--text-primary)', fontWeight: 600 }}>
+      <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
       <span style={{ fontWeight: 800 }}>{value}</span>
     </div>
   );
