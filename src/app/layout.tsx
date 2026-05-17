@@ -27,7 +27,9 @@ export default function RootLayout({
       <body className="min-h-full relative transition-colors duration-300">
         <ThemeProvider>
           <GlobalSiteBackground />
-          {children}
+          <div style={{ position: 'relative', zIndex: 10, minHeight: '100vh' }}>
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>

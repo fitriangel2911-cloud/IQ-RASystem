@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import BrandLogo from '@/components/brand/BrandLogo';
+import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 
 
 export default function LoginPage() {
@@ -81,30 +82,29 @@ export default function LoginPage() {
   
   const getInputStyle = (fieldName: string) => ({
     width: '100%',
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: `1.5px solid ${focusedField === fieldName ? '#cca334' : 'rgba(255, 255, 255, 0.15)'}`,
-    borderRadius: '14px',
-    padding: '15px 18px',
-    paddingRight: fieldName === 'pass' ? '50px' : '18px',
-    color: 'white',
-    fontSize: '16px',
+    background: 'rgba(255, 255, 255, 0.08)', // Premium glass input background
+    border: `2px solid ${focusedField === fieldName ? '#cca334' : 'rgba(255, 255, 255, 0.25)'}`, // Gold focus border
+    borderRadius: '16px',
+    padding: '18px 20px',
+    paddingRight: fieldName === 'pass' ? '55px' : '20px',
+    color: '#ffffff', // Pure white typed text
+    fontSize: '18px', // Enlarged input text
     outline: 'none',
     transition: 'all 0.25s ease',
-    boxShadow: focusedField === fieldName ? '0 0 12px rgba(204, 163, 52, 0.15)' : 'none',
+    boxShadow: focusedField === fieldName ? '0 0 12px rgba(204, 163, 52, 0.25)' : 'none',
   });
 
   const labelStyle = {
     display: 'block',
-    marginBottom: '8px',
-    fontSize: '14px',
-    fontWeight: 600,
-    color: 'rgba(255, 255, 255, 0.75)',
-    letterSpacing: '0.3px'
+    marginBottom: '10px',
+    fontSize: '16px', // Enlarged label text
+    fontWeight: 700, // Bolder
+    color: '#ffffff', // Pure white label text
+    letterSpacing: '0.5px'
   };
 
   return (
     <>
-      
       <div style={{
         minHeight: '100vh',
         display: 'flex',
@@ -118,22 +118,22 @@ export default function LoginPage() {
         <div 
           className="hero-glass-container"
           style={{
-            maxWidth: '460px',
+            maxWidth: '500px', // Slightly wider for larger inputs
             width: '100%',
-            padding: '54px 40px',
-            boxShadow: '0 30px 70px rgba(0,0,0,0.35)',
+            padding: '60px 48px',
+            // Inherits the beautiful dark green glass background and gold border from the home page
             animation: 'fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '24px' }}>
-              <BrandLogo size={64} fontSize="32px" />
+          <div style={{ textAlign: 'center', marginBottom: '44px' }}>
+            <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '28px' }}>
+              <BrandLogo size={72} fontSize="34px" /> {/* Enlarged logo */}
             </div>
-            <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'white', marginBottom: '8px' }}>
-              {resetMode ? 'Reset Kata Sandi' : <>Selamat Datang <span style={{ color: '#cca334' }}>Kembali</span></>}
+            <h2 style={{ fontSize: '32px', fontWeight: 900, color: '#ffffff', marginBottom: '12px', letterSpacing: '-0.5px' }}>
+              {resetMode ? 'Reset Kata Sandi' : <>Selamat Datang <span style={{ background: 'linear-gradient(135deg, #cca334 0%, #a67e26 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Kembali</span></>}
             </h2>
-            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
+            <p style={{ fontSize: '17px', color: '#ffffff', fontWeight: 600, lineHeight: 1.5, opacity: 0.85 }}>
               {resetMode 
                 ? 'Masukkan email Anda untuk menerima tautan pemulihan' 
                 : 'Masuk untuk mengakses akun iQ-RA System Anda'}
@@ -145,13 +145,13 @@ export default function LoginPage() {
             {errorMsg && (
               <div style={{
                 background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                borderRadius: '12px',
-                padding: '14px 16px',
+                border: '1.5px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: '14px',
+                padding: '16px',
                 color: '#fca5a5',
-                fontSize: '14px',
-                fontWeight: 600,
-                marginBottom: '24px',
+                fontSize: '15px',
+                fontWeight: 700,
+                marginBottom: '28px',
                 textAlign: 'center',
                 lineHeight: '1.5',
                 animation: 'shake 0.3s'
@@ -163,13 +163,13 @@ export default function LoginPage() {
             {successMsg && (
               <div style={{
                 background: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: '12px',
-                padding: '14px 16px',
+                border: '1.5px solid rgba(16, 185, 129, 0.25)',
+                borderRadius: '14px',
+                padding: '16px',
                 color: '#6ee7b7',
-                fontSize: '14px',
-                fontWeight: 600,
-                marginBottom: '24px',
+                fontSize: '15px',
+                fontWeight: 700,
+                marginBottom: '28px',
                 textAlign: 'center',
                 lineHeight: '1.5'
               }}>
@@ -177,7 +177,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '28px' }}>
               <label style={labelStyle}>Alamat Email</label>
               <input 
                 type="email" 
@@ -192,15 +192,15 @@ export default function LoginPage() {
             </div>
 
             {!resetMode && (
-              <div style={{ marginBottom: '36px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '40px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <label style={{ ...labelStyle, marginBottom: 0 }}>Kata Sandi</label>
                   <button 
                     type="button"
                     onClick={() => { setResetMode(true); setErrorMsg(null); setSuccessMsg(null); }}
-                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '13px', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }} 
-                    onMouseOver={(e) => e.currentTarget.style.color = '#cca334'} 
-                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '15px', color: '#cca334', textDecoration: 'none', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }} 
+                    onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} 
+                    onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                   >
                     Lupa Sandi?
                   </button>
@@ -221,14 +221,14 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     style={{
                       position: 'absolute',
-                      right: '15px',
+                      right: '18px',
                       top: '50%',
                       transform: 'translateY(-50%)',
                       background: 'none',
                       border: 'none',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'rgba(255, 255, 255, 0.4)',
                       cursor: 'pointer',
-                      fontSize: '18px',
+                      fontSize: '20px',
                       display: 'flex',
                       alignItems: 'center',
                       padding: '5px'
@@ -246,12 +246,13 @@ export default function LoginPage() {
               className="btn-primary-gold" 
               style={{ 
                 width: '100%', 
-                padding: '16px', 
-                fontSize: '17px', 
+                padding: '18px', // Enlarged button padding
+                fontSize: '20px', // Enlarged button text
                 border: 'none', 
                 cursor: loading ? 'not-allowed' : 'pointer', 
                 opacity: loading ? 0.7 : 1,
-                fontWeight: 800 
+                fontWeight: 900,
+                borderRadius: '16px'
               }}
             >
               {loading 
@@ -259,20 +260,20 @@ export default function LoginPage() {
                 : (resetMode ? 'Kirim Tautan Reset' : 'Masuk ke Sistem')}
             </button>
 
-            <div style={{ textAlign: 'center', marginTop: '28px' }}>
-              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
+            <div style={{ textAlign: 'center', marginTop: '32px' }}>
+              <p style={{ fontSize: '16px', color: '#ffffff', fontWeight: 600, opacity: 0.85 }}>
                 {resetMode ? (
                   <button 
                     type="button"
                     onClick={() => { setResetMode(false); setErrorMsg(null); setSuccessMsg(null); }}
-                    style={{ background: 'none', border: 'none', color: '#cca334', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' }}
+                    style={{ background: 'none', border: 'none', color: '#cca334', textDecoration: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '16px' }}
                   >
                     Kembali ke Login
                   </button>
                 ) : (
                   <>
                     Belum memiliki akun?{' '}
-                    <Link href="/register" style={{ color: '#cca334', textDecoration: 'none', fontWeight: 700, transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                    <Link href="/register" style={{ color: '#cca334', textDecoration: 'none', fontWeight: 800, transition: 'opacity 0.2s' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
                       Daftar Akun Baru
                     </Link>
                   </>

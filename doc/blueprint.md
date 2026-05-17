@@ -37,13 +37,19 @@ Komponen Teknologi
 ●      Mesin Kecerdasan Buatan: LangChain.js beroperasi sebagai orkestrator jalur pipa RAG untuk ekstraksi teks dokumen regulasi, pembuatan embeddings, dan pencarian konteks spesifik.
 ●      Siklus Pengembangan: Pemanfaatan Vercel untuk deployment berkinerja tinggi serta GitHub Actions yang terintegrasi dengan SonarCloud untuk tinjauan kualitas kode secara otomatis.
 
-3.1. Sistem Desain Antarmuka (Premium UI/UX)
-Untuk menjamin kepercayaan pengguna pada platform finansial, IQ-RA System mengadopsi standar estetika "Premium Sharia FinTech" dengan dukungan multi-tema:
-●      Sistem Tema Dinamis: Implementasi Mode Terang (Light) dan Mode Gelap (Dark/Emerald) yang dapat diganti secara real-time melalui ThemeToggle berbasis React Context API.
-●      Palet Warna (Light Mode): Menggunakan *Dark Emerald Green* (`#043121`) sebagai warna teks utama dan *Gold* (`#f3c653`) sebagai latar belakang sidebar untuk kesan premium.
-●      Palet Warna (Dark Mode): Dominasi *Dark Emerald Green* (`#043121`) yang melambangkan pertumbuhan, dipadukan dengan aksen *Gold* (`#f3c653`) pada border dan ikon.
+3.1. Sistem Desain Antarmuka (Premium Sharia FinTech)
+Untuk menjamin kepercayaan pengguna pada platform finansial, IQ-RA System mengadopsi standar estetika "Premium Sharia FinTech" yang ultra-modern, bersih, dan berwibawa:
+●      Latar Belakang Animasi Universal (White Papercut Style): Menggunakan pola geometris Islami *3D papercut* putih abu-abu asli yang bergerak mengalir lambat secara diagonal sebagai fondasi visual utama (di-render terpusat pada root layout), memberikan kesan modern, suci, bersih, terang, dan profesional.
+●      Glassmorphism Hijau Zamrud Gelap (Dark Emerald Glass): Kontainer utama dan kartu penting didesain melayang menggunakan kaca hijau zamrud gelap pekat dengan transparansi optimal (`rgba(4, 49, 33, 0.75)`) dan efek blur tinggi (`backdrop-filter: blur(24px)`) dengan bingkai emas metalik tebal (`rgba(204, 163, 52, 0.55)`) untuk menjamin kontras teks putih/emas di dalamnya tampil sangat tajam, terang, dan bersinar.
+●      Desain Halaman Publik Terkunci (Home, Login, Register - LOCKED):
+  * *Halaman Beranda (LOCKED)*: Navbar premium dengan Logo diperbesar (`52px`), Menu Navigasi rapi (`18px` ultra-bold), tombol "Masuk" diperbesar (`20px`), serta hero text berselimut gradasi emas royal premium di atas kontainer kaca hijau zamrud transparan (`rgba(4, 49, 33, 0.75)`).
+  * *Halaman Login & Registrasi (LOCKED)*: Menggunakan kontainer kaca hijau zamrud (`rgba(4, 49, 33, 0.75)`) yang sepenuhnya selaras dengan beranda. Semua teks pendukung diubah menjadi Putih Murni (`#ffffff`) berkontras tinggi (AAA) dengan tulisan kata sandi/email di dalam kolom menggunakan Slate Charcoal Modern (`#334155`) di atas kolom input kaca semi-transparan (`rgba(255, 255, 255, 0.08)`).
+●      Palet Warna & Keterbacaan Kontras Tinggi:
+  * *Dark Emerald Green* (`#043121` / `#084b35`): Digunakan untuk warna teks utama Navbar, judul produk, dan aksen penting syariah untuk keterbacaan tingkat tinggi di atas latar putih.
+  * *Slate Arang* (`#334155` / `#1e293b`): Digunakan untuk penjelasan deskripsi agar tidak blur dan sangat nyaman dibaca baik di atas latar putih terang maupun di dalam kontainer zamrud gelap.
+  * *Metallic Gold* (`#cca334` / `#f3c653` / `#a67e26`): Aksen kemewahan premium untuk border kontainer, ikon, gradasi teks sorotan, dan metrics angka keuangan.
 ●      Standardisasi Dasbor: Penggunaan Sidebar dinamis terpadu dengan fitur *Collapsible*. Komponen layanan utama (seperti Layanan Kasir) diberikan penekanan visual (ukuran lebih besar & warna kontras) untuk kemudahan akses operasional.
-●      Optimasi Aksesibilitas: Penyesuaian kontras warna pada seluruh mode untuk memastikan teks tetap terbaca tajam di atas latar belakang kaca (*glassmorphism*).
+●      Optimasi Aksesibilitas: Penyesuaian kontras warna tingkat tinggi pada seluruh halaman (Home, Login, Register) untuk memastikan teks tetap terbaca tajam bebas blur.
 4.     Spesifikasi Modul Fungsional
 4.1. Manajemen Keanggotaan dan Data Utama
 

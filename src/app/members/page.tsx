@@ -8,6 +8,7 @@ import AccountsTable from '@/components/dashboard/AccountsTable';
 import TransactionsTable from '@/components/dashboard/TransactionsTable';
 import FinancingPanel from '@/components/dashboard/FinancingPanel';
 import ProfileForm from '@/components/dashboard/ProfileForm';
+import ThemeToggle from '@/components/dashboard/ThemeToggle';
 
 type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile';
 
@@ -166,25 +167,31 @@ export default function MemberPage() {
             </div>
           </div>
 
-          {/* Auto-Refresh Badge Indicator */}
-          <div style={{
-            background: '#022b1c',
-            border: '1.5px solid #34d399',
-            borderRadius: '30px',
-            padding: '8px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '12px',
-            fontWeight: 800,
-            color: '#34d399',
-            boxShadow: '0 4px 12px rgba(52, 211, 153, 0.15)'
-          }}>
+          {/* Dynamic Theme Switcher & Auto-Refresh Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <ThemeToggle />
+            
             <div style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              background: '#34d399', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #34d399'
-            }} />
-            <span>SINKRONISASI AKTIF (60d)</span>
+              background: 'var(--bg-card)',
+              backdropFilter: 'blur(8px)',
+              border: '1.5px solid var(--border-primary)',
+              borderRadius: '30px',
+              padding: '8px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px',
+              fontWeight: 800,
+              color: 'var(--text-primary)',
+              boxShadow: '0 4px 12px var(--shadow-color)',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{
+                width: '8px', height: '8px', borderRadius: '50%',
+                background: '#10b981', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #10b981'
+              }} />
+              <span>SINKRONISASI AKTIF (60d)</span>
+            </div>
           </div>
         </header>
 

@@ -42,55 +42,58 @@ body {
   margin: 0;
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
-  background-color: var(--bg-page);
+  background-color: transparent !important;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
 /* ═══════════════════════════════════════════════════════
-   ANIMATED BACKGROUND - ISLAMIC GIRIH PATTERN
+   THE PERFECTED SHARIA LUXURY CANVAS
 ══════════════════════════════════════════════════════════ */
 
-.site-bg-wrapper {
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  background-color: var(--bg-page);
-  overflow: hidden;
-  transition: background-color 0.5s ease;
+html {
+  background-color: #010f0a !important;
+  min-height: 100%;
 }
 
-.islamic-pattern-overlay {
-  position: absolute;
-  inset: -100px;
-  width: calc(100% + 200px);
-  height: calc(100% + 200px);
-  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='white' stroke-width='1.5' stroke-opacity='0.6'%3E%3Cpath d='M60 0 L75 15 L105 15 L120 30 L120 60 L105 75 L105 105 L75 120 L60 120 L45 105 L15 105 L0 90 L0 60 L15 45 L15 15 L45 0 Z'/%3E%3Cpath d='M60 30 L80 50 L80 70 L60 90 L40 70 L40 50 Z'/%3E%3Cpath d='M0 0 L30 30 M90 30 L120 0 M0 120 L30 90 M90 90 L120 120'/%3E%3Crect x='45' y='45' width='30' height='30' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 120px 120px;
-  opacity: var(--pattern-opacity);
-  animation: movePattern 40s linear infinite;
-  pointer-events: none;
+body {
+  margin: 0;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+  background-color: transparent !important;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
-.light-mode .islamic-pattern-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23043121' stroke-width='1.5' stroke-opacity='0.4'%3E%3Cpath d='M60 0 L75 15 L105 15 L120 30 L120 60 L105 75 L105 105 L75 120 L60 120 L45 105 L15 105 L0 90 L0 60 L15 45 L15 15 L45 0 Z'/%3E%3Cpath d='M60 30 L80 50 L80 70 L60 90 L40 70 L40 50 Z'/%3E%3Cpath d='M0 0 L30 30 M90 30 L120 0 M0 120 L30 90 M90 90 L120 120'/%3E%3Crect x='45' y='45' width='30' height='30' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
+/* Pseudo-elements removed to let GlobalSiteBackground handle background rendering robustly in React */
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, #fce08a 0%, #cca334 50%, #f3c653 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 
-@keyframes movePattern {
-  0% { background-position: 0 0; }
-  100% { background-position: 240px 240px; }
+.hero-glass-container {
+  background: rgba(4, 49, 33, 0.45) !important; /* Dark Emerald Glass */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(204, 163, 52, 0.2) !important; /* Subtle Gold Border */
+  border-radius: 32px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
 }
 
-.site-bg-glow {
-  position: absolute;
-  inset: 0;
-  /* Dark Emerald & Gold blend in background */
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(4, 49, 33, 0.4) 0%, transparent 70%),
-    radial-gradient(circle at 80% 70%, rgba(204, 163, 52, 0.15) 0%, transparent 70%);
-  z-index: -5;
-  opacity: 1;
+.feature-card {
+  background: rgba(4, 49, 33, 0.35) !important;
+  backdrop-filter: blur(16px);
+  border-radius: 24px;
+  padding: 32px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(204, 163, 52, 0.15);
 }
+
 
 /* ═══════════════════════════════════════════════════════
    UI COMPONENTS
@@ -126,12 +129,12 @@ body {
 }
 
 .hero-glass-container {
-  background: rgba(4, 49, 33, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(4, 49, 33, 0.75) !important; /* Elegant dark emerald green with a beautiful 75% glass transparency */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 2.5px solid rgba(204, 163, 52, 0.55) !important; /* Rich metallic gold border */
   border-radius: 32px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 40px 100px rgba(4, 49, 33, 0.22) !important; /* Beautiful green-tinted shadow */
 }
 
 .feature-card {

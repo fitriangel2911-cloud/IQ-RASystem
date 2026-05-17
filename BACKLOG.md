@@ -64,6 +64,11 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-17 (Sesi Siang - Modernisasi Visual & Penguncian Desain Halaman Publik)**:
+    - **Penyempurnaan Halaman Beranda (LOCKED)**: Penguncian penuh desain Beranda dengan pembesaran Logo, Menu Navigasi (`18px` ultra-bold), tombol "Masuk" (`20px`), serta hero text berselimut gradasi emas royal premium di atas kontainer kaca hijau zamrud transparan (`rgba(4, 49, 33, 0.75)`) berbingkai emas mewah di atas latar belakang papercut putih geometris.
+    - **Penyempurnaan Halaman Login & Registrasi (LOCKED)**: Penguncian penuh antarmuka Login dan Registrasi menggunakan kontainer kaca hijau zamrud (`rgba(4, 49, 33, 0.75)`) yang sepenuhnya selaras dengan beranda. Semua teks pendukung diubah menjadi Putih Murni (`#ffffff`) berkontras tinggi (AAA) dengan tulisan kata sandi/email di dalam kolom menggunakan Slate Charcoal Modern (`#334155`) di atas kolom input kaca semi-transparan (`rgba(255, 255, 255, 0.08)`).
+    - **Konsistensi Desain Global**: Standardisasi typography, keterbacaan, dan kontras visual tingkat tinggi di seluruh gerbang publik iQ-RA System.
+
 - **2026-05-16 (Sesi Sore - Multi-Theme Support)**:
     - **Theme Engine**: Implementasi `ThemeContext` berbasis React Context API untuk manajemen state Mode Terang/Gelap di seluruh aplikasi.
     - **UI Theme Switcher**: Penambahan komponen `ThemeToggle` di Sidebar untuk perpindahan tema instan dengan persistensi `localStorage`.
