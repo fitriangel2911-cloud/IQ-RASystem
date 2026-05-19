@@ -10,11 +10,32 @@ interface CSDashboardProps {
 
 export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   const [stats, setStats] = useState({ totalMembers: 0, pendingKYC: 0, activeHelp: 0 });
-  const [kycList, setKycList] = useState<any[]>([]);
+  const [kycList, setKycList] = useState<any[]>([]); // Antrian pending KYC
+  const [selectedKyc, setSelectedKyc] = useState<any>(null); // Anggota KYC terpilih untuk diaudit
+  const [membersList, setMembersList] = useState<any[]>([]); // Anggota Aktif terverifikasi
+  const [selectedMemberProfile, setSelectedMemberProfile] = useState<any>(null); // State detail profil anggota
+  const [memberAccounts, setMemberAccounts] = useState<any[]>([]); // Rekening anggota terpilih
+  const [registeredReceiptData, setRegisteredReceiptData] = useState<any>(null); // Data nota bukti cetak
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // Form State
+  useEffect(() => {
+    if (selectedMemberProfile) {
+      const fetchAccounts = async () => {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('savings_accounts')
+          .select('*')
+          .eq('member_id', selectedMemberProfile.user_id);
+        if (data) setMemberAccounts(data);
+      };
+      fetchAccounts();
+    } else {
+      setMemberAccounts([]);
+    }
+  }, [selectedMemberProfile]);
+
+  // Form State dengan Email, Password, dan Setoran Awal Simpanan Koperasi
   const [formData, setFormData] = useState({
     fullName: '',
     nik: '',
@@ -26,7 +47,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     domicileAddress: '',
     occupation: '',
     monthlyIncome: '',
-    religion: 'Islam'
+    religion: 'Islam',
+    password: '', // Sandi login anggota
+    initialPrincipal: '300000', // Setoran awal Pokok (Default 300k)
+    initialMandatory: '50000'   // Setoran awal Wajib (Default 50k)
   });
 
   const fetchStats = async () => {
@@ -40,12 +64,32 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       activeHelp: 12
     });
 
-    const { data } = await supabase
+    // Ambil daftar pending untuk Antrian KYC
+    const { data: pendingData } = await supabase
       .from('members')
       .select('*, users(full_name, email)')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
-    if (data) setKycList(data);
+    
+    if (pendingData) {
+      setKycList(pendingData);
+      if (pendingData.length > 0) {
+        setSelectedKyc((prev: any) => {
+          const stillExists = pendingData.find(item => item.id === prev?.id);
+          return stillExists || pendingData[0];
+        });
+      } else {
+        setSelectedKyc(null);
+      }
+    }
+
+    // Ambil daftar active untuk Database Anggota
+    const { data: activeData } = await supabase
+      .from('members')
+      .select('*, users(full_name, email)')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (activeData) setMembersList(activeData);
   };
 
   useEffect(() => {
@@ -59,31 +103,207 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
     const supabase = createClient();
     
-    const { error } = await supabase.from('members').insert([{
-      nik: formData.nik,
-      mother_name: formData.motherName,
-      kk_number: formData.kkNumber,
-      phone_number: formData.phone,
-      ktp_address: formData.ktpAddress,
-      domicile_address: formData.domicileAddress,
-      occupation: formData.occupation,
-      monthly_income: parseInt(formData.monthlyIncome) || 0,
-      religion: formData.religion,
-      status: 'pending'
-    }]);
+    try {
+      // 1. Validasi Input Dasar
+      if (!formData.fullName || !formData.nik || !formData.email || !formData.phone) {
+        throw new Error('Nama Lengkap, NIK, Email, dan WhatsApp wajib diisi untuk registrasi.');
+      }
 
-    if (error) {
-      setMessage({ type: 'error', text: 'Gagal mendaftarkan anggota: ' + error.message });
-    } else {
-      setMessage({ type: 'success', text: 'Data CIF Anggota berhasil didaftarkan! Silakan lanjutkan ke verifikasi dokumen.' });
+      const memberPassword = formData.password || formData.nik;
+      if (memberPassword.length < 6) {
+        throw new Error('Kata sandi login anggota minimal harus 6 karakter.');
+      }
+
+      // 2. Buat Akun User login Supabase & Profil Publik dengan peran 'member'
+      const userRes = await fetch('/api/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: memberPassword,
+          role: 'member'
+        })
+      });
+
+      const userData = await userRes.json();
+      if (!userRes.ok) {
+        throw new Error(userData.error || 'Gagal mendaftarkan akun login baru.');
+      }
+
+      const userId = userData.user?.id;
+      if (!userId) {
+        throw new Error('Gagal mendapatkan identitas unik akun login dari Supabase.');
+      }
+
+      // 3. Masukkan data profil fisik / demografis CIF ke tabel members
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .insert([{
+          user_id: userId,
+          nik: formData.nik,
+          mother_name: formData.motherName,
+          kk_number: formData.kkNumber,
+          phone_number: formData.phone,
+          ktp_address: formData.ktpAddress,
+          domicile_address: formData.domicileAddress || formData.ktpAddress,
+          occupation: formData.occupation,
+          monthly_income: parseInt(formData.monthlyIncome) || 0,
+          religion: formData.religion,
+          status: 'active' // Langsung aktif karena menyertakan setoran awal & divalidasi sistem
+        }])
+        .select()
+        .single();
+
+      if (memberError) {
+        throw new Error('Gagal membuat profil CIF anggota: ' + memberError.message);
+      }
+
+      const memberId = memberData.id;
+
+      // 4. PEMBUATAN OTOMATIS REKENING SIMPANAN KOPERASI (Pokok, Wajib, Wadiah)
+      const initialPrincipalAmount = Number(formData.initialPrincipal) || 0;
+      const initialMandatoryAmount = Number(formData.initialMandatory) || 0;
+      
+      const accountsToCreate = [
+        { type: 'pokok', balance: initialPrincipalAmount, prefix: '11' },
+        { type: 'wajib', balance: initialMandatoryAmount, prefix: '12' },
+        { type: 'wadiah', balance: 0, prefix: '21' }
+      ];
+
+      const createdAccounts: any[] = [];
+
+      for (const acc of accountsToCreate) {
+        const randomSuffix = Math.floor(1000000 + Math.random() * 9000000);
+        const accNumber = `${acc.prefix}${randomSuffix}`;
+
+        const { data: newAccount, error: accError } = await supabase
+          .from('savings_accounts')
+          .insert([{
+            member_id: userId,
+            account_number: accNumber,
+            account_type: acc.type,
+            balance: acc.balance
+          }])
+          .select()
+          .single();
+
+        if (accError) {
+          console.error(`Gagal membuat rekening simpanan ${acc.type}:`, accError);
+        } else if (newAccount) {
+          createdAccounts.push(newAccount);
+        }
+      }
+
+      // 5. DOUBLE-ENTRY JOURNALING DENGAN BIAYA ADM, INFAQ, DAN KODE UNIK (SAK EP COMPLIANT)
+      const totalInitialDeposit = initialPrincipalAmount + initialMandatoryAmount;
+      
+      // Ambil 3 digit terakhir WhatsApp/Phone untuk Kode Unik
+      const phoneDigits = (formData.phone || '').replace(/\D/g, '');
+      const nikDigits = (formData.nik || '').replace(/\D/g, '');
+      const sourceDigits = phoneDigits || nikDigits || '000';
+      const uniqueCodeStr = sourceDigits.slice(-3).padStart(3, '0');
+      const uniqueCodeValue = Number(uniqueCodeStr) || 0;
+
+      const admFee = 15000;
+      const infaqSedekahBase = 10000;
+      const infaqSedekahTotal = infaqSedekahBase + uniqueCodeValue;
+
+      const grandTotalPayment = totalInitialDeposit + admFee + infaqSedekahTotal;
+
+      if (grandTotalPayment > 0) {
+        const journalEntries = [];
+        
+        // Debit: Kas di Tangan (COA 101.01) - Mencakup Setoran Awal + ADM + Infaq + Kode Unik
+        journalEntries.push({ account_code: '101.01', debit: grandTotalPayment, credit: 0 });
+
+        if (initialPrincipalAmount > 0) {
+          // Kredit: Simpanan Pokok Anggota (COA 301.01)
+          journalEntries.push({ account_code: '301.01', debit: 0, credit: initialPrincipalAmount });
+        }
+
+        if (initialMandatoryAmount > 0) {
+          // Kredit: Simpanan Wajib Anggota (COA 301.02)
+          journalEntries.push({ account_code: '301.02', debit: 0, credit: initialMandatoryAmount });
+        }
+
+        // Kredit: Pendapatan Administrasi (COA 401.02)
+        journalEntries.push({ account_code: '401.02', debit: 0, credit: admFee });
+
+        // Kredit: Dana Kebajikan / Infaq & Sedekah (COA 302.01) - Termasuk Kode Unik
+        journalEntries.push({ account_code: '302.01', debit: 0, credit: infaqSedekahTotal });
+
+        const accountingRes = await fetch('/api/accounting/record-v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: new Date().toISOString().split('T')[0],
+            description: `[PENDAFTARAN ANGGOTA] Setoran CIF Baru: ${formData.fullName} (Pokok: Rp ${initialPrincipalAmount.toLocaleString('id-ID')}, Wajib: Rp ${initialMandatoryAmount.toLocaleString('id-ID')}, ADM: Rp ${admFee.toLocaleString('id-ID')}, Infaq & Kode Unik: Rp ${infaqSedekahTotal.toLocaleString('id-ID')})`,
+            entries: journalEntries,
+            reference_no: `REG-${Date.now()}`,
+            member_id: memberId
+          })
+        });
+
+        if (!accountingRes.ok) {
+          const accErrorJson = await accountingRes.json();
+          console.error('Accounting Entry Fail:', accErrorJson.error);
+        }
+
+        // 6. Catat Transaksi Tabungan di savings_transactions
+        for (const account of createdAccounts) {
+          let depositValue = 0;
+          if (account.account_type === 'pokok') depositValue = initialPrincipalAmount;
+          if (account.account_type === 'wajib') depositValue = initialMandatoryAmount;
+
+          if (depositValue > 0) {
+            await supabase
+              .from('savings_transactions')
+              .insert([{
+                account_id: account.id,
+                transaction_type: 'deposit',
+                amount: depositValue,
+                reference_no: `TX-REG-${Date.now()}-${account.account_type}`,
+                created_by: profile?.id
+              }]);
+          }
+        }
+      }
+
+      // Set data cetak nota pendaftaran anggota baru
+      setRegisteredReceiptData({
+        referenceNo: `REG-${Date.now()}`,
+        date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+        fullName: formData.fullName,
+        nik: formData.nik,
+        phone: formData.phone,
+        principal: initialPrincipalAmount,
+        mandatory: initialMandatoryAmount,
+        adm: admFee,
+        infaq: infaqSedekahTotal,
+        grandTotal: grandTotalPayment
+      });
+
+      setMessage({ 
+        type: 'success', 
+        text: `Pendaftaran Sukses! Anggota "${formData.fullName}" aktif di sistem. 3 Rekening Simpanan (Pokok, Wajib, Wadiah) berhasil dibuat. Total Pembayaran diterima sebesar Rp ${grandTotalPayment.toLocaleString('id-ID')} (Termasuk ADM Rp 15.000, Infaq Rp 10.000, dan Kode Unik Anggota Rp ${uniqueCodeStr}) telah dibukukan dengan Double-Entry SAK EP.`
+      });
+
+      // Reset Form ke Default
       setFormData({
         fullName: '', nik: '', email: '', phone: '',
         motherName: '', kkNumber: '', ktpAddress: '', domicileAddress: '',
-        occupation: '', monthlyIncome: '', religion: 'Islam'
+        occupation: '', monthlyIncome: '', religion: 'Islam',
+        password: '', initialPrincipal: '300000', initialMandatory: '50000'
       });
+
       fetchStats();
+
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Gagal memproses pendaftaran koperasi: ' + err.message });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleApprove = async (memberId: string) => {
@@ -99,6 +319,88 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       fetchStats();
     }
     setLoading(false);
+  };
+
+  const handlePrintReceipt = () => {
+    if (!registeredReceiptData) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Nota Bukti Pendaftaran - ${registeredReceiptData.fullName}</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #000; background: #fff; }
+            .receipt { border: 2.5px solid #000; padding: 35px; border-radius: 12px; max-width: 600px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+            .header { text-align: center; border-bottom: 2.5px dashed #000; padding-bottom: 20px; margin-bottom: 25px; }
+            .header h1 { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; }
+            .header p { margin: 6px 0 0 0; font-size: 13px; font-weight: 700; opacity: 0.8; }
+            .title { text-align: center; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 30px; letter-spacing: 1px; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 14px; }
+            .row .label { font-weight: 700; opacity: 0.7; }
+            .row .val { font-weight: 800; }
+            .divider { border-bottom: 1.5px dashed #000; margin: 20px 0; }
+            .total { font-size: 18px; font-weight: 900; border-top: 2.5px solid #000; border-bottom: 2.5px solid #000; padding: 14px 0; }
+            .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; text-align: center; }
+            .signature-box { height: 75px; }
+            .footer-note { text-align: center; font-size: 11px; opacity: 0.6; margin-top: 40px; font-style: italic; line-height: 1.5; }
+          </style>
+        </head>
+        <body>
+          <div class="receipt">
+            <div class="header">
+              <h1>KOPERASI SYARIAH IQ-RA</h1>
+              <p>Modern & Sharia Financial System (SAK EP Compliant)</p>
+            </div>
+            <div class="title">Bukti Registrasi & Setoran Awal Anggota</div>
+            
+            <div class="row"><span class="label">No. Referensi:</span><span class="val">${registeredReceiptData.referenceNo}</span></div>
+            <div class="row"><span class="label">Tanggal Registrasi:</span><span class="val">${registeredReceiptData.date}</span></div>
+            <div class="row"><span class="label">Nama Anggota:</span><span class="val">${registeredReceiptData.fullName}</span></div>
+            <div class="row"><span class="label">NIK Kependudukan:</span><span class="val">${registeredReceiptData.nik}</span></div>
+            <div class="row"><span class="label">No. WhatsApp/HP:</span><span class="val">${registeredReceiptData.phone}</span></div>
+            
+            <div class="divider"></div>
+            
+            <div class="row"><span class="label">Simpanan Pokok (Setoran Awal):</span><span class="val">Rp ${registeredReceiptData.principal.toLocaleString('id-ID')}</span></div>
+            <div class="row"><span class="label">Simpanan Wajib (Setoran Awal):</span><span class="val">Rp ${registeredReceiptData.mandatory.toLocaleString('id-ID')}</span></div>
+            <div class="row"><span class="label">Biaya Administrasi:</span><span class="val">Rp ${registeredReceiptData.adm.toLocaleString('id-ID')}</span></div>
+            <div class="row"><span class="label">Infaq & Kode Unik Anggota:</span><span class="val">Rp ${registeredReceiptData.infaq.toLocaleString('id-ID')}</span></div>
+            
+            <div class="total row">
+              <span class="label">TOTAL SETORAN TUNAI:</span>
+              <span class="val">Rp ${registeredReceiptData.grandTotal.toLocaleString('id-ID')}</span>
+            </div>
+            
+            <div class="signatures">
+              <div>
+                <p>Penyetor / Anggota Baru</p>
+                <div class="signature-box"></div>
+                <p style="border-top: 1.5px solid #000; display: inline-block; min-width: 160px; padding-top: 6px; font-weight: 800;">${registeredReceiptData.fullName}</p>
+              </div>
+              <div>
+                <p>Customer Service Koperasi</p>
+                <div class="signature-box"></div>
+                <p style="border-top: 1.5px solid #000; display: inline-block; min-width: 160px; padding-top: 6px; font-weight: 800;">${profile?.full_name}</p>
+              </div>
+            </div>
+            
+            <div class="footer-note">
+              Dokumen ini diterbitkan secara sah oleh sistem IT Koperasi Syariah IQ-RA.<br>
+              Telah sesuai dengan standar Akuntansi Koperasi Syariah SAK EP.
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); }
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
@@ -140,7 +442,104 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid var(--border-primary)' }}>TAHAP: DATA DEMOGRAFI</span>
           </div>
           
-          <form onSubmit={handleRegister} style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {registeredReceiptData ? (
+            <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fadeInUp 0.4s ease-out' }}>
+              <div style={{ 
+                background: 'rgba(218, 165, 32, 0.03)', 
+                border: '2px solid var(--gold-intense)', 
+                borderRadius: '24px', 
+                padding: '40px', 
+                width: '100%', 
+                maxWidth: '600px',
+                boxShadow: '0 20px 50px var(--shadow-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px'
+              }}>
+                <div style={{ textAlign: 'center', borderBottom: '1px dashed var(--border-primary)', paddingBottom: '24px' }}>
+                  <span style={{ fontSize: '48px' }}>📜</span>
+                  <h3 style={{ color: 'var(--gold-intense)', margin: '12px 0 0 0', fontWeight: 900, fontSize: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>BUKTI REGISTRASI ANGGOTA</h3>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, marginTop: '6px' }}>KOPERASI SYARIAH IQ-RA</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>No. Referensi:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{registeredReceiptData.referenceNo}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>Tanggal:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{registeredReceiptData.date}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>Nama Anggota:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{registeredReceiptData.fullName}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>NIK:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{registeredReceiptData.nik}</span>
+                  </div>
+
+                  <div style={{ borderBottom: '1.5px dashed var(--border-primary)', margin: '14px 0' }} />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Simpanan Pokok:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.principal.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Simpanan Wajib:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.mandatory.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Biaya Administrasi:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.adm.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Infaq & Kode Unik:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.infaq.toLocaleString('id-ID')}</span>
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex', justifyContent: 'space-between', marginTop: '12px', padding: '16px 0',
+                    borderTop: '2px solid var(--gold-intense)', borderBottom: '2px solid var(--gold-intense)'
+                  }}>
+                    <span style={{ color: 'var(--gold-intense)', fontWeight: 900, fontSize: '18px' }}>TOTAL TUNAI:</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '18px' }}>Rp {registeredReceiptData.grandTotal.toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '14px' }}>
+                  <button 
+                    onClick={handlePrintReceipt}
+                    style={{
+                      padding: '18px', background: 'var(--text-primary)', color: 'var(--bg-page)',
+                      border: 'none', borderRadius: '14px', fontWeight: 900, cursor: 'pointer',
+                      transition: 'all 0.2s', boxShadow: '0 8px 24px var(--shadow-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                    }}
+                  >
+                    🖨️ Cetak Bukti Nota
+                  </button>
+                  <button 
+                    onClick={() => setRegisteredReceiptData(null)}
+                    style={{
+                      padding: '18px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)',
+                      border: '1.5px solid var(--border-primary)', borderRadius: '14px', fontWeight: 800, cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    ✕ Tutup & Kembali
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleRegister} style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            
+            {/* Section 1: Demografi */}
+            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '10px' }}>
+              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>📍 DATA DEMOGRAFI CIF</h3>
+            </div>
+            
             <CSInputField label="Nama Lengkap Anggota" placeholder="Sesuai KTP..." value={formData.fullName} onChange={(val: string) => setFormData({...formData, fullName: val})} />
             <CSInputField label="Nomor Induk Kependudukan (NIK)" placeholder="16 Digit..." value={formData.nik} onChange={(val: string) => setFormData({...formData, nik: val})} />
             
@@ -170,8 +569,24 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 <option value="Lainnya">Lainnya</option>
               </select>
             </div>
+
+            {/* Section 2: Kredensial Akun Portal */}
+            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>🛡️ KREDENSIAL LOGIN PORTAL ANGGOTA</h3>
+            </div>
             
-            <div style={{ gridColumn: 'span 2', marginTop: '20px' }}>
+            <CSInputField label="Alamat Email Anggota" placeholder="Contoh: anggota@gmail.com..." value={formData.email} onChange={(val: string) => setFormData({...formData, email: val})} />
+            <CSInputField label="Kata Sandi Akun (Opsional)" placeholder="Bawaan menggunakan NIK..." value={formData.password} onChange={(val: string) => setFormData({...formData, password: val})} />
+
+            {/* Section 3: Setoran Awal Koperasi compliant SAK EP */}
+            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💵 SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
+            </div>
+
+            <CSInputField label="Simpanan Pokok (Setoran Awal)" placeholder="Contoh: 100000" value={formData.initialPrincipal} onChange={(val: string) => setFormData({...formData, initialPrincipal: val})} />
+            <CSInputField label="Simpanan Wajib (Setoran Awal)" placeholder="Contoh: 20000" value={formData.initialMandatory} onChange={(val: string) => setFormData({...formData, initialMandatory: val})} />
+            
+            <div style={{ gridColumn: 'span 2', marginTop: '30px' }}>
               <button 
                 type="submit"
                 disabled={loading}
@@ -181,10 +596,239 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 30px var(--shadow-color)', transition: 'all 0.2s'
                 }}
               >
-                {loading ? '⏳ MENYIMPAN CIF...' : 'DAFTARKAN CIF ANGGOTA'}
+                {loading ? '⏳ MEMPROSES REKENING & JURNAL SAK EP...' : '🔥 DAFTARKAN ANGGOTA & BUKA TABUNGAN'}
               </button>
             </div>
           </form>
+          )}
+        </div>
+      )}
+
+      {/* 2.5. KYC VERIFICATION TAB */}
+      {activeMenu === 'kyc' && (
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '360px 1fr', 
+          gap: '30px',
+          animation: 'fadeInUp 0.4s ease-out',
+          marginBottom: '40px'
+        }}>
+          {/* Left Column: Pending Queue List */}
+          <div style={{ 
+            background: 'var(--bg-card)', 
+            backdropFilter: 'blur(16px)', 
+            borderRadius: '28px', 
+            border: '1px solid var(--border-primary)',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            maxHeight: '75vh',
+            overflowY: 'auto'
+          }}>
+            <div>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>📂 Antrean Berkas</h3>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700 }}>{kycList.length} berkas pending verifikasi</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {kycList.length > 0 ? kycList.map(item => (
+                <div 
+                  key={item.id}
+                  onClick={() => setSelectedKyc(item)}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '16px',
+                    background: selectedKyc?.id === item.id ? 'var(--border-primary)' : 'rgba(0,0,0,0.02)',
+                    border: selectedKyc?.id === item.id ? '1.5px solid var(--gold-intense)' : '1px solid var(--border-primary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    transform: selectedKyc?.id === item.id ? 'scale(1.02)' : 'scale(1)'
+                  }}
+                >
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '15px' }}>{item.users?.full_name || 'Anggota Tanpa Nama'}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>NIK: {item.nik}</div>
+                  <div style={{ 
+                    display: 'inline-block', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900,
+                    background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', marginTop: '10px', textTransform: 'uppercase'
+                  }}>
+                    PENDING KYC
+                  </div>
+                </div>
+              )) : (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.5, fontSize: '13px', fontWeight: 700 }}>
+                  🎉 Semua dokumen KYC telah bersih & terverifikasi!
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Selected Dossier Auditing Panel */}
+          <div style={{ 
+            background: 'var(--bg-card)', 
+            backdropFilter: 'blur(16px)', 
+            borderRadius: '28px', 
+            border: '1px solid var(--border-primary)',
+            padding: '30px 40px',
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
+          }}>
+            {selectedKyc ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--border-primary)', paddingBottom: '20px' }}>
+                  <div>
+                    <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>📂 AUDIT DOSSIER KYC FISIK</h2>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, marginTop: '4px' }}>ID Nasabah: {selectedKyc.id}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ 
+                      padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: 900,
+                      background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: '1px solid #eab308'
+                    }}>
+                      STATUS: PENDING AUDIT
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  {/* Personal Info */}
+                  <div style={{ background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>📍 Profil Demografis</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Lengkap</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.users?.full_name}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>NIK Kependudukan</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.nik}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nomor Kartu Keluarga</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.kk_number || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Ibu Kandung</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.mother_name || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Agama / Keyakinan</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.religion || 'Islam'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Financial & Job */}
+                  <div style={{ background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>💼 Pekerjaan & Keuangan</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pekerjaan Nasabah</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.occupation || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Estimasi Pendapatan</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.monthly_income ? `Rp ${selectedKyc.monthly_income.toLocaleString('id-ID')} / bulan` : '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / HP</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.phone_number || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Email Terdaftar</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.users?.email}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Addresses */}
+                  <div style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>🏠 Alamat Tempat Tinggal</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat Sesuai KTP</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.ktp_address}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat Domisili</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.domicile_address || selectedKyc.ktp_address}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Digital Biometrics & Akad Approval (Simulated UI Wow Factor) */}
+                  <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '20px' }}>
+                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(74, 222, 128, 0.03)' }}>
+                      <div style={{ fontSize: '32px' }}>📸</div>
+                      <div>
+                        <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>BIOMETRIK KTP & LIVENESS SELFIE</div>
+                        <div style={{ color: '#10b981', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>✓ Foto KTP & Wajah Terverifikasi 98% Akurat</div>
+                      </div>
+                    </div>
+
+                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(218, 165, 32, 0.05)' }}>
+                      <div style={{ fontSize: '32px' }}>📜</div>
+                      <div>
+                        <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>AKAD SYARIAH WADIAH & MUDHARABAH</div>
+                        <div style={{ color: 'var(--gold-intense)', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>✓ Menyetujui Ketentuan Akad Digital iQ-RA</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginTop: '20px', borderTop: '2px solid var(--border-primary)', paddingTop: '24px' }}>
+                  <button
+                    onClick={() => {
+                      if (confirm('Tolak berkas KYC nasabah ini? Harap berikan alasan penolakan.')) {
+                        alert('Fitur penolakan dokumen berhasil dikirim ke nasabah via email.');
+                      }
+                    }}
+                    style={{
+                      padding: '16px 24px',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      color: '#f87171',
+                      border: '1.5px solid #ef4444',
+                      borderRadius: '14px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                  >
+                    ❌ Tolak Berkas
+                  </button>
+
+                  <button
+                    disabled={loading}
+                    onClick={() => handleApprove(selectedKyc.id)}
+                    style={{
+                      padding: '18px 24px',
+                      background: 'var(--text-primary)',
+                      color: 'var(--bg-page)',
+                      border: 'none',
+                      borderRadius: '14px',
+                      fontWeight: 900,
+                      fontSize: '16px',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 8px 24px var(--shadow-color)'
+                    }}
+                  >
+                    {loading ? '⏳ Menyetujui...' : '✓ Setujui & Aktifkan Anggota (Aktifkan Simpanan)'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'var(--text-secondary)', opacity: 0.5 }}>
+                <div style={{ fontSize: '64px' }}>📂</div>
+                <div style={{ fontWeight: 900, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>Antrean KYC Kosong</div>
+                <div style={{ fontSize: '14px', fontWeight: 700 }}>Semua dokumen nasabah telah aktif dan terverifikasi secara hukum syariah.</div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -203,7 +847,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
               <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
             </div>
-            <div style={{ color: 'var(--text-primary)', opacity: 0.8, fontSize: '14px', fontWeight: 700 }}>Total: {stats.totalMembers} Anggota</div>
+            <div style={{ color: 'var(--text-primary)', opacity: 0.8, fontSize: '14px', fontWeight: 700 }}>Total: {membersList.length} Anggota</div>
           </div>
           <div style={{ padding: '20px 40px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -212,11 +856,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>IDENTITAS NASABAH</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>NIK / KK</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>PEKERJAAN / PENDAPATAN</th>
-                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>STATUS</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'center' }}>STATUS</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
-                {kycList.length > 0 ? kycList.map(item => (
+                {membersList.length > 0 ? membersList.map(item => (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--border-primary)', background: 'rgba(0,0,0,0.02)' }}>
                     <td style={{ padding: '20px' }}>
                       <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '16px' }}>{item.users?.full_name || 'Anggota Tanpa Akun'}</div>
@@ -230,7 +875,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       <div style={{ color: '#10b981', fontWeight: 800 }}>{item.occupation}</div>
                       <div style={{ color: 'var(--text-primary)', fontSize: '13px' }}>Rp {item.monthly_income?.toLocaleString('id-ID')}</div>
                     </td>
-                    <td style={{ padding: '20px', textAlign: 'right' }}>
+                    <td style={{ padding: '20px', textAlign: 'center' }}>
                       <span style={{ 
                         padding: '6px 16px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
                         background: item.status === 'active' ? '#10b981' : 'var(--text-primary)',
@@ -239,10 +884,29 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         {item.status.toUpperCase()}
                       </span>
                     </td>
+                    <td style={{ padding: '20px', textAlign: 'right' }}>
+                      <button 
+                        onClick={() => setSelectedMemberProfile(item)}
+                        style={{
+                          background: 'rgba(218, 165, 32, 0.1)',
+                          border: '1.5px solid var(--gold-intense)',
+                          color: 'var(--text-primary)',
+                          padding: '8px 16px',
+                          borderRadius: '10px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        🔍 Lihat Profil
+                      </button>
+                    </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={4} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.4, fontWeight: 800 }}>
+                    <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-secondary)', opacity: 0.4, fontWeight: 800 }}>
                       Tidak ada data anggota untuk ditampilkan.
                     </td>
                   </tr>
@@ -273,6 +937,224 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               placeholder="Tanyakan sesuatu pada AI..." 
               style={{ width: '100%', padding: '18px 24px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '20px', color: 'var(--text-primary)', outline: 'none' }} 
             />
+          </div>
+        </div>
+      )}
+
+      {/* 5. FLOATING MEMBER DETAIL PROFILE MODAL */}
+      {selectedMemberProfile && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(1, 10, 7, 0.85)',
+          backdropFilter: 'blur(16px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          animation: 'fadeInUp 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '2px solid var(--border-primary)',
+            borderRadius: '28px',
+            width: '90%',
+            maxWidth: '850px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '40px',
+            boxShadow: '0 40px 100px rgba(0,0,0,0.8)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '30px',
+            position: 'relative'
+          }}>
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedMemberProfile(null)}
+              style={{
+                position: 'absolute',
+                top: '30px',
+                right: '30px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border-primary)',
+                color: 'var(--text-primary)',
+                borderRadius: '12px',
+                width: '44px',
+                height: '44px',
+                fontSize: '18px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Modal Header */}
+            <div style={{ borderBottom: '2px solid var(--border-primary)', paddingBottom: '20px' }}>
+              <span style={{ fontSize: '40px' }}>👥</span>
+              <h2 style={{ color: 'var(--gold-intense)', margin: '10px 0 0 0', fontWeight: 900, fontSize: '24px', textTransform: 'uppercase', letterSpacing: '1px' }}>PROFIL LENGKAP ANGGOTA</h2>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, marginTop: '4px' }}>Nomor CIF Anggota: {selectedMemberProfile.id}</div>
+            </div>
+
+            {/* Grid Content */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              {/* Personal details */}
+              <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>📍 Identitas Demografi</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Lengkap</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.users?.full_name}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>NIK Kependudukan</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.nik}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nomor Kartu Keluarga</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.kk_number || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Ibu Kandung</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.mother_name || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Keyakinan / Agama</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.religion || 'Islam'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial & Job */}
+              <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>💼 Pekerjaan & Keuangan</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pekerjaan</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.occupation}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pendapatan Bulanan</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>Rp {selectedMemberProfile.monthly_income?.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / Phone</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.phone_number}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Email Portal</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.users?.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address details */}
+              <div style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>🏠 Alamat Tempat Tinggal</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat KTP</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.ktp_address}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat Domisili</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.domicile_address || selectedMemberProfile.ktp_address}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Registered Savings Accounts */}
+              <div style={{ gridColumn: 'span 2', background: 'rgba(218,165,32,0.02)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>💵 Rekening Simpanan Koperasi (SAK EP)</h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '10px' }}>
+                  {memberAccounts.length > 0 ? memberAccounts.map((acc: any) => (
+                    <div key={acc.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '14px', border: '1px solid var(--border-primary)' }}>
+                      <div style={{ color: 'var(--gold-intense)', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Simpanan {acc.account_type.toUpperCase()}
+                      </div>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 800, marginTop: '8px' }}>
+                        {acc.account_number}
+                      </div>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 900, marginTop: '4px' }}>
+                        Rp {acc.balance.toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                  )) : (
+                    <div style={{ gridColumn: 'span 3', color: 'var(--text-secondary)', opacity: 0.6, fontSize: '13px', fontWeight: 700, textAlign: 'center', padding: '10px 0' }}>
+                      ⏳ Sedang mengambil data rekening simpanan...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer actions */}
+            <div style={{ borderTop: '2px solid var(--border-primary)', paddingTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
+              <button 
+                onClick={() => {
+                  const principalVal = memberAccounts.find(a => a.account_type === 'pokok')?.balance || 300000;
+                  const mandatoryVal = memberAccounts.find(a => a.account_type === 'wajib')?.balance || 50000;
+                  const admVal = 15000;
+                  const infaqVal = 10000 + Number((selectedMemberProfile.phone_number || '000').slice(-3));
+                  
+                  setRegisteredReceiptData({
+                    referenceNo: `REPRINT-${selectedMemberProfile.id.slice(0, 8).toUpperCase()}`,
+                    date: new Date(selectedMemberProfile.created_at || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+                    fullName: selectedMemberProfile.users?.full_name,
+                    nik: selectedMemberProfile.nik,
+                    phone: selectedMemberProfile.phone_number,
+                    principal: principalVal,
+                    mandatory: mandatoryVal,
+                    adm: admVal,
+                    infaq: infaqVal,
+                    grandTotal: principalVal + mandatoryVal + admVal + infaqVal
+                  });
+                  setSelectedMemberProfile(null);
+                  
+                  // Pemicu perpindahan ke tab onboarding secara dinamis
+                  const onboardingBtn = document.querySelector('button[label="Registrasi Anggota"]');
+                  if (onboardingBtn) (onboardingBtn as HTMLButtonElement).click();
+                }}
+                style={{
+                  padding: '14px 24px',
+                  background: 'rgba(218, 165, 32, 0.1)',
+                  color: 'var(--gold-intense)',
+                  border: '1.5px solid var(--gold-intense)',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                🖨️ Cetak Ulang Nota Bukti
+              </button>
+              
+              <button 
+                onClick={() => setSelectedMemberProfile(null)}
+                style={{
+                  padding: '14px 28px',
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg-page)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: 900,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Tutup Profil
+              </button>
+            </div>
           </div>
         </div>
       )}

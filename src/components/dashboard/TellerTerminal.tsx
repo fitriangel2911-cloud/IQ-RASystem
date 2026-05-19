@@ -102,11 +102,19 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
     setMessage(null);
 
     try {
-      const selectedMember = members.find(m => m.id === selectedMemberId);
+      const selectedMember = members.find(m => m.id === selectedMemberId || m.user_id === selectedMemberId);
       const memberName = selectedMember?.users?.full_name || 'Anggota';
       
       let entries = [];
       let finalDesc = description || `${trxType.toUpperCase()} - ${memberName} (${selectedMemberId})`;
+
+      const admFee = 15000;
+      const infaqSedekahBase = 10000;
+      const memberPhone = selectedMember?.phone_number || selectedMember?.nik || '';
+      const phoneDigits = memberPhone.replace(/\D/g, '');
+      const uniqueCodeStr = phoneDigits.slice(-3).padStart(3, '0');
+      const uniqueCodeValue = Number(uniqueCodeStr) || 0;
+      const infaqSedekahTotal = infaqSedekahBase + uniqueCodeValue;
 
       // IMPLEMENTASI DOUBLE-ENTRY (DEBIT & KREDIT HARUS SEIMBANG)
       switch (trxType) {
@@ -121,9 +129,14 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
           entries.push({ account_code: COA.CASH_ON_HAND, debit: 0, credit: amount });
           break;
         case 'payment':
-          // ANGSURAN: Debit Kas (Harta Bertambah), Kredit Piutang (Harta Berkurang)
-          entries.push({ account_code: COA.CASH_ON_HAND, debit: amount, credit: 0 });
+          // ANGSURAN: Debit Kas (Harta Bertambah), Kredit Piutang (Harta Berkurang), Kredit ADM, Kredit Infaq
+          const grandTotalPayment = amount + admFee + infaqSedekahTotal;
+          entries.push({ account_code: COA.CASH_ON_HAND, debit: grandTotalPayment, credit: 0 });
           entries.push({ account_code: COA.RECEIVABLE_MURABAHAH, debit: 0, credit: amount });
+          entries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: admFee });
+          entries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqSedekahTotal });
+          
+          finalDesc = description || `ANGSURAN - ${memberName} (Angsuran: Rp ${amount.toLocaleString('id-ID')}, ADM: Rp ${admFee.toLocaleString('id-ID')}, Infaq & Kode Unik: Rp ${infaqSedekahTotal.toLocaleString('id-ID')})`;
           break;
       }
 
@@ -154,7 +167,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
         }, 1000);
       }
 
-      setMessage({ type: 'success', text: `Transaksi Berhasil! Rp ${amount.toLocaleString('id-ID')} telah diposting ke Buku Besar.` });
+      const grandTotalMsg = trxType === 'payment' 
+        ? `sebesar Rp ${(amount + admFee + infaqSedekahTotal).toLocaleString('id-ID')} (Termasuk ADM Rp 15.000, Infaq Rp 10.000, dan Kode Unik Rp ${uniqueCodeStr})`
+        : `sebesar Rp ${amount.toLocaleString('id-ID')}`;
+      
+      setMessage({ type: 'success', text: `Transaksi Berhasil! Pembayaran ${grandTotalMsg} telah diposting ke Buku Besar dengan Double-Entry SAK EP.` });
       setAmount(0);
       setDisplayAmount('');
       setDescription('');
@@ -300,6 +317,55 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               </div>
             </div>
           </div>
+
+          {trxType === 'payment' && selectedMemberId && (
+            <div style={{
+              background: 'rgba(218, 165, 32, 0.05)',
+              border: '1px solid rgba(218, 165, 32, 0.2)',
+              padding: '24px',
+              borderRadius: '20px',
+              marginTop: '-10px',
+              color: 'var(--text-primary)',
+              animation: 'fadeInUp 0.3s ease-out'
+            }}>
+              <h4 style={{ color: 'var(--gold-bright)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>✨ Rincian Tagihan & Biaya Operasional</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '15px', fontWeight: 600 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Angsuran Pokok:</span>
+                  <span>Rp {amount.toLocaleString('id-ID')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Biaya Administrasi:</span>
+                  <span>Rp {(15000).toLocaleString('id-ID')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Infaq & Sedekah:</span>
+                  <span>Rp {(10000).toLocaleString('id-ID')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-bright)' }}>
+                  <span>Kode Unik Anggota (3 Digit Terakhir):</span>
+                  <span>Rp {(() => {
+                    const selectedMember = members.find(m => m.id === selectedMemberId || m.user_id === selectedMemberId);
+                    if (!selectedMember) return '000';
+                    const source = selectedMember.phone_number || selectedMember.nik || '';
+                    const digits = source.replace(/\D/g, '');
+                    return digits.slice(-3).padStart(3, '0');
+                  })()}</span>
+                </div>
+                <div style={{ height: '1.5px', background: 'rgba(218, 165, 32, 0.2)', margin: '8px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: '18px', color: '#4ade80' }}>
+                  <span>Total Wajib Setor:</span>
+                  <span>Rp {(() => {
+                    const selectedMember = members.find(m => m.id === selectedMemberId || m.user_id === selectedMemberId);
+                    const source = selectedMember ? (selectedMember.phone_number || selectedMember.nik || '') : '';
+                    const digits = source.replace(/\D/g, '');
+                    const uniqueCodeVal = Number(digits.slice(-3)) || 0;
+                    return (amount + 15000 + 10000 + uniqueCodeVal).toLocaleString('id-ID');
+                  })()}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
 
           <div>

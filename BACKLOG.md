@@ -27,6 +27,11 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Dashboard Teller (Transaksi Kas).
 - [x] Dashboard Customer Service (Registrasi Anggota).
 
+### 🪙 Otomasi & Keanggotaan Koperasi
+- [x] Pendaftaran Anggota Terintegrasi (CIF, Profil Fisik, & Pembuatan Akun Login Otomatis).
+- [x] Otomasi Pembuatan Rekening Simpanan Koperasi (Pokok, Wajib, Sukarela/Wadiah) saat Pendaftaran.
+- [x] Automasi Jurnal Akuntansi (Double-Entry SAK EP) & Rekam Mutasi untuk Setoran Awal Simpanan.
+
 ---
 
 ## 🚧 Sedang Dikerjakan (In Progress)
@@ -64,6 +69,15 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-19 (Sesi Malam - Pendaftaran CIF Terintegrasi & Otomasi Simpanan Koperasi)**:
+    - **Otomasi Onboarding Terpadu**: Mengintegrasikan pembuatan akun login portal anggota secara otomatis saat Customer Service atau Super Admin melakukan registrasi fisik CIF. Sandi sementara diatur menggunakan NIK.
+    - **Parameter Keuangan & Biaya Tambahan Baru**: Menetapkan default Simpanan Pokok menjadi Rp 300.000 dan Simpanan Wajib menjadi Rp 50.000, serta otomatisasi pengenaan Biaya Administrasi Rp 15.000 (COA `401.02`) dan Infaq & Sedekah Rp 10.000 (COA `302.01`) di setiap pendaftaran CIF maupun pembayaran angsuran.
+    - **Kode Unik 3 Digit Terakhir**: Otomatis menghasilkan kode unik 3 digit dari akhiran nomor WhatsApp/HP anggota, ditambahkan pada infaq pokok dan didebit ke Kas untuk kepresisian pencocokan kas masuk.
+    - **Generasi Rekening Otomatis**: Setiap pendaftaran anggota baru memicu pembuatan otomatis tiga jenis rekening simpanan koperasi: Simpanan Pokok (11xxxx), Simpanan Wajib (12xxxx), dan Simpanan Sukarela/Wadiah (21xxxx).
+    - **Auto-journaling Double-Entry SAK EP**: Mengotomatiskan penjurnalan setoran awal beserta biaya operasional langsung ke Buku Besar Akuntansi dengan seimbang: Debit Kas di Tangan (`101.01`), Kredit Simpanan Pokok (`301.01`), Kredit Simpanan Wajib (`301.02`), Kredit Pendapatan ADM (`401.02`), dan Kredit Dana Kebajikan (`302.01`).
+    - **Penyelarasan Modular Super Admin**: Memastikan navigasi Super Admin mengarah langsung secara modular ke fungsionalitas tanpa ada batasan filter per-role sebelumnya.
+    - **Visual Breakdown interaktif di Teller**: Menambahkan form breakdown rincian pembayaran interaktif di TellerTerminal.tsx.
+
 - **2026-05-19 (Sesi Pagi - Finalisasi Standarisasi UI & Akses)**:
     - **Standardisasi Layout Staf (LOCKED)**: Mengimplementasikan sidebar toggle yang seragam dan stabil (anti-squish) di seluruh modul Staf Operasional (Manager, Accounting, AO, DPS, Teller, CS). Mengunci gaya pewarnaan aktif menu ke gaya monokromatik (putih/hitam) tanpa efek neon untuk kesan super admin yang rapi.
     - **Otomasi Direct Routing Auth (LOCKED)**: Merevisi alur logika autentikasi pada `login/page.tsx` sehingga pengguna langsung diarahkan ke rute dasbor spesifik peran mereka segera setelah sesi tervalidasi, sepenuhnya mem-bypass transisi "dashboard sementara".

@@ -50,10 +50,21 @@ Untuk menjamin kepercayaan pengguna pada platform finansial, IQ-RA System mengad
   * *Metallic Gold* (`#cca334` / `#f3c653` / `#a67e26`): Aksen kemewahan premium untuk border kontainer, ikon, gradasi teks sorotan, dan metrics angka keuangan.
 ●      Standardisasi Dasbor: Penggunaan Sidebar dinamis terpadu dengan fitur *Collapsible*. Komponen layanan utama (seperti Layanan Kasir) diberikan penekanan visual (ukuran lebih besar & warna kontras) untuk kemudahan akses operasional.
 ●      Optimasi Aksesibilitas: Penyesuaian kontras warna tingkat tinggi pada seluruh halaman (Home, Login, Register) untuk memastikan teks tetap terbaca tajam bebas blur.
-4.     Spesifikasi Modul Fungsional
-4.1. Manajemen Keanggotaan dan Data Utama
+4.1. Manajemen Keanggotaan dan Data Utama (Cooperative Member Onboarding / CIF Flow)
+Modul ini memfasilitasi onboarding terintegrasi anggota baru secara real-time langsung melalui kontrol panel Admin/Customer Service:
+1. Pendaftaran CIF & Akun Portal: Pengelola menginput data demografis lengkap (Nama, NIK, KK, Alamat, Pekerjaan, HP, Ibu Kandung) dan Alamat Email. Sistem secara otomatis membuat akun login (Auth & Users Table) dengan peran 'member' dan kata sandi sementara berbasis NIK.
+2. Pembuatan Rekening Simpanan Koperasi Otomatis: Segera setelah CIF terbuat, sistem secara otomatis menggenerasi tiga jenis rekening simpanan anggota dengan nomor rekening unik 10-digit:
+   - Simpanan Pokok (jenis: 'pokok', awalan kode rekening: 11xxxx)
+   - Simpanan Wajib (jenis: 'wajib', awalan kode rekening: 12xxxx)
+   - Simpanan Sukarela / Wadiah (jenis: 'wadiah', awalan kode rekening: 21xxxx)
+3. Integrasi Setoran Awal & Penjurnalan SAK EP: Saat registrasi, setoran awal untuk Simpanan Pokok (default Rp 300.000) dan Simpanan Wajib (default Rp 50.000) langsung diinput. Selain itu, transaksi dikenakan Biaya Administrasi Rp 15.000 dan Infaq & Sedekah Rp 10.000 serta Kode Unik 3 Digit Terakhir yang dimiliki anggota. Sistem secara otomatis melakukan posting akuntansi double-entry real-time yang mematuhi standar SAK EP dan PSAK Syariah:
+   - Debit: Kas di Tangan (COA 101.01) senilai Total Setoran + Biaya + Kode Unik (misal Rp 375.xxx)
+   - Kredit: Simpanan Pokok Anggota (COA 301.01) senilai Setoran Pokok (Rp 300.000)
+   - Kredit: Simpanan Wajib Anggota (COA 301.02) senilai Setoran Wajib (Rp 50.000)
+   - Kredit: Pendapatan Administrasi (COA 401.02) senilai Biaya ADM (Rp 15.000)
+   - Kredit: Dana Kebajikan / Infaq & Sedekah (COA 302.01) senilai Infaq + Kode Unik (Rp 10.xxx)
+4. Pencatatan Mutasi Simpanan: Sistem mencatat transaksi setoran awal ini secara atomik ke dalam tabel `savings_transactions` sebagai tipe 'deposit' yang terhubung dengan akun simpanan masing-masing, menciptakan audit trail yang kokoh.
 
-Modul ini memfasilitasi registrasi anggota baru, pengelolaan profil, serta pencatatan simpanan pokok dan wajib untuk memastikan tata kelola kepemilikan anggota di dalam koperasi.
 4.2. Siklus Penerimaan Kas (Revenue Cycle)
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
 4.3. Siklus Pengeluaran Kas (Expenditure Cycle)
