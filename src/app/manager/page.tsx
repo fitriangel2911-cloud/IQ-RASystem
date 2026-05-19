@@ -6,13 +6,17 @@ import { createClient } from '@/lib/supabase/client';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
+import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ManagerPage() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -61,9 +65,9 @@ export default function ManagerPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#02130e', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
         <div className="animate-spin" style={{ width: '50px', height: '50px', border: '5px solid rgba(243, 198, 83, 0.2)', borderTopColor: '#f3c653', borderRadius: '50%' }}></div>
-        <h3 style={{ color: '#f3c653', fontWeight: 900, fontSize: '18px', letterSpacing: '1px' }}>MENGINISIALISASI POS KOMANDO MANAGER...</h3>
+        <h3 style={{ color: 'var(--gold-bright)', fontWeight: 900, fontSize: '18px', letterSpacing: '1px' }}>MENGINISIALISASI POS KOMANDO MANAGER...</h3>
       </div>
     );
   }
@@ -81,20 +85,54 @@ export default function ManagerPage() {
       
       {/* 🏛️ MANAGER EXCLUSIVE PRESTIGE SIDEBAR */}
       <aside style={{
-        width: '320px',
-        background: 'rgba(4, 49, 33, 0.96)', 
-        borderRight: '3px solid #cca334',
+        width: isSidebarOpen ? '320px' : '0px',
+        opacity: isSidebarOpen ? 1 : 0,
+        background: 'var(--bg-sidebar)', 
+        borderRight: isSidebarOpen ? '3.5px solid var(--border-primary)' : 'none',
         display: 'flex',
         flexDirection: 'column',
-        padding: '40px 24px',
+        flexShrink: 0,
+        padding: isSidebarOpen ? '40px 24px' : '0px',
         zIndex: 100,
-        boxShadow: '25px 0 70px rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(20px)'
+        boxShadow: isSidebarOpen ? '25px 0 70px var(--shadow-color)' : 'none',
+        backdropFilter: 'blur(20px)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        overflow: 'hidden',
+        height: '100vh'
       }}>
         
+        {/* Close Button Toggle */}
+        {isSidebarOpen && (
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            style={{
+              position: 'absolute',
+              right: '15px',
+              top: '15px',
+              background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
+              border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
+              borderRadius: '8px',
+              color: theme === 'light' ? '#000000' : '#ffffff',
+              cursor: 'pointer',
+              padding: '5px 10px',
+              fontWeight: 900,
+              transition: 'all 0.3s',
+              zIndex: 110
+            }}
+          >
+            ✕
+          </button>
+        )}
+
         {/* Command Header */}
         <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
-          <BrandLogo size={40} fontSize="22px" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <BrandLogo size={40} fontSize="22px" textColor="var(--text-primary)" />
+            <div style={{ marginRight: '35px' }}>
+              <ThemeToggle />
+            </div>
+          </div>
           <span style={{ fontSize: '11px', display: 'block', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginTop: '12px', background: '#cca334', color: '#02130e', padding: '4px 12px', borderRadius: '6px', width: 'max-content' }}>
             🏢 GENERAL MANAGER
           </span>
@@ -132,30 +170,24 @@ export default function ManagerPage() {
         <div style={{ 
           marginTop: 'auto', 
           padding: '24px', 
-          background: 'rgba(2, 19, 14, 0.7)', 
+          background: 'var(--border-primary)', 
           borderRadius: '24px',
-          border: '2.5px solid #cca334',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+          border: '2.5px solid var(--border-primary)',
+          boxShadow: '0 10px 25px var(--shadow-color)'
         }}>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Otorisator Aktif</div>
-          <div style={{ color: '#f3c653', fontWeight: 900, fontSize: '18px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile?.full_name}</div>
-          <div style={{ color: '#ffffff', fontSize: '12px', opacity: 0.7, fontWeight: 600, marginTop: '4px' }}>Otoritas Eksekutif Utama</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Otorisator Aktif</div>
+          <div style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '18px', textShadow: '0 2px 4px var(--shadow-color)' }}>{profile?.full_name}</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', opacity: 0.7, fontWeight: 600, marginTop: '4px' }}>Otoritas Eksekutif Utama</div>
           
           <button 
             onClick={handleLogout}
             style={{ 
-              marginTop: '24px', width: '100%', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', 
+              marginTop: '24px', width: '100%', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--text-primary)', 
               border: '2px solid rgba(239, 68, 68, 0.3)', padding: '14px', borderRadius: '14px', 
               fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', fontSize: '14px' 
             }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = '#ef4444';
-              e.currentTarget.style.color = '#ffffff';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-              e.currentTarget.style.color = '#fca5a5';
-            }}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'}
+            onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
           >
             🚪 Tutup Konsol / Log Out
           </button>
@@ -168,25 +200,49 @@ export default function ManagerPage() {
         padding: '50px 70px', 
         zIndex: 20, 
         overflowY: 'auto',
-        height: '100vh'
+        height: '100vh',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
+        {!isSidebarOpen && (
+          <div style={{ marginBottom: '24px' }}>
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              style={{
+                background: theme === 'light' ? '#ffffff' : 'var(--bg-sidebar)',
+                border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
+                borderRadius: '12px',
+                color: theme === 'light' ? '#000000' : '#ffffff',
+                padding: '12px 18px',
+                cursor: 'pointer',
+                fontWeight: 900,
+                boxShadow: '0 4px 15px var(--shadow-color)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s'
+              }}
+            >
+              ☰ <span style={{ fontSize: '12px' }}>MENU</span>
+            </button>
+          </div>
+        )}
         
         {/* Header Dashboard Control */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h2 style={{ color: '#043121', fontWeight: 900, fontSize: '28px', margin: 0 }}>
+            <h2 style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '28px', margin: 0 }}>
               {activeMenu === 'overview' && '📊 Pusat Kontrol Eksekutif'}
               {activeMenu === 'approvals' && '⚖️ Otorisasi Akad Syariah'}
               {activeMenu === 'contracts' && '📋 Arsip Otorisasi Pembiayaan'}
               {activeMenu === 'rag' && '🤖 Saluran Ingesti Data RAG'}
             </h2>
-            <p style={{ color: '#043121', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
+            <p style={{ color: 'var(--text-secondary)', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
               Keputusan final eksekutif didukung dengan Rekomendasi Pintar AI RAG.
             </p>
           </div>
           
           {/* Time Frame Indicator */}
-          <div style={{ background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', color: '#02130e', padding: '12px 24px', borderRadius: '14px', fontSize: '14px', fontWeight: 900, boxShadow: '0 10px 25px rgba(204, 163, 52, 0.2)' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', padding: '12px 24px', borderRadius: '14px', fontSize: '14px', fontWeight: 900, boxShadow: '0 10px 25px var(--shadow-color)' }}>
             📅 {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </div>
@@ -198,40 +254,39 @@ export default function ManagerPage() {
 }
 
 function ManagerMenuButton({ active, onClick, icon, label }: any) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <button 
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
         padding: '18px 24px',
-        background: active ? 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)' : 'transparent',
-        color: active ? '#02130e' : 'rgba(255,255,255,0.75)',
-        border: active ? 'none' : '1.5px solid rgba(255,255,255,0.05)',
+        background: active 
+          ? 'var(--text-primary)' 
+          : (isHovered ? 'var(--border-primary)' : 'transparent'),
+        color: active ? 'var(--bg-page)' : 'var(--text-primary)',
+        border: active ? 'none' : '1.5px solid var(--border-primary)',
         borderRadius: '20px',
         fontSize: '16px',
         fontWeight: 900,
         textAlign: 'left',
         cursor: 'pointer',
-        transition: 'all 0.3s ease-out',
+        transform: !active && isHovered ? 'translateX(6px)' : 'scale(1)',
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: active ? '0 15px 35px rgba(243, 198, 83, 0.35)' : 'none',
-        transform: active ? 'scale(1.02)' : 'scale(1)'
-      }}
-      onMouseOver={e => {
-        if (!active) {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-          e.currentTarget.style.color = '#ffffff';
-        }
-      }}
-      onMouseOut={e => {
-        if (!active) {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
-        }
+        width: '100%'
       }}
     >
-      <span style={{ fontSize: '22px' }}>{icon}</span>
+      <span style={{ 
+        fontSize: '22px',
+        transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+        transition: 'transform 0.2s ease'
+      }}>{icon}</span>
       {label}
     </button>
   );

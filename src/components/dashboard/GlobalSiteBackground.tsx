@@ -19,7 +19,7 @@ export default function GlobalSiteBackground() {
     pathname?.startsWith('/members') || 
     pathname?.startsWith('/dashboard') || 
     pathname?.startsWith('/teller') || 
-    pathname?.startsWith('/cs') || 
+    pathname?.startsWith('/customer-service') || 
     pathname?.startsWith('/accounting') || 
     pathname?.startsWith('/ao') || 
     pathname?.startsWith('/manager') || 
@@ -27,11 +27,15 @@ export default function GlobalSiteBackground() {
 
   const isDarkDashboard = isDashboardRoute && theme === 'dark';
 
-  // Latar dasar: Hijau zamrud pekat (#02130e) untuk malam, putih bersih (#ffffff) untuk siang & halaman publik terkunci
-  const baseBgColor = isDarkDashboard ? '#02130e' : '#ffffff';
+  // Latar dasar: Hijau zamrud pekat (#02130e) untuk malam, off-white (#f4f6f5) untuk siang, dan putih bersih (#ffffff) untuk halaman publik
+  const baseBgColor = isDashboardRoute 
+    ? (theme === 'dark' ? '#02130e' : '#f4f6f5')
+    : '#ffffff';
 
-  // Opacity pola: 0.08 agar menyatu elegan sebagai watermark bercahaya di malam hari, atau 1.0 penuh di siang hari & halaman publik
-  const patternOpacity = isDarkDashboard ? 0.08 : 1.0;
+  // Opacity pola: 0.28 agar menyatu elegan sebagai watermark bercahaya di dasbor gelap, 0.45 di dasbor terang agar terlihat jelas dengan warna aslinya, atau 1.0 penuh di halaman publik
+  const patternOpacity = isDashboardRoute 
+    ? (theme === 'light' ? 0.45 : 0.28) 
+    : 1.0;
 
   return (
     <div 
@@ -44,7 +48,7 @@ export default function GlobalSiteBackground() {
       }}
       aria-hidden="true"
     >
-      {/* Pola Geometris Islami Animasi Putih Abu-abu Plekketiplek Sesuai Gambar Asli */}
+      {/* Pola Geometris Islami Animasi Sesuai Gambar Asli */}
       <div 
         className="islamic-pattern-overlay-top"
         style={{
@@ -55,9 +59,10 @@ export default function GlobalSiteBackground() {
           backgroundRepeat: 'repeat',
           opacity: patternOpacity,
           animation: 'movePatternTop 90s linear infinite',
-          filter: 'none', // Tanpa perubahan warna
-          mixBlendMode: 'normal', // Tanpa efek blend mode pencampuran
-          transition: 'opacity 0.5s ease'
+          filter: 'none', 
+          mixBlendMode: 'normal',
+          transition: 'all 0.5s ease',
+          zIndex: 2
         }}
       />
       
@@ -66,7 +71,7 @@ export default function GlobalSiteBackground() {
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: -2,
+          zIndex: 1,
           backgroundColor: baseBgColor,
           transition: 'background-color 0.5s ease'
         }}

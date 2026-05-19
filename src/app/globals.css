@@ -27,15 +27,24 @@ html { scroll-behavior: smooth; }
 }
 
 .light-mode {
-  --bg-page: #f8fafc;
-  --bg-sidebar: linear-gradient(180deg, #f3c653 0%, #cca334 100%);
+  --bg-page: #f4f6f4; /* Premium soft off-white with a tiny touch of green */
+  --bg-sidebar: linear-gradient(180deg, #f3c653 0%, #cca334 100%); /* Premium luxurious gold gradient sidebar */
   --bg-card: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.9);
-  --text-primary: #043121;
-  --text-secondary: #064e3b;
-  --border-primary: rgba(4, 49, 33, 0.2);
-  --pattern-opacity: 0.15;
-  --shadow-color: rgba(4, 49, 33, 0.1);
+  --text-primary: #010906; /* Ultra-dark near black forest primary text */
+  --text-secondary: #1f2937; /* Crisp dark charcoal secondary text for supreme readability */
+  --border-primary: rgba(4, 49, 33, 0.12); /* Soft forest green border */
+  --pattern-opacity: 0.45;
+  --shadow-color: rgba(4, 49, 33, 0.05);
+
+  /* Restore Original Gold and Emerald Highlights for Sidebar and Dashboard Details */
+  --gold-deep: #a67e26;
+  --gold-bright: #cca334;
+  --gold-intense: #f3c653;
+  --gold-gradient: linear-gradient(135deg, #f3c653 0%, #cca334 100%);
+  --emerald-deep: #043121;
+  --emerald-mid: #084b35;
+  --emerald-light: #bcf72b;
 }
 
 body {
@@ -182,8 +191,7 @@ body {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.3);
   z-index: 90;
   opacity: 0;
   pointer-events: none;
@@ -191,6 +199,23 @@ body {
 }
 
 .sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
+
+@media (min-width: 1024px) {
+  .sidebar-backdrop {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Hide scrollbar for aside and any elements inside aside */
+aside, aside *, [class*="sidebar"], .sidebar-open aside {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+aside::-webkit-scrollbar, aside *::-webkit-scrollbar, [class*="sidebar"]::-webkit-scrollbar, .sidebar-open aside::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+}
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

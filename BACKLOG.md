@@ -64,6 +64,11 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-19 (Sesi Pagi - Finalisasi Standarisasi UI & Akses)**:
+    - **Standardisasi Layout Staf (LOCKED)**: Mengimplementasikan sidebar toggle yang seragam dan stabil (anti-squish) di seluruh modul Staf Operasional (Manager, Accounting, AO, DPS, Teller, CS). Mengunci gaya pewarnaan aktif menu ke gaya monokromatik (putih/hitam) tanpa efek neon untuk kesan super admin yang rapi.
+    - **Otomasi Direct Routing Auth (LOCKED)**: Merevisi alur logika autentikasi pada `login/page.tsx` sehingga pengguna langsung diarahkan ke rute dasbor spesifik peran mereka segera setelah sesi tervalidasi, sepenuhnya mem-bypass transisi "dashboard sementara".
+    - **Portal Anggota "Floating App" (LOCKED)**: Membedakan UI Member Dashboard dari panel staf melalui perombakan layout menjadi *Floating App*. Menerapkan Sidebar Kapsul yang mengambang dan Konten Utama berbasis Glassmorphism transparan (tint emas lembut) agar menyatu dengan animasi latar belakang situs.
+
 - **2026-05-17 (Sesi Siang - Modernisasi Visual & Penguncian Desain Halaman Publik)**:
     - **Penyempurnaan Halaman Beranda (LOCKED)**: Penguncian penuh desain Beranda dengan pembesaran Logo, Menu Navigasi (`18px` ultra-bold), tombol "Masuk" (`20px`), serta hero text berselimut gradasi emas royal premium di atas kontainer kaca hijau zamrud transparan (`rgba(4, 49, 33, 0.75)`) berbingkai emas mewah di atas latar belakang papercut putih geometris.
     - **Penyempurnaan Halaman Login & Registrasi (LOCKED)**: Penguncian penuh antarmuka Login dan Registrasi menggunakan kontainer kaca hijau zamrud (`rgba(4, 49, 33, 0.75)`) yang sepenuhnya selaras dengan beranda. Semua teks pendukung diubah menjadi Putih Murni (`#ffffff`) berkontras tinggi (AAA) dengan tulisan kata sandi/email di dalam kolom menggunakan Slate Charcoal Modern (`#334155`) di atas kolom input kaca semi-transparan (`rgba(255, 255, 255, 0.08)`).

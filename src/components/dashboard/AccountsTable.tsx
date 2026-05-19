@@ -1,11 +1,13 @@
 'use client';
 import React from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 interface AccountsTableProps {
   accounts: any[];
 }
 
 export default function AccountsTable({ accounts }: AccountsTableProps) {
+  const { theme } = useTheme();
   const currencyFormatter = new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -64,7 +66,7 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                   key={acc.id}
                   style={{
                     borderBottom: '1px solid var(--border-primary)',
-                    background: index % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)',
+                    background: index % 2 === 0 ? 'transparent' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)'),
                   }}
                 >
                   <td style={{ padding: '20px' }}>

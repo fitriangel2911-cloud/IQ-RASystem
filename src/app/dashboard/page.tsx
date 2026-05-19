@@ -12,14 +12,21 @@ import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
 import CSDashboard from '@/components/dashboard/CSDashboard';
 import AIKnowledgeManager from '@/components/dashboard/AIKnowledgeManager';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import { useTheme } from '@/context/ThemeContext';
 
 // Intensely styled menu button for the dashboard sidebar
 function DashboardMenuButton({ active, onClick, icon, label, isSpecial = false }: { active: boolean, onClick: () => void, icon: string, label: string, isSpecial?: boolean }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <button 
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: active ? 'var(--text-primary)' : 'transparent',
+        background: active 
+          ? 'var(--text-primary)' 
+          : (isHovered ? 'var(--border-primary)' : 'transparent'),
         border: isSpecial ? '2px solid var(--emerald-deep)' : 'none',
         textAlign: 'left',
         padding: isSpecial ? '18px 20px' : '15px 18px',
@@ -31,12 +38,18 @@ function DashboardMenuButton({ active, onClick, icon, label, isSpecial = false }
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        transition: 'all 0.2s',
+        transform: !active && isHovered ? 'translateX(6px)' : 'translateX(0)',
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: active ? '0 8px 20px var(--shadow-color)' : 'none',
         width: '100%'
       }}
     >
-      <span style={{ fontSize: isSpecial ? '24px' : '22px', opacity: active ? 1 : 0.8 }}>{icon}</span>
+      <span style={{ 
+        fontSize: isSpecial ? '24px' : '22px', 
+        opacity: active ? 1 : 0.8,
+        transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+        transition: 'transform 0.2s ease'
+      }}>{icon}</span>
       <span style={{ opacity: active ? 1 : 0.9 }}>{label}</span>
     </button>
   );
@@ -44,6 +57,7 @@ function DashboardMenuButton({ active, onClick, icon, label, isSpecial = false }
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -409,34 +423,39 @@ export default function DashboardPage() {
           transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
           overflow: 'hidden'
         }}>
-          {/* Sidebar Close Toggle - Enhanced Spacing */}
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            style={{
-              position: 'absolute',
-              right: '16px',
-              top: '16px',
-              background: 'rgba(0,0,0,0.15)',
-              border: '2px solid var(--text-primary)',
-              borderRadius: '12px',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px',
-              fontWeight: 900,
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-              zIndex: 110
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'rotate(90deg) scale(1.1)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
-          >
-            ✕
-          </button>
+          {/* Sidebar Close Toggle - Enhanced Spacing & Approved High Contrast Teller Style */}
+          {isSidebarOpen && (
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              style={{
+                position: 'absolute',
+                right: '16px',
+                top: '16px',
+                background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
+                border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
+                borderRadius: '8px',
+                color: theme === 'light' ? '#000000' : '#ffffff',
+                cursor: 'pointer',
+                padding: '5px 10px',
+                fontWeight: 900,
+                transition: 'all 0.3s',
+                zIndex: 110
+              }}
+            >
+              ✕
+            </button>
+          )}
+
+          {/* Brand Header with ThemeToggle shifted to the left (marginRight: 45px) */}
+          <div style={{ marginBottom: '40px', position: 'relative', marginTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <BrandLogo size={42} fontSize="22px" textColor="var(--text-primary)" />
+              <div style={{ marginRight: '45px' }}>
+                <ThemeToggle />
+              </div>
+            </div>
+            <span style={{ color: 'var(--text-primary)', fontSize: '11px', display: 'block', opacity: 0.8, marginTop: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px' }}>IT & SUPER ADMIN PORTAL</span>
+          </div>
 
           <div style={{
             background: 'var(--border-primary)',
@@ -473,16 +492,16 @@ export default function DashboardPage() {
           {/* Sidebar Nav */}
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, overflowY: 'auto', paddingRight: '4px' }}>
             
-            <div style={{ fontSize: '11px', color: '#f3c653', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>CORE BANKING</div>
+            <div style={{ fontSize: '11px', color: theme === 'light' ? 'var(--emerald-deep)' : '#f3c653', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>CORE BANKING</div>
             
             <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="📊" label="Ringkasan Eksekutif" />
 
             {/* KEANGGOTAAN (CS) */}
             <DashboardMenuButton active={activeTab === 'cs'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="🎧" label="Modul Keanggotaan" />
             {activeTab === 'cs' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('onboarding')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'onboarding' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pendaftaran Anggota (CIF)</button>
-                <button onClick={() => setActiveSubMenu('members')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'members' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Database Anggota Aktif</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
+                <button onClick={() => setActiveSubMenu('onboarding')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'onboarding' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pendaftaran Anggota (CIF)</button>
+                <button onClick={() => setActiveSubMenu('members')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'members' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Database Anggota Aktif</button>
               </div>
             )}
 
@@ -498,38 +517,38 @@ export default function DashboardPage() {
             {/* PEMBIAYAAN (AO) */}
             <DashboardMenuButton active={activeTab === 'ao'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="🤝" label="Manajemen Pembiayaan" />
             {activeTab === 'ao' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('overview')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'overview' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pipeline Nasabah</button>
-                <button onClick={() => setActiveSubMenu('prospects')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'prospects' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Analisis Akad & AI</button>
-                <button onClick={() => setActiveSubMenu('survey')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'survey' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Verifikasi Lapangan</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
+                <button onClick={() => setActiveSubMenu('overview')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'overview' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pipeline Nasabah</button>
+                <button onClick={() => setActiveSubMenu('prospects')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'prospects' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Analisis Akad & AI</button>
+                <button onClick={() => setActiveSubMenu('survey')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'survey' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Verifikasi Lapangan</button>
               </div>
             )}
 
             {/* AKUNTANSI (ACCOUNTING) */}
             <DashboardMenuButton active={activeTab === 'accounting'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="💼" label="Keuangan & Akuntansi" />
             {activeTab === 'accounting' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('journal')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'journal' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Jurnal Umum Otomatis</button>
-                <button onClick={() => setActiveSubMenu('ledger')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'ledger' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Buku Besar & Neraca</button>
-                <button onClick={() => setActiveSubMenu('reports')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'reports' ? '#f3c653' : 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Laporan SAK EP</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
+                <button onClick={() => setActiveSubMenu('journal')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'journal' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Jurnal Umum Otomatis</button>
+                <button onClick={() => setActiveSubMenu('ledger')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'ledger' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Buku Besar & Neraca</button>
+                <button onClick={() => setActiveSubMenu('reports')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'reports' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Laporan SAK EP</button>
               </div>
             )}
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
+            <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
             
-            <div style={{ fontSize: '11px', color: '#f3c653', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>PENGAWASAN & OTO</div>
+            <div style={{ fontSize: '11px', color: theme === 'light' ? 'var(--emerald-deep)' : '#cca334', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>PENGAWASAN & OTO</div>
 
             <DashboardMenuButton active={activeTab === 'manager'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="🏢" label="Otorisasi Manager" />
             <DashboardMenuButton active={activeTab === 'dps'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="🕌" label="Audit Syariah (DPS)" />
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
+            <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
             
-            <div style={{ fontSize: '11px', color: '#f3c653', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>KECERDASAN BUATAN</div>
+            <div style={{ fontSize: '11px', color: theme === 'light' ? 'var(--emerald-deep)' : '#cca334', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>KECERDASAN BUATAN</div>
             <DashboardMenuButton active={activeTab === 'ai_knowledge'} onClick={() => { setActiveTab('ai_knowledge'); setActiveSubMenu('overview'); }} icon="🤖" label="Knowledge Base (RAG)" />
 
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '12px 0' }} />
+            <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
 
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>ADMINISTRASI IT</div>
+            <div style={{ fontSize: '11px', color: theme === 'light' ? 'var(--emerald-deep)' : 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>ADMINISTRASI IT</div>
             
             <DashboardMenuButton active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setActiveSubMenu('overview'); }} icon="👥" label="Manajemen User" />
             <DashboardMenuButton active={activeTab === 'rules'} onClick={() => { setActiveTab('rules'); setActiveSubMenu('overview'); }} icon="🛡️" label="Aturan Akses (RBAC)" />
@@ -541,8 +560,8 @@ export default function DashboardPage() {
             onClick={handleLogout}
             style={{
               background: 'rgba(239, 68, 68, 0.15)',
-              border: '2px solid #fca5a5',
-              color: '#ffffff',
+              border: '2px solid #ef4444',
+              color: '#ef4444',
               padding: '14px',
               borderRadius: '14px',
               fontWeight: 800,
@@ -552,7 +571,7 @@ export default function DashboardPage() {
               boxShadow: '0 4px 15px rgba(239, 68, 68, 0.1)'
             }}
             onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#ffffff'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#ef4444'; }}
           >
             🔌 Keluar Kontrol Panel
           </button>
@@ -570,27 +589,29 @@ export default function DashboardPage() {
           
           {/* Header */}
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '44px' }}>
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{
-                background: 'var(--bg-sidebar)',
-                border: '2px solid var(--text-primary)',
-                borderRadius: '14px',
-                color: 'var(--text-primary)',
-                padding: '12px 20px',
-                marginRight: '24px',
-                cursor: 'pointer',
-                fontWeight: 900,
-                boxShadow: '0 4px 15px var(--shadow-color)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                transition: 'all 0.3s ease',
-                zIndex: 50
-              }}
-            >
-              {isSidebarOpen ? '✕' : '☰'} <span style={{ fontSize: '13px', letterSpacing: '1px' }}>KONTROL PANEL</span>
-            </button>
+            {!isSidebarOpen && (
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                style={{
+                  background: theme === 'light' ? '#ffffff' : 'var(--bg-sidebar)',
+                  border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
+                  borderRadius: '12px',
+                  color: theme === 'light' ? '#000000' : '#ffffff',
+                  padding: '12px 20px',
+                  marginRight: '24px',
+                  cursor: 'pointer',
+                  fontWeight: 900,
+                  boxShadow: '0 4px 15px var(--shadow-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  transition: 'all 0.3s ease',
+                  zIndex: 50
+                }}
+              >
+                ☰ <span style={{ fontSize: '13px', letterSpacing: '1px' }}>KONTROL PANEL</span>
+              </button>
+            )}
             <div style={{
               background: 'var(--bg-header)',
               backdropFilter: 'blur(16px)',
@@ -618,7 +639,7 @@ export default function DashboardPage() {
                  activeTab === 'settings' ? 'Konfigurasi Sistem' :
                  'Direktori CIF & Data Fisik Anggota'}
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px', fontWeight: 500, margin: 0 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 500, margin: 0 }}>
                 {activeTab === 'overview' 
                   ? 'Statistik operasi infrastruktur backend iQ-RA System.' 
                   : activeTab === 'users'
@@ -853,15 +874,15 @@ export default function DashboardPage() {
                     </thead>
                     <tbody>
                       {loadingRules ? (
-                        <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Memuat aturan akses...</td></tr>
+                        <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Memuat aturan akses...</td></tr>
                       ) : (
                         accessRules.map((r, i) => (
                           <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                             <td style={{ padding: '20px' }}>
-                              <span style={{ color: '#ffffff', fontWeight: 900, fontSize: '14px', background: 'rgba(243, 198, 83, 0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(243, 198, 83, 0.2)' }}>{r.role_name}</span>
+                              <span style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '14px', background: 'rgba(243, 198, 83, 0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(243, 198, 83, 0.2)' }}>{r.role_name}</span>
                             </td>
-                            <td style={{ padding: '20px', color: '#ffffff', fontSize: '14px', fontWeight: 600 }}>{r.responsibility}</td>
-                            <td style={{ padding: '20px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', lineHeight: '1.5' }}>{r.authority_scope}</td>
+                            <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{r.responsibility}</td>
+                            <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.5' }}>{r.authority_scope}</td>
                             <td style={{ padding: '20px' }}>
                               <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>🚫 {r.limitations}</span>
                             </td>
@@ -881,7 +902,7 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ padding: '24px', background: 'rgba(243, 198, 83, 0.05)', display: 'flex', gap: '16px', alignItems: 'center' }}>
                   <div style={{ fontSize: '24px' }}>💡</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                     <strong>Manajemen Otoritas:</strong> Anda dapat menambahkan kriteria jabatan baru secara manual melalui tombol di atas. Matriks ini digunakan sebagai panduan operasional dan pengawasan audit sistem.
                   </div>
                 </div>
@@ -942,12 +963,12 @@ export default function DashboardPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       style={{
                         width: '100%',
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'var(--bg-page)',
                         border: '2px solid #cca334',
                         borderRadius: '12px',
                         padding: '12px 16px',
-                        color: '#ffffff',
-                        fontSize: '14px',
+                        color: 'var(--text-primary)',
+                        fontSize: '16px',
                         fontWeight: 700,
                         outline: 'none',
                         boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)'
@@ -1039,7 +1060,7 @@ export default function DashboardPage() {
                     <tbody>
                       {loadingUsers ? (
                         <tr>
-                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: '#ffffff', fontSize: '18px', fontWeight: 800 }}>
+                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-primary)', fontSize: '18px', fontWeight: 800 }}>
                             Sinkronisasi data enkripsi...
                           </td>
                         </tr>
@@ -1050,7 +1071,7 @@ export default function DashboardPage() {
                           if (list.length === 0) {
                             return (
                               <tr>
-                                <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '18px', fontWeight: 700 }}>
+                                <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '18px', fontWeight: 700 }}>
                                   {searchQuery ? `Tidak ditemukan hasil untuk "${searchQuery}".` : `Belum ada data ${userSubTab === 'staff' ? 'staf' : 'anggota'} terdaftar.`}
                                 </td>
                               </tr>
@@ -1061,7 +1082,7 @@ export default function DashboardPage() {
                             const isMe = u.id === user?.id;
                             const isPassVisible = visiblePasswords[u.id] || false;
                             
-                            let badgeColors = { bg: 'rgba(255,255,255,0.1)', border: '#ffffff', text: '#ffffff' };
+                            let badgeColors = { bg: 'var(--border-primary)', border: 'var(--text-secondary)', text: 'var(--text-primary)' };
                             if (u.role === 'super_admin') badgeColors = { bg: '#f3c653', border: '#f3c653', text: '#02130e' };
                             else if (u.role === 'manager') badgeColors = { bg: 'rgba(255, 255, 255, 0.05)', border: '#60a5fa', text: '#60a5fa' };
                             else if (u.role === 'member') badgeColors = { bg: 'rgba(255, 255, 255, 0.05)', border: '#34d399', text: '#34d399' };
@@ -1087,16 +1108,16 @@ export default function DashboardPage() {
                                       {u.full_name ? u.full_name.charAt(0).toUpperCase() : '?'}
                                     </div>
                                     <div>
-                                      <div style={{ fontWeight: 900, fontSize: '16px', color: '#ffffff' }}>
+                                      <div style={{ fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)' }}>
                                         {u.full_name || '—'} 
                                         {isMe && <span style={{ fontSize: '11px', background: '#f3c653', color: '#02130e', padding: '3px 8px', borderRadius: '5px', marginLeft: '8px', fontWeight: 900 }}>ANDA</span>}
                                       </div>
-                                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>ID: {u.id.substring(0, 8)}...</div>
+                                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>ID: {u.id.substring(0, 8)}...</div>
                                     </div>
                                   </div>
                                 </td>
 
-                                <td style={{ padding: '20px', fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>{u.email}</td>
+                                <td style={{ padding: '20px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{u.email}</td>
 
                                 <td style={{ padding: '20px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1136,7 +1157,7 @@ export default function DashboardPage() {
               
               {/* CIF List Toolbar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '20px' }}>
-                <div style={{ fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>
+                <div style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: 700 }}>
                   Menampilkan <strong style={{ color: '#f3c653', fontSize: '18px' }}>{membersList.length}</strong> Data CIF Fisik Terverifikasi.
                 </div>
                 
@@ -1210,13 +1231,13 @@ export default function DashboardPage() {
                     <tbody>
                       {loadingUsers ? (
                         <tr>
-                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: '#ffffff', fontSize: '16px', fontWeight: 700 }}>
+                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700 }}>
                             Membaca data fisik CIF secara terenkripsi...
                           </td>
                         </tr>
                       ) : membersList.length === 0 ? (
                         <tr>
-                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '16px', fontWeight: 700, lineHeight: 1.6 }}>
+                          <td colSpan={5} style={{ padding: '80px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 700, lineHeight: 1.6 }}>
                             Belum ada data fisik anggota (CIF) terdaftar di dalam tabel members.<br/>
                             <span style={{ fontSize: '13px', color: '#f3c653', display: 'inline-block', marginTop: '8px', background: 'rgba(243,198,83,0.1)', padding: '6px 16px', borderRadius: '20px', border: '1px solid rgba(243,198,83,0.2)' }}>💡 Tip Admin: Klik tombol <strong>"⚡ Suntik 1 CIF Uji Coba"</strong> untuk melahirkan data simulasi secara instan!</span>
                           </td>
@@ -1235,7 +1256,7 @@ export default function DashboardPage() {
                             >
                               {/* Identity NIK */}
                               <td style={{ padding: '20px' }}>
-                                <div style={{ fontWeight: 900, fontSize: '16px', color: '#ffffff' }}>
+                                <div style={{ fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)' }}>
                                   {m.users?.full_name || 'Nama Tidak Sinkron'}
                                 </div>
                                 <div style={{ fontSize: '12px', color: '#f3c653', fontWeight: 800, marginTop: '3px', fontFamily: 'monospace' }}>
@@ -1244,20 +1265,20 @@ export default function DashboardPage() {
                               </td>
 
                               {/* Mother Name */}
-                              <td style={{ padding: '20px', fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>
+                              <td style={{ padding: '20px', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                                 👩‍👧‍👦 {m.mother_name}
                               </td>
 
                               {/* Occupation and Money */}
                               <td style={{ padding: '20px' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>{m.occupation}</div>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{m.occupation}</div>
                                 <div style={{ fontSize: '13px', fontWeight: 800, color: '#34d399', marginTop: '3px' }}>
                                   💵 {formatter.format(m.monthly_income)} / bulan
                                 </div>
                               </td>
 
                               {/* Phone / Contact */}
-                              <td style={{ padding: '20px', fontSize: '14px', fontWeight: 800, color: '#ffffff' }}>
+                              <td style={{ padding: '20px', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
                                 📱 {m.phone_number}
                               </td>
 
@@ -1312,33 +1333,33 @@ export default function DashboardPage() {
           }}>
             
             <div style={{
-              background: 'rgba(4, 49, 33, 0.7)',
-              border: '4px solid #f3c653', // Heavy Gold Border for clear focus
+              background: 'var(--bg-page)',
+              border: '4px solid var(--gold-intense)', // Heavy Gold Border for clear focus
               borderRadius: '28px',
               width: '100%',
               maxWidth: '500px',
               padding: '40px',
-              boxShadow: '0 30px 80px rgba(0,0,0,0.8)',
+              boxShadow: '0 30px 80px var(--shadow-color)',
               animation: 'scaleUp 0.2s ease-out'
             }}>
               
-              <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#f3c653', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>🛡️ Promosi Jabatan Staf</h2>
-              <p style={{ color: '#ffffff', fontSize: '15px', marginBottom: '28px', fontWeight: 500, lineHeight: 1.5 }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>🛡️ Promosi Jabatan Staf</h2>
+              <p style={{ color: 'var(--text-primary)', fontSize: '15px', marginBottom: '28px', fontWeight: 500, lineHeight: 1.5 }}>
                 Silakan pilih hak akses sistem baru untuk akun <strong>{editingUser.full_name}</strong>:
               </p>
 
               {/* Option Dropdown */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
-                <label style={{ fontSize: '14px', fontWeight: 800, color: '#f3c653' }}>Daftar Peran Otoritas</label>
+                <label style={{ fontSize: '14px', fontWeight: 800, color: 'var(--gold-intense)' }}>Daftar Peran Otoritas</label>
                 <select 
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
                   style={{
-                    background: '#ffffff', // Pure high-contrast white
+                    background: 'var(--bg-page)', // Pure high-contrast dynamic
                     border: '3px solid #cca334', // Premium Golden Border
                     borderRadius: '14px',
                     padding: '16px',
-                    color: '#02130e', // Dark Emerald green text for extreme legibility
+                    color: 'var(--text-primary)', // Dynamic text color for extreme legibility
                     fontSize: '16px',
                     fontWeight: 800,
                     outline: 'none',
@@ -1366,7 +1387,7 @@ export default function DashboardPage() {
                 padding: '16px',
                 marginBottom: '32px',
                 fontSize: '14px',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 fontWeight: 600,
                 lineHeight: 1.5
               }}>
@@ -1380,8 +1401,8 @@ export default function DashboardPage() {
                   style={{
                     flexGrow: 1,
                     background: 'transparent',
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    color: '#ffffff',
+                    border: '2px solid var(--border-primary)',
+                    color: 'var(--text-primary)',
                     padding: '16px',
                     borderRadius: '14px',
                     fontWeight: 800,
@@ -1467,7 +1488,7 @@ export default function DashboardPage() {
 
               <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Nama Lengkap</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase' }}>Nama Lengkap</label>
                   <input 
                     type="text"
                     required
@@ -1475,15 +1496,15 @@ export default function DashboardPage() {
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
                     style={{
-                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
-                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
-                      fontWeight: 600, outline: 'none'
+                      width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)',
+                      borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontSize: '16px',
+                      fontWeight: 700, outline: 'none'
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Email Institusi</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase' }}>Email Institusi</label>
                   <input 
                     type="email"
                     required
@@ -1491,15 +1512,15 @@ export default function DashboardPage() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     style={{
-                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
-                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
-                      fontWeight: 600, outline: 'none'
+                      width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)',
+                      borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontSize: '16px',
+                      fontWeight: 700, outline: 'none'
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Kata Sandi Sementara</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase' }}>Kata Sandi Sementara</label>
                   <input 
                     type="password"
                     required
@@ -1508,32 +1529,32 @@ export default function DashboardPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     style={{
-                      width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)',
-                      borderRadius: '12px', padding: '14px', color: '#fff', fontSize: '15px',
-                      fontWeight: 600, outline: 'none'
+                      width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)',
+                      borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontSize: '16px',
+                      fontWeight: 700, outline: 'none'
                     }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Pilih Hak Akses (Role)</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase' }}>Pilih Hak Akses (Role)</label>
                   <select 
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     style={{
-                      width: '100%', background: '#fff', border: '3px solid #cca334',
-                      borderRadius: '12px', padding: '14px', color: '#02130e', fontSize: '15px',
-                      fontWeight: 800, outline: 'none', cursor: 'pointer'
+                      width: '100%', background: 'var(--bg-page)', border: '3px solid #cca334',
+                      borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontSize: '16px',
+                      fontWeight: 700, outline: 'none', cursor: 'pointer'
                     }}
                   >
-                    <option value="member">Nasabah (MEMBER)</option>
-                    <option value="teller">Kasir Utama (TELLER)</option>
-                    <option value="customer_service">Customer Service (CS)</option>
-                    <option value="account_officer">Account Officer (AO)</option>
-                    <option value="accounting">Accounting (SAK EP)</option>
-                    <option value="manager">General Manager (GM)</option>
-                    <option value="dps">Dewan Pengawas Syariah (DPS)</option>
-                    <option value="super_admin">Super Admin (IT ADMIN)</option>
+                    <option value="member" style={{ color: '#000' }}>Nasabah (MEMBER)</option>
+                    <option value="teller" style={{ color: '#000' }}>Kasir Utama (TELLER)</option>
+                    <option value="customer_service" style={{ color: '#000' }}>Customer Service (CS)</option>
+                    <option value="account_officer" style={{ color: '#000' }}>Account Officer (AO)</option>
+                    <option value="accounting" style={{ color: '#000' }}>Accounting (SAK EP)</option>
+                    <option value="manager" style={{ color: '#000' }}>General Manager (GM)</option>
+                    <option value="dps" style={{ color: '#000' }}>Dewan Pengawas Syariah (DPS)</option>
+                    <option value="super_admin" style={{ color: '#000' }}>Super Admin (IT ADMIN)</option>
                   </select>
                 </div>
 
@@ -1542,8 +1563,8 @@ export default function DashboardPage() {
                     type="button"
                     onClick={() => setIsCreatingUser(false)}
                     style={{
-                      flexGrow: 1, background: 'transparent', border: '2px solid rgba(255,255,255,0.3)',
-                      color: '#fff', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer'
+                      flexGrow: 1, background: 'transparent', border: '2px solid var(--border-primary)',
+                      color: 'var(--text-primary)', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer'
                     }}
                   >
                     Batal
@@ -1630,20 +1651,20 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', background: 'rgba(255, 255, 255, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>NAMA LENGKAP (CIF)</div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.users?.full_name || '—'}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>NAMA LENGKAP (CIF)</div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedCIF.users?.full_name || '—'}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>NOMOR WHATSAPP</div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.phone_number}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>NOMOR WHATSAPP</div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedCIF.phone_number}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>NIK (NOMOR KTP)</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>NIK (NOMOR KTP)</div>
                       <div style={{ fontSize: '15px', fontWeight: 800, color: '#f3c653', fontFamily: 'monospace' }}>{selectedCIF.nik}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>NOMOR KARTU KELUARGA (KK)</div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>{selectedCIF.kk_number}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>NOMOR KARTU KELUARGA (KK)</div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'monospace' }}>{selectedCIF.kk_number}</div>
                     </div>
                   </div>
                 </div>
@@ -1656,12 +1677,12 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
                       <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>IBU KANDUNG</div>
-                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.mother_name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>IBU KANDUNG</div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedCIF.mother_name}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>KEYAKINAN / AGAMA</div>
-                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.religion || 'Islam'}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>KEYAKINAN / AGAMA</div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedCIF.religion || 'Islam'}</div>
                       </div>
                     </div>
                   </div>
@@ -1671,11 +1692,11 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', height: 'calc(100% - 24px)' }}>
                       <div style={{ marginBottom: '12px' }}>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>PROFESI PEKERJAAN</div>
-                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>{selectedCIF.occupation}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>PROFESI PEKERJAAN</div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedCIF.occupation}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>PENDAPATAN PER BULAN</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>PENDAPATAN PER BULAN</div>
                         <div style={{ fontSize: '16px', fontWeight: 900, color: '#34d399' }}>
                           {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(selectedCIF.monthly_income)}
                         </div>
@@ -1691,12 +1712,12 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255, 255, 255, 0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>ALAMAT KTP RESMI</div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff', lineHeight: 1.4 }}>{selectedCIF.ktp_address}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>ALAMAT KTP RESMI</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>{selectedCIF.ktp_address}</div>
                     </div>
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '4px' }}>ALAMAT TINGGAL AKTIF (DOMISILI)</div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff', lineHeight: 1.4 }}>{selectedCIF.domicile_address}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '4px' }}>ALAMAT TINGGAL AKTIF (DOMISILI)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>{selectedCIF.domicile_address}</div>
                     </div>
                   </div>
                 </div>
@@ -1769,27 +1790,27 @@ export default function DashboardPage() {
               }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>NAMA JABATAN / ROLE</label>
-                  <input name="role_name" defaultValue={editingRule?.role_name} required style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff', fontWeight: 600 }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#cca334', marginBottom: '8px' }}>NAMA JABATAN / ROLE</label>
+                  <input name="role_name" defaultValue={editingRule?.role_name} required style={{ width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontWeight: 600 }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>TANGGUNG JAWAB UTAMA</label>
-                  <input name="responsibility" defaultValue={editingRule?.responsibility} placeholder="Contoh: Operasional Kas & Pelayanan" style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#cca334', marginBottom: '8px' }}>TANGGUNG JAWAB UTAMA</label>
+                  <input name="responsibility" defaultValue={editingRule?.responsibility} placeholder="Contoh: Operasional Kas & Pelayanan" style={{ width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>CAKUPAN OTORITAS</label>
-                  <textarea name="authority_scope" defaultValue={editingRule?.authority_scope} rows={3} style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#cca334', marginBottom: '8px' }}>CAKUPAN OTORITAS</label>
+                  <textarea name="authority_scope" defaultValue={editingRule?.authority_scope} rows={3} style={{ width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#f3c653', marginBottom: '8px' }}>BATASAN AKSES</label>
-                  <input name="limitations" defaultValue={editingRule?.limitations} placeholder="Contoh: Tidak bisa menghapus jurnal" style={{ width: '100%', background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: '#fff' }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#cca334', marginBottom: '8px' }}>BATASAN AKSES</label>
+                  <input name="limitations" defaultValue={editingRule?.limitations} placeholder="Contoh: Tidak bisa menghapus jurnal" style={{ width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
-                  <button type="button" onClick={() => { setIsCreatingRule(false); setEditingRule(null); }} style={{ flexGrow: 1, background: 'transparent', border: '2px solid rgba(255,255,255,0.3)', color: '#fff', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
+                  <button type="button" onClick={() => { setIsCreatingRule(false); setEditingRule(null); }} style={{ flexGrow: 1, background: 'transparent', border: '2px solid var(--border-primary)', color: 'var(--text-primary)', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
                   <button type="submit" style={{ flexGrow: 2, background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', border: 'none', color: '#02130e', padding: '16px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', cursor: 'pointer' }}>Simpan Aturan</button>
                 </div>
               </form>

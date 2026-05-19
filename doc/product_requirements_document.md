@@ -67,7 +67,10 @@ Peran (Role)
 5. Arsitektur Teknis & Infrastruktur
 Sistem dibangun dengan arsitektur Full-stack Serverless untuk keandalan dan efisiensi biaya:
 ●      Frontend Web: Next.js (React), TypeScript (untuk type-safety/menghindari error), Tailwind CSS, dan sistem tema dinamis (CSS Variables).
-●      Desain UI/UX: Mengadopsi standar **Premium Sharia FinTech** dengan navigasi Sidebar kolapsibel dan dashboard responsif yang dioptimalkan untuk Mode Terang.
+●      Desain UI/UX: Mengadopsi standar **Premium Sharia FinTech** dengan spesifikasi:
+       ○      **Staff Dashboard**: Navigasi Sidebar kolapsibel Edge-to-Edge dengan kontainer lebar kaku (*anti-squish*) dan estetika monokrom tingkat tinggi.
+       ○      **Member Portal**: Arsitektur *Floating App* berbalut Glassmorphism eksklusif agar animasi pola geometris interaktif terlihat (*bleed through*).
+       ○      Dioptimalkan secara penuh untuk peralihan instan antara **Mode Terang (Light Mode)** dan **Mode Gelap (Dark Mode)** di seluruh peran pengguna.
 ●      Backend & Database: Supabase (PostgreSQL relasional untuk data keuangan + ekstensi pgvector untuk penyimpanan knowledge base AI).
 ●      AI Engine: LangChain.js untuk orkestrasi pemrosesan Prompt dan ekstraksi RAG.
 ●      Keamanan & Audit Kode: * Row-Level Security (RLS) di database.

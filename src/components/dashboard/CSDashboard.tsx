@@ -133,7 +133,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           boxShadow: '0 40px 80px var(--shadow-color)'
         }}>
           <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '24px', fontWeight: 900, letterSpacing: '1px' }}>📝 PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
+            <div>
+              <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>📝 PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
+              <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
+            </div>
             <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid var(--border-primary)' }}>TAHAP: DATA DEMOGRAFI</span>
           </div>
           
@@ -157,11 +160,11 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
             <CSInputField label="Nomor WhatsApp/HP" placeholder="08xxxx..." value={formData.phone} onChange={(val: string) => setFormData({...formData, phone: val})} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 800 }}>Keyakinan / Agama</label>
+              <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Keyakinan / Agama</label>
               <select 
                 value={formData.religion} 
                 onChange={(e) => setFormData({...formData, religion: e.target.value})}
-                style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none' }}
+                style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
               >
                 <option value="Islam">Islam</option>
                 <option value="Lainnya">Lainnya</option>
@@ -196,7 +199,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           boxShadow: '0 40px 80px var(--shadow-color)'
         }}>
           <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900, fontSize: '22px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
+            <div>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
+              <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
+            </div>
             <div style={{ color: 'var(--text-primary)', opacity: 0.8, fontSize: '14px', fontWeight: 700 }}>Total: {stats.totalMembers} Anggota</div>
           </div>
           <div style={{ padding: '20px 40px' }}>
@@ -249,9 +255,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       {/* 4. AI HELP TAB */}
       {activeMenu === 'ai-help' && (
-        <div style={{ height: '70vh', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-primary)' }}>
+        <div style={{ height: '70vh', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
           <div style={{ padding: '24px 40px', background: 'var(--bg-header)', borderBottom: '1px solid var(--border-primary)' }}>
-            <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900 }}>💬 iQ-RA AI Sharia Assistant</h3>
+            <div>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>💬 iQ-RA AI Sharia Assistant</h3>
+              <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
+            </div>
           </div>
           <div style={{ flexGrow: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ alignSelf: 'flex-start', background: 'var(--border-primary)', padding: '20px', borderRadius: '0 24px 24px 24px', maxWidth: '70%', color: 'var(--text-primary)', fontSize: '15px', boxShadow: '0 4px 15px var(--shadow-color)' }}>
@@ -302,7 +311,7 @@ function StatCard({ label, value, icon, color }: any) {
 function CSInputField({ label, placeholder, value, onChange }: any) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 800 }}>{label}</label>
+      <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>{label}</label>
       <input 
         type="text" 
         placeholder={placeholder} 
@@ -311,7 +320,8 @@ function CSInputField({ label, placeholder, value, onChange }: any) {
         style={{ 
           padding: '16px 20px', background: 'var(--bg-page)', 
           border: '1.5px solid var(--border-primary)', borderRadius: '14px', 
-          color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s' 
+          color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s',
+          fontSize: '16px', fontWeight: 700
         }}
         onFocus={e => e.currentTarget.style.borderColor = 'var(--text-primary)'}
         onBlur={e => e.currentTarget.style.borderColor = 'var(--border-primary)'}

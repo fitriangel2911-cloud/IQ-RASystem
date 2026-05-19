@@ -1,11 +1,13 @@
 'use client';
 import React from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 interface TransactionsTableProps {
   transactions: any[];
 }
 
 export default function TransactionsTable({ transactions }: TransactionsTableProps) {
+  const { theme } = useTheme();
   const currencyFormatter = new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -78,7 +80,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
                     key={tx.id}
                     style={{
                       borderBottom: '1px solid var(--border-primary)',
-                      background: idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)',
+                      background: idx % 2 === 0 ? 'transparent' : (theme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)'),
                     }}
                   >
                     {/* Date */}

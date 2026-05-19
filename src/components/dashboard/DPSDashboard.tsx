@@ -99,14 +99,14 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
         <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '20px' }}>DPS dapat menambahkan Fatwa atau rujukan hukum baru untuk memperkuat analisis AI.</p>
         <form onSubmit={handleDpsIngest} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '15px', alignItems: 'end' }}>
           <div>
-            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '5px', fontWeight: 700 }}>JUDUL REFERENSI</label>
-            <input type="text" value={ingestData.title} onChange={e => setIngestData({...ingestData, title: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)' }} placeholder="Contoh: Fatwa No 04..." />
+            <label style={{ display: 'block', color: 'var(--gold-bright)', fontSize: '14px', marginBottom: '8px', fontWeight: 900 }}>JUDUL REFERENSI</label>
+            <input type="text" value={ingestData.title} onChange={e => setIngestData({...ingestData, title: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px' }} placeholder="Contoh: Fatwa No 04..." />
           </div>
           <div>
-            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '11px', marginBottom: '5px', fontWeight: 700 }}>INTISARI HUKUM</label>
-            <input type="text" value={ingestData.content} onChange={e => setIngestData({...ingestData, content: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)' }} placeholder="Masukkan poin hukum penting..." />
+            <label style={{ display: 'block', color: 'var(--gold-bright)', fontSize: '14px', marginBottom: '8px', fontWeight: 900 }}>INTISARI HUKUM</label>
+            <input type="text" value={ingestData.content} onChange={e => setIngestData({...ingestData, content: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px' }} placeholder="Masukkan poin hukum penting..." />
           </div>
-          <button type="submit" style={{ padding: '12px 24px', background: 'var(--gold-intense)', border: 'none', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 5px 15px var(--shadow-color)' }}>SIMPAN DATA</button>
+          <button type="submit" style={{ padding: '12px 24px', background: 'var(--gold-intense)', border: 'none', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 5px 15px var(--shadow-color)', fontSize: '16px' }}>SIMPAN DATA</button>
         </form>
       </div>
 

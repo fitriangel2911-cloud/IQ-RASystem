@@ -7,9 +7,11 @@ import { createClient } from '@/lib/supabase/client';
 import TellerTerminal from '@/components/dashboard/TellerTerminal';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TellerPage() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -118,13 +120,14 @@ export default function TellerPage() {
             position: 'absolute',
             right: '15px',
             top: '15px',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid var(--border-primary)',
+            background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
+            border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
             borderRadius: '8px',
-            color: 'var(--gold-intense)',
+            color: theme === 'light' ? '#000000' : '#ffffff',
             cursor: 'pointer',
             padding: '5px 10px',
-            fontWeight: 900
+            fontWeight: 900,
+            transition: 'all 0.3s'
           }}
         >
           ✕
@@ -138,7 +141,7 @@ export default function TellerPage() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <BrandLogo size={42} fontSize="22px" textColor="var(--text-primary)" />
-            <div style={{ marginRight: '35px' }}>
+            <div style={{ marginRight: '45px' }}>
               <ThemeToggle />
             </div>
           </div>
@@ -238,17 +241,18 @@ export default function TellerPage() {
               <button 
                 onClick={() => setIsSidebarOpen(true)}
                 style={{
-                  background: 'var(--bg-sidebar)',
-                  border: '2px solid var(--gold-bright)',
+                  background: theme === 'light' ? '#ffffff' : 'var(--bg-sidebar)',
+                  border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
                   borderRadius: '12px',
-                  color: 'var(--gold-intense)',
+                  color: theme === 'light' ? '#000000' : '#ffffff',
                   padding: '12px 18px',
                   cursor: 'pointer',
                   fontWeight: 900,
                   boxShadow: '0 4px 15px var(--shadow-color)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '8px',
+                  transition: 'all 0.3s'
                 }}
               >
                 ☰ <span style={{ fontSize: '12px' }}>MENU</span>
@@ -366,7 +370,7 @@ export default function TellerPage() {
                         fontSize: '28px', boxShadow: '0 5px 15px rgba(204, 163, 52, 0.4)' 
                       }}>👤</div>
                       <div>
-                        <h4 style={{ color: '#ffffff', margin: 0, fontSize: '19px', fontWeight: 900, letterSpacing: '0.5px' }}>
+                        <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '24px', fontWeight: 900, letterSpacing: '0.5px' }}>
                           {member.users?.full_name || 'Anggota iQ-RA'}
                         </h4>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>

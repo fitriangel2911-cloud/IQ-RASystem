@@ -2,6 +2,8 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '@/context/ThemeContext';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 interface SidebarProps {
   activeTab: string;
@@ -13,6 +15,7 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onClose }: SidebarProps) {
   const router = useRouter();
+  const { theme } = useTheme();
 
   const handleLogout = async () => {
     const confirmSignOut = window.confirm('Apakah Anda yakin ingin keluar dari akun Anda?');
@@ -33,70 +36,74 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
 
   const isProfileComplete = profile?.nik && profile?.kk_number && profile?.phone_number;
 
+  const [hoveredTab, setHoveredTab] = React.useState<string | null>(null);
+
   return (
     <aside style={{
-      width: isOpen ? '300px' : '0px',
+      width: isOpen ? '320px' : '0px',
       opacity: isOpen ? 1 : 0,
-      background: 'var(--bg-sidebar)',
+      background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
       backdropFilter: 'blur(25px)',
-      borderRight: isOpen ? '3px solid var(--gold-intense)' : 'none',
+      border: isOpen ? '1px solid var(--border-primary)' : 'none',
+      borderRadius: isOpen ? '30px' : '0px',
       display: 'flex',
       flexDirection: 'column',
       padding: isOpen ? '40px 24px' : '0px',
       position: 'fixed',
-      top: 0,
-      left: 0,
-      height: '100vh',
+      top: '20px',
+      left: '20px',
+      height: 'calc(100vh - 40px)',
       zIndex: 100,
-      boxShadow: isOpen ? '10px 0 30px var(--shadow-color)' : 'none',
+      boxShadow: isOpen ? '0 20px 60px var(--shadow-color)' : 'none',
       flexShrink: 0,
       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
       overflow: 'hidden'
     }}>
-      {/* Sidebar Close Toggle - Enhanced Spacing & Visibility */}
-      <button 
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          right: '24px',
-          top: '24px',
-          background: 'rgba(0,0,0,0.15)',
-          border: '2px solid var(--text-primary)',
-          borderRadius: '12px',
-          color: 'var(--text-primary)',
-          cursor: 'pointer',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '20px',
-          fontWeight: 900,
-          transition: 'all 0.3s ease',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-          zIndex: 110
-        }}
-        onMouseOver={(e) => { e.currentTarget.style.transform = 'rotate(90deg) scale(1.1)'; }}
-        onMouseOut={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1)'; }}
-        title="Tutup Navigasi"
-      >
-        ✕
-      </button>
-
-      {/* Brand */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '40px', marginTop: '10px' }}>
-        <div style={{
-          background: 'var(--text-primary)',
-          width: '45px', height: '45px', borderRadius: '12px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
-        }}>
-          <img src="/logo-recolored.png" alt="iQ-RA" style={{ width: '75%', height: '75%', objectFit: 'contain' }} />
-        </div>
+      {/* Brand & Close Toggle Container */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', marginTop: '10px' }}>
         <div>
-          <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>iQ-RA SYSTEM</div>
-          <div style={{ fontSize: '11px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px' }}>Portal Anggota</div>
+          <BrandLogo size={42} fontSize="20px" textColor="var(--text-primary)" />
+          <div style={{ fontSize: '10px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '6px', marginLeft: '54px' }}>PORTAL ANGGOTA</div>
         </div>
+
+        {/* Modern Close Sidebar Button */}
+        <button 
+          onClick={onClose}
+          style={{
+            background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
+            border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
+            borderRadius: '12px',
+            color: theme === 'light' ? '#000000' : '#ffffff',
+            cursor: 'pointer',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '0 4px 12px var(--shadow-color)',
+            flexShrink: 0,
+            zIndex: 150
+          }}
+          onMouseOver={(e) => { 
+            e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)'; 
+            e.currentTarget.style.borderColor = 'var(--gold-bright)';
+            e.currentTarget.style.background = 'var(--gold-gradient)';
+            e.currentTarget.style.color = '#02130e';
+          }}
+          onMouseOut={(e) => { 
+            e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; 
+            e.currentTarget.style.borderColor = theme === 'light' ? '#000000' : '#ffffff';
+            e.currentTarget.style.background = theme === 'light' ? '#ffffff' : 'var(--bg-page)';
+            e.currentTarget.style.color = theme === 'light' ? '#000000' : '#ffffff';
+          }}
+          title="Tutup Navigasi"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       {/* Profile Widget */}
@@ -137,31 +144,41 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
 
       {/* Navigation */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
-        {menuItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            style={{
-              background: activeTab === item.id ? 'var(--text-primary)' : 'transparent',
-              border: 'none',
-              textAlign: 'left',
-              padding: '16px 20px',
-              borderRadius: '16px',
-              color: activeTab === item.id ? 'var(--bg-page)' : 'var(--text-primary)',
-              fontWeight: 800,
-              fontSize: '15px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '15px',
-              transition: 'all 0.3s ease',
-              boxShadow: activeTab === item.id ? '0 10px 20px var(--shadow-color)' : 'none'
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
+        {menuItems.map(item => {
+          const isActive = activeTab === item.id;
+          const isHovered = hoveredTab === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              onMouseEnter={() => setHoveredTab(item.id)}
+              onMouseLeave={() => setHoveredTab(null)}
+              style={{
+                background: isActive 
+                  ? 'var(--text-primary)' 
+                  : (isHovered ? 'var(--border-primary)' : 'transparent'),
+                border: 'none',
+                textAlign: 'left',
+                padding: '16px 20px',
+                borderRadius: '16px',
+                color: isActive ? 'var(--bg-page)' : 'var(--text-primary)',
+                fontWeight: 800,
+                fontSize: '15px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                transform: !isActive && isHovered ? 'translateX(6px)' : 'translateX(0)',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: isActive ? '0 10px 20px var(--shadow-color)' : 'none'
+              }}
+            >
+              <span style={{ fontSize: '20px', transform: isHovered ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.2s ease' }}>{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Logout */}

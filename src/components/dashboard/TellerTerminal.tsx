@@ -221,7 +221,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
             border: '1px solid var(--border-primary)'
           }}>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '8px', textTransform: 'uppercase' }}>Cari Nama Anggota</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase' }}>Cari Nama Anggota</label>
               <select 
                 value={selectedMemberId}
                 onChange={(e) => setSelectedMemberId(e.target.value)}
@@ -232,7 +232,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                   borderRadius: '12px',
                   padding: '14px',
                   color: 'var(--text-primary)',
-                  fontSize: '15px',
+                  fontSize: '16px',
                   fontWeight: 700,
                   outline: 'none'
                 }}
@@ -246,7 +246,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               </select>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase', marginBottom: '4px' }}>Saldo Terakhir</div>
+              <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase', marginBottom: '4px' }}>Saldo Terakhir</div>
               <div style={{ fontSize: '26px', fontWeight: 900, color: balance !== null ? '#4ade80' : 'var(--text-secondary)' }}>
                 {balance !== null ? `Rp ${balance.toLocaleString('id-ID')}` : 'Rp 0'}
               </div>
@@ -255,7 +255,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '24px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '10px', textTransform: 'uppercase' }}>Jenis Layanan</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '10px', textTransform: 'uppercase' }}>Jenis Layanan</label>
               <select 
                 value={trxType}
                 onChange={(e) => setTrxType(e.target.value as any)}
@@ -266,7 +266,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                   borderRadius: '12px',
                   padding: '16px',
                   color: 'var(--text-primary)',
-                  fontSize: '15px',
+                  fontSize: '16px',
                   fontWeight: 700,
                   outline: 'none'
                 }}
@@ -277,9 +277,9 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '10px', textTransform: 'uppercase' }}>Nominal Transaksi</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: 'var(--gold-bright)', marginBottom: '10px', textTransform: 'uppercase' }}>Nominal Transaksi</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '20px', top: '18px', fontSize: '20px', fontWeight: 900, color: 'var(--gold-intense)' }}>Rp</span>
+                <span style={{ position: 'absolute', left: '20px', top: '18px', fontSize: '20px', fontWeight: 900, color: 'var(--gold-bright)' }}>Rp</span>
                 <input 
                   type="text"
                   value={displayAmount}
@@ -303,7 +303,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
 
 
           <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '10px', textTransform: 'uppercase' }}>Keterangan / Berita Acara</label>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '10px', textTransform: 'uppercase' }}>Keterangan / Berita Acara</label>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -315,7 +315,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
                 borderRadius: '12px',
                 padding: '16px',
                 color: 'var(--text-primary)',
-                fontSize: '15px',
+                fontSize: '16px',
                 fontWeight: 500,
                 outline: 'none',
                 minHeight: '80px',
@@ -330,7 +330,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
             borderRadius: '20px', 
             border: '1px solid rgba(255,255,255,0.05)' 
           }}>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#f3c653', marginBottom: '16px', textTransform: 'uppercase' }}>Opsi Antrian Cetak (Satu-per-Satu)</label>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, color: '#cca334', marginBottom: '16px', textTransform: 'uppercase' }}>Opsi Antrian Cetak (Satu-per-Satu)</label>
             <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
                 <input 

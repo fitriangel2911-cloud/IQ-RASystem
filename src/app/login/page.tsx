@@ -45,7 +45,25 @@ export default function LoginPage() {
       }
 
       if (data?.user) {
-        router.push('/dashboard');
+        const { data: dbProfile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (dbProfile) {
+          const role = dbProfile.role;
+          if (role === 'customer_service') router.push('/customer-service');
+          else if (role === 'teller') router.push('/teller');
+          else if (role === 'accounting') router.push('/accounting');
+          else if (role === 'manager') router.push('/manager');
+          else if (role === 'dps') router.push('/dps');
+          else if (role === 'member') router.push('/members');
+          else if (role === 'account_officer' || role === 'ao') router.push('/ao');
+          else router.push('/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Terjadi gangguan teknis.');

@@ -140,7 +140,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                 <HealthIndicator label="Rasio Cadangan Risiko (CKPN)" value={145} target={100} color="#60a5fa" unit="%" />
               </div>
 
-              <div style={{ marginTop: '32px', padding: '18px', background: 'rgba(52, 211, 153, 0.1)', border: '1.5px solid #34d399', borderRadius: '16px', color: '#ffffff', fontSize: '13px', fontWeight: 600 }}>
+              <div style={{ marginTop: '32px', padding: '18px', background: 'rgba(52, 211, 153, 0.1)', border: '1.5px solid #34d399', borderRadius: '16px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
                 💡 <strong>Rekomendasi Sistem AI:</strong> Performa keuangan koperasi saat ini berada dalam zona sangat prima. Kapasitas ekspansi pembiayaan baru aman untuk disetujui demi memacu produktivitas likuiditas kas.
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                   </div>
                 ))}
                 {contracts.filter(c => c.status === 'pending').length === 0 && (
-                  <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontStyle: 'italic', padding: '40px' }}>☕ Semua berkas bersih! Tidak ada memo antrian tersisa.</div>
+                  <div style={{ color: 'var(--text-secondary)', textAlign: 'center', fontStyle: 'italic', padding: '40px' }}>☕ Semua berkas bersih! Tidak ada memo antrian tersisa.</div>
                 )}
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                   );
                 })
               ) : (
-                <div style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontWeight: 800 }}>
+                <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 800 }}>
                   <div style={{ fontSize: '50px', marginBottom: '16px' }}>🏁</div>
                   Semua pengajuan berkas pembiayaan telah tuntas diproses. Kosong.
                 </div>
@@ -268,12 +268,12 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
               <tbody>
                 {contracts.filter(c => c.status !== 'pending').length > 0 ? (
                   contracts.filter(c => c.status !== 'pending').map((c, idx) => (
-                    <tr key={c.id || idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.1)' }}>
-                      <td style={{ padding: '16px', color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
+                    <tr key={c.id || idx} style={{ borderBottom: '1px solid var(--border-primary)', background: 'rgba(0,0,0,0.03)' }}>
+                      <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                         {new Date(c.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </td>
-                      <td style={{ padding: '16px', color: '#fff', fontWeight: 800, fontSize: '14px' }}>{c.users?.full_name || 'Anggota Terdaftar'}</td>
-                      <td style={{ padding: '16px', color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>{getFriendlyContractType(c.type)}</td>
+                      <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>{c.users?.full_name || 'Anggota Terdaftar'}</td>
+                      <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px' }}>{getFriendlyContractType(c.type)}</td>
                       <td style={{ padding: '16px', color: '#34d399', fontWeight: 900, textAlign: 'right', fontSize: '14px' }}>{formatIDR.format(c.amount)}</td>
                       <td style={{ padding: '16px', textAlign: 'center' }}>
                         <span style={{ 
@@ -289,7 +289,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontWeight: 800 }}>🚫 Belum ada riwayat eksekusi akad.</td>
+                    <td colSpan={5} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 800 }}>🚫 Belum ada riwayat eksekusi akad.</td>
                   </tr>
                 )}
               </tbody>
@@ -346,11 +346,11 @@ function HealthIndicator({ label, value, target, color, unit }: any) {
   const fillPct = Math.min(100, (value / (target * 1.5)) * 100);
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff', marginBottom: '8px', fontSize: '13px', fontWeight: 800 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)', marginBottom: '8px', fontSize: '13px', fontWeight: 800 }}>
         <span>{label}</span>
-        <span style={{ color: color }}>{value}{unit} <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>(Target: &gt;{target}{unit})</span></span>
+        <span style={{ color: color }}>{value}{unit} <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>(Target: &gt;{target}{unit})</span></span>
       </div>
-      <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+      <div style={{ height: '12px', background: 'var(--border-primary)', borderRadius: '6px', overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${fillPct}%`, background: color, borderRadius: '6px', boxShadow: `0 0 10px ${color}` }} />
       </div>
     </div>

@@ -71,9 +71,9 @@ export default function RAGPipelineView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s' }}>
       
       {/* Top Panel Input Configuration */}
-      <div style={{ background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(16px)', padding: '40px', borderRadius: '32px', border: '3px solid #cca334', boxShadow: '0 30px 60px rgba(0,0,0,0.4)' }}>
-        <h3 style={{ color: '#f3c653', margin: '0 0 8px 0', fontWeight: 900, fontSize: '22px' }}>🤖 KONFIGURASI FOLDER KNOWLEDGE BASE RAG</h3>
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', marginBottom: '30px' }}>Tentukan alamat folder peraturan/fatwa di server lokal. AI akan secara otomatis membaca, mensegmentasi, dan menyimpannya ke dalam Vector Database untuk dasar audit kepatuhan syariah.</p>
+      <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', padding: '40px', borderRadius: '32px', border: '3px solid #cca334', boxShadow: '0 30px 60px var(--shadow-color)' }}>
+        <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 8px 0', fontWeight: 900, fontSize: '22px' }}>🤖 KONFIGURASI FOLDER KNOWLEDGE BASE RAG</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>Tentukan alamat folder peraturan/fatwa di server lokal. AI akan secara otomatis membaca, mensegmentasi, dan menyimpannya ke dalam Vector Database untuk dasar audit kepatuhan syariah.</p>
 
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{ flexGrow: 1, position: 'relative' }}>
@@ -85,9 +85,9 @@ export default function RAGPipelineView() {
               onChange={(e) => setFolderPath(e.target.value)}
               placeholder="Alamat direktori folder (Contoh: doc/fatwa)" 
               style={{
-                width: '100%', background: 'rgba(0,0,0,0.25)', border: '2px solid #cca334', borderRadius: '16px',
-                padding: '18px 20px 18px 55px', color: '#ffffff', fontSize: '16px', fontWeight: 700, outline: 'none',
-                boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.3)'
+                width: '100%', background: 'var(--bg-page)', border: '2px solid var(--border-primary)', borderRadius: '16px',
+                padding: '18px 20px 18px 55px', color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, outline: 'none',
+                boxShadow: 'inset 0 4px 10px var(--shadow-color)'
               }}
             />
           </div>
@@ -108,7 +108,7 @@ export default function RAGPipelineView() {
         {/* Active Ingestion Progress Visualization */}
         {status !== 'idle' && (
           <div style={{ marginTop: '40px', animation: 'fadeIn 0.3s' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fff', fontWeight: 800, marginBottom: '10px', fontSize: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)', fontWeight: 800, marginBottom: '10px', fontSize: '14px' }}>
               <span>
                 {status === 'scanning' && '🔎 Memindai Berkas Dokumen...'}
                 {status === 'chunking' && '🧩 Memecah Karakter Teks (Tokenization)...'}
@@ -144,15 +144,15 @@ export default function RAGPipelineView() {
         </div>
 
         {/* Synchronized Knowledge List */}
-        <div className="glass-dark" style={{ padding: '30px', border: '1.5px solid rgba(255,255,255,0.1)', background: 'rgba(4, 49, 33, 0.85)', backdropFilter: 'blur(12px)' }}>
-          <h4 style={{ color: '#ffffff', margin: '0 0 20px 0', fontWeight: 900 }}>📚 DAFTAR PENGETAHUAN TERINDEKS ({indexedFiles.length})</h4>
+        <div className="glass-dark" style={{ padding: '30px', border: '1.5px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(12px)' }}>
+          <h4 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontWeight: 900 }}>📚 DAFTAR PENGETAHUAN TERINDEKS ({indexedFiles.length})</h4>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto' }}>
             {indexedFiles.map((file, idx) => (
               <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', padding: '14px 20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>{file.name}</div>
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>{file.name}</div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                     <span>Ukuran: {file.size}</span>
                     <span>•</span>
                     <span style={{ color: '#cca334', fontWeight: 700 }}>{file.chunks} Chunks</span>

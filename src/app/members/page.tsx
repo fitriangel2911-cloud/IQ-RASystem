@@ -9,6 +9,8 @@ import TransactionsTable from '@/components/dashboard/TransactionsTable';
 import FinancingPanel from '@/components/dashboard/FinancingPanel';
 import ProfileForm from '@/components/dashboard/ProfileForm';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
+import { useTheme } from '@/context/ThemeContext';
 
 type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile';
 
@@ -16,23 +18,25 @@ export default function MemberPage() {
   const { profile, accounts, transactions, contracts, loading, error, refetch } = useMemberDashboardData();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme } = useTheme();
 
   if (loading) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#02130e',
+        background: 'var(--bg-page)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#ffffff',
+        color: 'var(--text-primary)',
         gap: '16px',
-        position: 'relative'
+        position: 'relative',
+        transition: 'all 0.3s ease'
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
-          background: 'linear-gradient(135deg, #02130e 0%, #042a1d 100%)', opacity: 0.9
+          background: 'var(--bg-page)', opacity: 0.95
         }} />
         
         <div style={{
@@ -41,14 +45,14 @@ export default function MemberPage() {
           {/* Custom Shimmering Spinner */}
           <div style={{
             border: '3px solid transparent',
-            borderTopColor: '#f3c653',
-            borderRightColor: '#f3c653',
+            borderTopColor: 'var(--gold-bright)',
+            borderRightColor: 'var(--gold-bright)',
             borderRadius: '50%',
             width: '48px',
             height: '48px',
             animation: 'spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite'
           }} />
-          <h3 style={{ fontWeight: 800, fontSize: '18px', color: '#f3c653', letterSpacing: '0.5px' }}>
+          <h3 style={{ fontWeight: 800, fontSize: '18px', color: 'var(--gold-bright)', letterSpacing: '0.5px' }}>
             Sinkronisasi Basis Data Anggota...
           </h3>
         </div>
@@ -64,24 +68,25 @@ export default function MemberPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: '#02130e',
-        color: '#ffffff',
+        background: 'var(--bg-page)',
+        color: 'var(--text-primary)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
-        textAlign: 'center'
+        textAlign: 'center',
+        transition: 'all 0.3s ease'
       }}>
         <div style={{ fontSize: '64px', marginBottom: '20px' }}>⚠️</div>
         <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#ef4444', marginBottom: '12px' }}>Terjadi Kesalahan Sinkronisasi</h2>
-        <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: '500px', lineHeight: 1.6, marginBottom: '32px' }}>{error}</p>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', lineHeight: 1.6, marginBottom: '32px' }}>{error}</p>
         <button 
           onClick={() => refetch()}
           style={{
-            background: '#f3c653', color: '#02130e', border: 'none',
+            background: 'var(--gold-gradient)', color: '#02130e', border: 'none',
             padding: '14px 32px', borderRadius: '12px', fontWeight: 900,
-            cursor: 'pointer', boxShadow: '0 4px 15px rgba(243, 198, 83, 0.3)'
+            cursor: 'pointer', boxShadow: '0 4px 15px var(--shadow-color)'
           }}
         >
           🔄 Coba Ulangi Penarikan Data
@@ -100,6 +105,7 @@ export default function MemberPage() {
       overflow: 'hidden'
     }}>
       {/* Immersive Dynamic Animated Homepage Background */}
+      <GlobalSiteBackground />
 
       <Sidebar 
         activeTab={activeTab} 
@@ -114,11 +120,19 @@ export default function MemberPage() {
       {/* 2. MAIN SCROLLABLE CONTENT AREA */}
       <main className="main-content-layout" style={{
         flexGrow: 1,
-        height: '100vh',
+        height: 'calc(100vh - 40px)',
+        margin: '20px',
+        marginLeft: isSidebarOpen ? '340px' : '20px',
+        background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--border-primary)',
+        borderRadius: '30px',
         overflowY: 'auto',
         position: 'relative',
         zIndex: 10,
-        padding: '48px 56px'
+        padding: '48px 56px',
+        boxShadow: '0 20px 60px var(--shadow-color)',
+        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         
         {/* Responsive Dashboard Topbar Header */}
@@ -132,22 +146,44 @@ export default function MemberPage() {
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               style={{
-                background: 'var(--bg-sidebar)',
-                border: '2px solid var(--text-primary)',
+                background: theme === 'light' ? '#ffffff' : 'var(--bg-card)',
+                border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
                 borderRadius: '14px',
-                color: 'var(--text-primary)',
-                padding: '12px 20px',
+                color: theme === 'light' ? '#000000' : '#ffffff',
+                padding: '12px 24px',
                 cursor: 'pointer',
                 fontWeight: 900,
-                boxShadow: '0 4px 15px var(--shadow-color)',
+                boxShadow: '0 6px 20px var(--shadow-color)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
-                transition: 'all 0.3s ease',
+                gap: '12px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 zIndex: 50
               }}
+              onMouseOver={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.borderColor = 'var(--gold-bright)';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = theme === 'light' ? '#000000' : '#ffffff';
+              }}
             >
-              {isSidebarOpen ? '✕' : '☰'} <span style={{ fontSize: '13px', letterSpacing: '1px' }}>MENU PORTAL</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                {isSidebarOpen ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                )}
+              </span>
+              <span style={{ fontSize: '13px', letterSpacing: '1px', fontWeight: 800 }}>MENU PORTAL</span>
             </button>
             <div>
               <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '0 0 6px 0' }}>
