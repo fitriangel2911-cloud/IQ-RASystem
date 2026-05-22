@@ -47,30 +47,37 @@ export function useMemberDashboardData() {
         return;
       }
 
-      // OPTIMIZATION: Fetch all secondary dashboard dependencies in PARALLEL (No Waterfall)
-      const [accRes, txRes, conRes] = await Promise.all([
-        supabase
-          .from('accounts')
-          .select('*')
-          .eq('member_id', prof.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('transactions')
-          .select('*')
-          .eq('member_id', prof.id)
-          .order('created_at', { ascending: false }),
+      // Fetch accounts (member_id in savings_accounts links to user.id)
+      const { data: accData, error: accErr } = await supabase
+        .from('savings_accounts')
+        .select('*')
+        .eq('member_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (accErr) throw new Error('Gagal mengambil data rekening: ' + accErr.message);
+      
+      const accountIds = accData ? accData.map(a => a.id) : [];
+
+      // Fetch transactions and contracts in parallel
+      const [txRes, conRes] = await Promise.all([
+        accountIds.length > 0 
+          ? supabase
+              .from('savings_transactions')
+              .select('*')
+              .in('account_id', accountIds)
+              .order('created_at', { ascending: false })
+          : Promise.resolve({ data: [], error: null }),
         supabase
           .from('financing_contracts')
           .select('*')
-          .eq('member_id', user.id)
+          .eq('member_id', user.id) // financing_contracts uses user.id for member_id (or members.id? Let's use user.id first)
           .order('created_at', { ascending: false })
       ]);
 
-      if (accRes.error) throw new Error('Gagal mengambil data rekening: ' + accRes.error.message);
       if (txRes.error) throw new Error('Gagal mengambil data transaksi: ' + txRes.error.message);
       if (conRes.error) throw new Error('Gagal mengambil data pengajuan: ' + conRes.error.message);
 
-      setAccounts(accRes.data || []);
+      setAccounts(accData || []);
       setTransactions(txRes.data || []);
       setContracts(conRes.data || []);
 

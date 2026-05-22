@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMemberDashboardData } from '@/hooks/useMemberDashboardData';
 import Sidebar from '@/components/dashboard/Sidebar';
 import OverviewPanel from '@/components/dashboard/OverviewPanel';
@@ -19,6 +19,20 @@ export default function MemberPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { theme } = useTheme();
+
+  // Deteksi layar HP dan tutup sidebar secara otomatis
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize(); // Eksekusi saat pertama kali dimuat
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (loading) {
     return (
@@ -118,31 +132,15 @@ export default function MemberPage() {
       <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
 
       {/* 2. MAIN SCROLLABLE CONTENT AREA */}
-      <main className="main-content-layout" style={{
-        flexGrow: 1,
-        height: 'calc(100vh - 40px)',
-        margin: '20px',
-        marginLeft: isSidebarOpen ? '340px' : '20px',
+      <main className={`main-content-layout flex-grow h-[calc(100vh-20px)] md:h-[calc(100vh-40px)] m-2 md:m-5 p-5 md:p-12 rounded-[20px] md:rounded-[30px] overflow-y-auto relative z-10 shadow-2xl transition-all duration-500 ${isSidebarOpen ? 'ml-2 md:ml-[340px]' : 'ml-2 md:ml-[20px]'}`} style={{
         background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
         backdropFilter: 'blur(20px)',
         border: '1px solid var(--border-primary)',
-        borderRadius: '30px',
-        overflowY: 'auto',
-        position: 'relative',
-        zIndex: 10,
-        padding: '48px 56px',
-        boxShadow: '0 20px 60px var(--shadow-color)',
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         
         {/* Responsive Dashboard Topbar Header */}
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '44px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <header className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8 md:mb-11">
+          <div className="flex items-center gap-4 md:gap-6">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               style={{

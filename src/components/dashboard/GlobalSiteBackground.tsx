@@ -62,7 +62,8 @@ export default function GlobalSiteBackground() {
           filter: 'none', 
           mixBlendMode: 'normal',
           transition: 'all 0.5s ease',
-          zIndex: 2
+          zIndex: 2,
+          pointerEvents: 'none'
         }}
       />
       
@@ -73,7 +74,8 @@ export default function GlobalSiteBackground() {
           inset: 0,
           zIndex: 1,
           backgroundColor: baseBgColor,
-          transition: 'background-color 0.5s ease'
+          transition: 'background-color 0.5s ease',
+          pointerEvents: 'none'
         }}
       />
 

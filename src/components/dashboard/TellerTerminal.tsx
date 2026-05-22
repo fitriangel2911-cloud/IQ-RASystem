@@ -182,7 +182,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
         const { data: trxHistory } = await supabase
           .from('journal_entries')
           .select('*')
-          .eq('member_id', selectedMemberId)
+          .ilike('description', `%${selectedMemberId}%`)
           .order('created_at', { ascending: false });
         
         if (trxHistory) {

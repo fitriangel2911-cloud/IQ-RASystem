@@ -11,40 +11,31 @@ import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 
 function Navbar() {
   return (
-    <nav className="navbar" style={{ background: 'transparent', position: 'relative', zIndex: 100 }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 24px', display: 'flex', alignItems: 'center' }}>
-        {/* Logo area aligned left */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <BrandLogo size={52} fontSize="26px" />
+    <nav className="navbar relative z-[100] bg-transparent">
+      <div className="max-w-[1200px] mx-auto px-6 py-4 md:py-6 flex items-center justify-between">
+        {/* Logo area */}
+        <div className="flex-shrink-0">
+          <Link href="/" className="no-underline">
+            <BrandLogo size={42} fontSize="22px" />
           </Link>
         </div>
 
-        {/* Nav menu centered */}
-        <div className="nav-menu-section" style={{ display: 'flex', gap: 40, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Nav menu hidden on mobile */}
+        <div className="hidden md:flex gap-10 items-center justify-center">
           {['PRODUK', 'PROFIL', 'LAPORAN'].map(item => (
             <a 
               key={item} 
               href={`#${item.toLowerCase().replace(' ', '-')}`} 
-              style={{ 
-                textDecoration: 'none', 
-                color: '#043121', // Dark Emerald Green for high readability
-                fontWeight: 900, 
-                fontSize: 18, // Enlarged menu text
-                letterSpacing: '1.2px',
-                transition: 'all 0.25s ease'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.color = '#cca334'}
-              onMouseOut={(e) => e.currentTarget.style.color = '#043121'}
+              className="text-[#043121] hover:text-[#cca334] font-black text-lg tracking-wide transition-all duration-300"
             >
               {item}
             </a>
           ))}
         </div>
 
-        {/* Action button aligned far right */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-          <Link href="/login" className="btn-primary-gold" style={{ fontSize: 20, padding: '15px 44px', fontWeight: 900, borderRadius: 16 }}>Masuk</Link>
+        {/* Action button */}
+        <div className="flex-shrink-0">
+          <Link href="/login" className="btn-primary-gold px-6 md:px-10 py-3 md:py-4 text-base md:text-xl font-black rounded-xl md:rounded-2xl">Masuk</Link>
         </div>
       </div>
     </nav>
@@ -69,20 +60,20 @@ function HeroSection() {
   const [showContact, setShowContact] = useState(false);
 
   return (
-    <section className="page-content-section" style={{ padding: '16px 24px 100px' }}>
+    <section className="page-content-section py-8 md:py-16 px-6">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div className="hero-glass-container" style={{ padding: '64px 40px', textAlign: 'center', color: 'white' }}>
+        <div className="hero-glass-container px-6 py-10 md:py-16 md:px-10 text-center text-white">
           
-          <h1 className="reveal" style={{ fontSize: 'clamp(2.8rem, 6vw, 5rem)', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-1.5px', marginBottom: 32, color: '#ffffff' }}>
+          <h1 className="reveal" style={{ fontSize: 'clamp(2rem, 8vw, 5rem)', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-1px', marginBottom: 24, color: '#ffffff' }}>
             Koperasi Syariah Lebih Cerdas<br />
             <span className="gold-text-gradient" style={{ fontSize: '0.92em' }}>dengan iQ-RA System</span>
           </h1>
 
-          <p className="reveal" style={{ fontSize: 22, lineHeight: 1.5, color: 'rgba(255,255,255,0.7)', maxWidth: 880, margin: '0 auto 56px', fontWeight: 500, letterSpacing: '0.2px' }}>
+          <p className="reveal" style={{ fontSize: 'clamp(1rem, 4vw, 1.3rem)', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', maxWidth: 880, margin: '0 auto 40px', fontWeight: 500 }}>
             Smart Decision Support System yang mengintegrasikan akuntansi modern dengan kepatuhan syariah otomatis melalui teknologi <strong>Retrieval-Augmented Generation (RAG)</strong>.
           </p>
 
-          <div className="reveal" style={{ display: 'flex', gap: 24, justifyContent: 'center' }}>
+          <div className="reveal" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 
               onClick={() => setShowContact(true)} 
               className="btn-primary-gold" 
@@ -175,10 +166,10 @@ function HeroSection() {
 
 function ProfilSection() {
   return (
-    <section id="profil" className="page-content-section" style={{ padding: '80px 24px', background: 'transparent' }}>
-      <div className="profil-grid-container" style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <section id="profil" className="page-content-section py-16 md:py-20 px-6 bg-transparent">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center" style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div className="reveal">
-          <h2 style={{ fontSize: '3rem', fontWeight: 900, color: '#cca334', marginBottom: 28, lineHeight: 1.1, letterSpacing: '-1.5px' }}>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, color: '#cca334', marginBottom: 20, lineHeight: 1.1, letterSpacing: '-1px' }}>
             Membangun Ekonomi Umat <br />
             <span className="gold-text-gradient">Berbasis Teknologi</span>
           </h2>
@@ -245,13 +236,13 @@ function ProdukSection() {
   ];
 
   return (
-    <section id="produk" className="page-content-section" style={{ padding: '100px 24px', background: 'transparent' }}>
+    <section id="produk" className="page-content-section py-16 md:py-24 px-6 bg-transparent">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 60 }} className="reveal">
+        <div style={{ textAlign: 'center', marginBottom: 48 }} className="reveal">
           <SectionBadge text="PILIHAN PRODUK" />
-          <h2 className="gold-text-gradient" style={{ fontSize: 42, fontWeight: 900 }}>6 Pilihan Akad Syariah Utama</h2>
+          <h2 className="gold-text-gradient" style={{ fontSize: 'clamp(2rem, 6vw, 2.6rem)', fontWeight: 900 }}>6 Pilihan Akad Syariah Utama</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {products.map((p, i) => (
             <div 
               key={p.name} 
@@ -357,7 +348,7 @@ function LaporanSection() {
   const reports = data[period];
 
   return (
-    <section id="laporan" className="page-content-section" style={{ padding: '100px 24px', background: 'transparent' }}>
+    <section id="laporan" className="page-content-section py-16 md:py-24 px-6 bg-transparent">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         
         {/* Heading Area */}
@@ -467,7 +458,7 @@ function LaporanSection() {
 
 function AiSection() {
   return (
-    <section id="ai-syariah" className="page-content-section" style={{ padding: '100px 24px', textAlign: 'center', background: 'transparent' }}>
+    <section id="ai-syariah" className="page-content-section py-16 md:py-24 px-6 text-center bg-transparent">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div className="reveal" style={{ marginBottom: 60 }}>
           <SectionBadge text="AI TECHNOLOGY" />
@@ -491,11 +482,11 @@ function AiSection() {
               <div 
                 style={{ 
                   flex: '1', 
-                  minWidth: 220, 
+                  minWidth: '220px', 
                   background: 'rgba(255, 255, 255, 0.92)', 
                   backdropFilter: 'blur(12px)',
                   WebkitBackdropFilter: 'blur(12px)',
-                  padding: '40px 28px', 
+                  padding: '30px 20px', 
                   borderRadius: 28, 
                   boxShadow: '0 20px 45px rgba(0,0,0,0.15)', 
                   border: '2px solid rgba(204, 163, 52, 0.35)',
@@ -507,7 +498,7 @@ function AiSection() {
                 <div style={{ color: '#a67e26', fontWeight: 900, fontSize: 13, marginBottom: 10, letterSpacing: '1px', textTransform: 'uppercase' }}>TAHAP {s.n}</div>
                 <h4 style={{ fontSize: 19, fontWeight: 900, color: '#043121', lineHeight: 1.3 }}>{s.t}</h4>
               </div>
-              {i < 3 && <div className="ai-flow-arrow" style={{ alignSelf: 'center', fontSize: 24, color: '#cca334', fontWeight: 900 }}>➔</div>}
+              {i < 3 && <div className="hidden lg:block ai-flow-arrow" style={{ alignSelf: 'center', fontSize: 24, color: '#cca334', fontWeight: 900 }}>➔</div>}
             </React.Fragment>
           ))}
         </div>
@@ -518,7 +509,7 @@ function AiSection() {
 
 function Footer() {
   return (
-    <footer className="page-content-section" style={{ background: '#042f24', color: 'white', padding: '60px 24px', marginTop: 80 }}>
+    <footer className="page-content-section py-12 md:py-16 px-6 mt-12 md:mt-20 bg-[#042f24] text-white">
       <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ marginBottom: 20 }}>
           <BrandLogo size={56} fontSize="28px" />

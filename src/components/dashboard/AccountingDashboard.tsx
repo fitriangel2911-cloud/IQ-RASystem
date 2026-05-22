@@ -13,10 +13,15 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   const [journals, setJournals] = useState<any[]>([]);
   const [loadingJournals, setLoadingJournals] = useState(false);
   const [stats, setStats] = useState({
-    totalAssets: 2450000000,
-    totalLiabilities: 1620000000,
-    totalEquity: 830000000,
-    totalFinancing: 1400000000,
+    totalAssets: 0,
+    totalLiabilities: 0,
+    totalEquity: 0,
+    totalFinancing: 0,
+    totalIncome: 0,
+    totalProfitShare: 0,
+    totalExpense: 0,
+    netProfit: 0,
+    accBalances: {} as Record<string, number>
   });
 
   // Alert system
@@ -24,31 +29,40 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
   // Manual Journal Form State (Multi-line Double-Entry)
   const [jDate, setJDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    if (journals.length > 0) {
+      calculateStatsFromJournals(journals, reportYear);
+    }
+  }, [reportYear]);
   const [jRef, setJRef] = useState('');
   const [jDesc, setJDesc] = useState('');
   const [jLines, setJLines] = useState([
-    { accountCode: '11101', type: 'debit', amount: 0 },
-    { accountCode: '21101', type: 'credit', amount: 0 }
+    { accountCode: '110102', type: 'debit', amount: 0 },
+    { accountCode: '230001', type: 'credit', amount: 0 }
   ]);
 
-  // Setup COA (Chart of Accounts) Helper
+  // Setup COA (Chart of Accounts) Helper - Berdasarkan Data Spreadsheet
   const coaList = [
-    { code: '11101', name: 'Kas Utama Teller', category: 'Aset' },
-    { code: '11201', name: 'Giro pada Bank Syariah', category: 'Aset' },
-    { code: '12101', name: 'Piutang Pembiayaan Murabahah', category: 'Aset' },
-    { code: '12201', name: 'Investasi Mudharabah', category: 'Aset' },
-    { code: '12999', name: 'Cadangan Kerugian (CKPN) Murabahah', category: 'Kontra-Aset' },
-    { code: '21101', name: 'Simpanan Wadiah Yad Dhamanah', category: 'Kewajiban' },
-    { code: '21201', name: 'Simpanan Mudharabah Berjangka', category: 'Kewajiban' },
-    { code: '22001', name: 'Dana Kebajikan (ZIS) Terikat', category: 'Kewajiban' },
-    { code: '31101', name: 'Modal Pokok Anggota', category: 'Ekuitas' },
-    { code: '31201', name: 'Modal Wajib Anggota', category: 'Ekuitas' },
-    { code: '32101', name: 'Sisa Hasil Usaha (SHU) Tahun Berjalan', category: 'Ekuitas' },
-    { code: '41101', name: 'Pendapatan Margin Murabahah', category: 'Pendapatan' },
-    { code: '41201', name: 'Pendapatan Bagi Hasil Mudharabah', category: 'Pendapatan' },
-    { code: '51101', name: 'Beban Bonus Wadiah Anggota', category: 'Beban' },
-    { code: '51201', name: 'Beban Pembentukan CKPN', category: 'Beban' },
-    { code: '52101', name: 'Beban Gaji & Personalia Karyawan', category: 'Beban' }
+    { code: '110101', name: 'Kas Brankas', category: 'Aset' },
+    { code: '110102', name: 'Kas Teller', category: 'Aset' },
+    { code: '110201', name: 'Giro Bank A', category: 'Aset' },
+    { code: '140001', name: 'Piutang Murabahah Anggota', category: 'Aset' },
+    { code: '170001', name: 'Pembiayaan Mudharabah Anggota', category: 'Aset' },
+    { code: '190002', name: 'CKPN Piutang Murabahah (-)', category: 'Kontra-Aset' },
+    { code: '230001', name: 'Simpanan Wadiah Anggota', category: 'Liabilitas' },
+    { code: '310001', name: 'Simpanan Mudharabah Anggota', category: 'Dana Syirkah' },
+    { code: '400001', name: 'Simpanan Pokok', category: 'Ekuitas' },
+    { code: '400002', name: 'Simpanan Wajib', category: 'Ekuitas' },
+    { code: '400009', name: 'SHU Tahun Berjalan', category: 'Ekuitas' },
+    { code: '510001', name: 'Pendapatan Murabahah - Margin', category: 'Pendapatan' },
+    { code: '510004', name: 'Pendapatan Mudharabah', category: 'Pendapatan' },
+    { code: '520001', name: 'Pendapatan Administrasi Pembiayaan', category: 'Pendapatan' },
+    { code: '600001', name: 'Bagi Hasil Simpanan Mudharabah', category: 'Bagi Hasil' },
+    { code: '710002', name: 'Beban CKPN Murabahah', category: 'Beban' },
+    { code: '720001', name: 'Gaji/Honor', category: 'Beban' },
+    { code: '730001', name: 'Beban Listrik dan Air', category: 'Beban' }
   ];
 
   // Fetch Journals from Supabase real-time
@@ -62,37 +76,88 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
     if (!error && data) {
       setJournals(data);
-      calculateStatsFromJournals(data);
+      calculateStatsFromJournals(data, reportYear);
     }
     setLoadingJournals(false);
   };
 
-  // Dynamic Statistics Generator: Aggregates real db values over baseline defaults
-  const calculateStatsFromJournals = (journalData: any[]) => {
-    let extraAssets = 0;
-    let extraLiab = 0;
-    let extraEq = 0;
+  // Dynamic Statistics Generator: Mengkalkulasi sesuai mapping COA 1 s.d 7 secara mutlak real-time
+  const calculateStatsFromJournals = (journalData: any[], selectedYear: number) => {
+    let assets = 0;
+    let liabilities = 0;
+    let equity = 0;
+    let financing = 0;
+    let income = 0;
+    let profitShare = 0;
+    let expense = 0;
+    let pastNetProfit = 0;
+    let balances: Record<string, number> = {};
     
     journalData.forEach(j => {
-      const code = j.account_code.charAt(0);
+      const dateStr = j.date || j.created_at;
+      const jYear = new Date(dateStr).getFullYear();
+      
+      // Abaikan jurnal masa depan dari laporan tahun ini
+      if (jYear > selectedYear) return;
+
+      const code = j.account_code || '';
       const debit = parseFloat(j.debit || '0');
       const credit = parseFloat(j.credit || '0');
+      const amount = debit - credit;
+
+      if (!balances[code]) balances[code] = 0;
+      balances[code] += amount;
       
-      if (code === '1') { // Aset
-        extraAssets += (debit - credit);
-      } else if (code === '2') { // Kewajiban
-        extraLiab += (credit - debit);
-      } else if (code === '3') { // Ekuitas
-        extraEq += (credit - debit);
+      if (code.startsWith('1')) {
+        assets += amount;
+        if (code.startsWith('14') || code.startsWith('15')) financing += amount;
+      } else if (code.startsWith('2') || code.startsWith('3')) { // Liabilitas & Dana Syirkah Temporer
+        liabilities -= amount;
+      } else if (code.startsWith('4')) { // Ekuitas
+        equity -= amount;
+      }
+      
+      // Pemisahan SHU Tahun Berjalan dan SHU Tahun Lalu
+      if (code.startsWith('5')) {
+        if (jYear === selectedYear) income -= amount;
+        else pastNetProfit -= amount;
+      } else if (code.startsWith('6')) {
+        if (jYear === selectedYear) profitShare += amount;
+        else pastNetProfit += amount;
+      } else if (code.startsWith('7')) {
+        if (jYear === selectedYear) expense += amount;
+        else pastNetProfit += amount;
       }
     });
 
+    const netProfit = income - profitShare - expense;
+
+    // Inject SHU Tahun Lalu ke saldo akun 400008 (SHU Tahun Lalu / Ditahan)
+    if (!balances['400008']) balances['400008'] = 0;
+    balances['400008'] -= pastNetProfit; // Normal saldo kredit (minus = kredit)
+
     setStats({
-      totalAssets: 2450000000 + extraAssets,
-      totalLiabilities: 1620000000 + extraLiab,
-      totalEquity: 830000000 + extraEq,
-      totalFinancing: 1400000000
+      totalAssets: assets,
+      totalLiabilities: liabilities,
+      totalEquity: equity + pastNetProfit + netProfit, // Real-time updated equity
+      totalFinancing: financing,
+      totalIncome: income,
+      totalProfitShare: profitShare,
+      totalExpense: expense,
+      netProfit: netProfit,
+      accBalances: balances
     });
+  };
+
+  const getBal = (prefix: string, isCreditNormal = false) => {
+    if (!stats.accBalances) return 0;
+    let sum = 0;
+    Object.keys(stats.accBalances).forEach(code => {
+      if (code.startsWith(prefix)) {
+        sum += stats.accBalances[code];
+      }
+    });
+    return isCreditNormal ? -sum : sum;
   };
 
   useEffect(() => {
@@ -149,41 +214,133 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       return;
     }
 
-    // 2. Submit entries to Supabase
-    const supabase = createClient();
-    
-    // Construct row records
-    const records = jLines.map(line => ({
-      date: jDate,
-      reference_no: jRef,
-      description: jDesc,
-      account_code: line.accountCode,
-      debit: line.type === 'debit' ? line.amount : 0,
-      credit: line.type === 'credit' ? line.amount : 0
-    }));
+    // 2. Submit entries via API to handle RLS and Server-Side Logic
+    try {
+      const payload = {
+        date: jDate,
+        reference_no: jRef,
+        description: jDesc,
+        entries: jLines.map(line => ({
+          account_code: line.accountCode,
+          debit: line.type === 'debit' ? line.amount : 0,
+          credit: line.type === 'credit' ? line.amount : 0
+        }))
+      };
 
-    const { error } = await supabase.from('journal_entries').insert(records);
+      const res = await fetch('/api/accounting/record-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    if (error) {
-      setMessage({ type: 'error', text: 'Gagal menyimpan ke basis data: ' + error.message });
-    } else {
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(responseData.error || 'Gagal menyimpan ke basis data');
+      }
+
       setMessage({ type: 'success', text: '🎉 POSTING JURNAL SUKSES! Transaksi ganda telah dicatat dalam Buku Besar secara real-time.' });
+      
       // Reset form state
       setJDesc('');
       setJRef('ADJ-' + Math.floor(100000 + Math.random() * 900000));
       setJLines([
-        { accountCode: '11101', type: 'debit', amount: 0 },
-        { accountCode: '21101', type: 'credit', amount: 0 }
+        { accountCode: '110102', type: 'debit', amount: 0 },
+        { accountCode: '230001', type: 'credit', amount: 0 }
       ]);
       await fetchJournals();
+
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Error: ' + err.message });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
   return (
     <div style={{ animation: 'fadeInUp 0.5s ease-out' }}>
+      <style>{`
+        @media print {
+          /* Menyembunyikan elemen UI nav/sidebar/header global */
+          aside, nav, header, .sidebar, .topbar { display: none !important; }
+          body, html { background: white !important; color: black !important; margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif !important; }
+          
+          /* FIX UNTUK HALAMAN TERPOTONG (CUT OFF) */
+          html, body, div, main, section, article {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+            min-height: auto !important;
+            position: relative !important;
+          }
+          
+          /* Menyembunyikan tombol print dan interaktif */
+          button, .hide-on-print { display: none !important; }
+          
+          /* Format kotak laporan */
+          .glass-dark {
+            background: white !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: black !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            backdrop-filter: none !important;
+          }
+          
+          /* Menghapus border radius & background transparan */
+          div { border-radius: 0 !important; }
+
+          /* Redefinisikan variabel warna ke hitam pekat untuk cetak murni */
+          :root {
+            --text-primary: #000000 !important;
+            --text-secondary: #000000 !important;
+            --border-primary: #000000 !important;
+          }
+
+          /* Teks menjadi hitam semua untuk laporan resmi */
+          h2, h3, h4, span, div, p { color: black !important; border-color: black !important; }
+          
+          /* Garis batas tebal untuk struktur laporan keuangan */
+          .border-bottom { border-bottom: 3px double black !important; }
+          .border-top { border-top: 2px solid black !important; }
+
+          /* Pemisah Halaman */
+          .print-page-break {
+            page-break-before: always !important;
+            padding-top: 30px !important;
+          }
+
+          /* Logo Print */
+          .print-logo {
+            background: none !important;
+            border: 2px solid black !important;
+            color: black !important;
+          }
+
+          /* Tanda tangan */
+          .signature-section { margin-top: 50px !important; }
+          .border-bottom { border-bottom: 2px solid black !important; }
+          .border-top { border-top: 2px solid black !important; }
+
+          /* Pemisah Halaman */
+          .print-page-break {
+            page-break-before: always !important;
+            padding-top: 30px !important;
+          }
+
+          /* Grid penyesuaian khusus Neraca (Aset Kiri, Kewajiban Kanan) */
+          .neraca-grid {
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 20px !important;
+          }
+          .neraca-col { width: 48% !important; }
+        }
+      `}</style>
+
       {message && (
         <div style={{ 
           padding: '20px', borderRadius: '16px', marginBottom: '30px',
@@ -318,7 +475,26 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: '#f3c653', fontSize: '12px', fontWeight: 800 }}>DESKRIPSI JURNAL / KETERANGAN</label>
-                  <input type="text" required placeholder="Contoh: Rekonsiliasi kas akhir hari teller..." value={jDesc} onChange={(e) => setJDesc(e.target.value)} style={inputStyle} />
+                  <input 
+                    type="text" 
+                    required 
+                    list="desc-options"
+                    placeholder="Pilih atau ketik deskripsi transaksi..." 
+                    value={jDesc} 
+                    onChange={(e) => setJDesc(e.target.value)} 
+                    style={inputStyle} 
+                  />
+                  <datalist id="desc-options">
+                    <option value="Rekonsiliasi Kas Akhir Hari (Teller)" />
+                    <option value="Penerimaan Setoran Simpanan Pokok & Wajib" />
+                    <option value="Pencairan Dana Pembiayaan Murabahah" />
+                    <option value="Penerimaan Angsuran Pembiayaan" />
+                    <option value="Pembayaran Biaya Operasional - Gaji Karyawan" />
+                    <option value="Pembayaran Biaya Operasional - Listrik & Air" />
+                    <option value="Pencadangan Kerugian Penurunan Nilai (CKPN)" />
+                    <option value="Distribusi Bagi Hasil Simpanan Mudharabah" />
+                    <option value="Koreksi Jurnal" />
+                  </datalist>
                 </div>
               </div>
 
@@ -351,10 +527,13 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: '#f3c653' }}>Rp</span>
                       <input 
-                        type="number" 
+                        type="text" 
                         required 
-                        value={line.amount || ''} 
-                        onChange={(e) => handleLineChange(idx, 'amount', parseFloat(e.target.value || '0'))}
+                        value={line.amount ? line.amount.toLocaleString('id-ID') : ''} 
+                        onChange={(e) => {
+                          const rawValue = e.target.value.replace(/\D/g, '');
+                          handleLineChange(idx, 'amount', parseInt(rawValue || '0', 10));
+                        }}
                         placeholder="0"
                         style={{ ...inputStyle, paddingLeft: '42px' }}
                       />
@@ -465,25 +644,41 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       {activeMenu === 'reports' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
+          {/* Header Filter Section (Hidden on Print) */}
+          <div className="glass-dark hide-on-print" style={{ padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h3 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span>📅</span> Pilih Tahun Pembukuan
+            </h3>
+            <select 
+              value={reportYear} 
+              onChange={(e) => setReportYear(parseInt(e.target.value))}
+              style={{ padding: '12px 20px', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', border: '2px solid #60a5fa', color: '#fff', fontSize: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+            >
+              {[new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2].map(year => (
+                <option key={year} value={year} style={{ background: '#022b1c', color: '#fff' }}>Tahun {year}</option>
+              ))}
+            </select>
+          </div>
+          
           <div className="glass-dark" style={{ padding: '40px', border: '2px solid #cca334', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
             
             {/* Report Header Print Layout */}
-            <div style={{ textAlign: 'center', borderBottom: '2px solid var(--border-primary)', paddingBottom: '20px', marginBottom: '30px' }}>
-              <h2 style={{ color: '#f3c653', margin: 0, fontSize: '24px', fontWeight: 900 }}>KOPERASI SIMPAN PINJAM SYARIAH iQ-RA</h2>
-              <h3 style={{ color: 'var(--text-primary)', margin: '6px 0 0 0', fontSize: '18px', fontWeight: 700 }}>LAPORAN POSISI KEUANGAN (NERACA)</h3>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Per Tanggal: {new Date().toLocaleDateString('id-ID')}</div>
-            </div>
+            <ReportHeader 
+              title="LAPORAN POSISI KEUANGAN (NERACA)" 
+              subtitle={`Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Per 31 Desember ${reportYear}`} 
+            />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+            <div className="neraca-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
               
               {/* Left Side: Assets */}
-              <div>
+              <div className="neraca-col">
                 <h4 style={{ color: '#f3c653', borderBottom: '2px solid #f3c653', paddingBottom: '8px', fontWeight: 800 }}>1. ASET (AKTIVA)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <ReportLine label="Kas Utama Teller" value={formatter.format(stats.totalAssets * 0.15)} />
-                  <ReportLine label="Giro pada Bank Syariah" value={formatter.format(stats.totalAssets * 0.25)} />
-                  <ReportLine label="Piutang Pembiayaan Murabahah" value={formatter.format(stats.totalAssets * 0.65)} />
-                  <ReportLine label="Cadangan Kerugian Penurunan Nilai (CKPN)" value={`(${formatter.format(stats.totalAssets * 0.05)})`} isRed />
+                  <ReportLine label="Kas & Setara Kas (11)" value={formatter.format(getBal('11'))} />
+                  <ReportLine label="Penempatan pada Bank (12)" value={formatter.format(getBal('12'))} />
+                  <ReportLine label="Piutang Murabahah (14)" value={formatter.format(getBal('14'))} />
+                  <ReportLine label="Pembiayaan Mudharabah (15)" value={formatter.format(getBal('15'))} />
+                  <ReportLine label="Aset Tetap & Inventaris (16)" value={formatter.format(getBal('16'))} />
                   
                   <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: '#34d399', fontSize: '16px' }}>
                     <span>TOTAL ASET</span>
@@ -493,12 +688,12 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               </div>
 
               {/* Right Side: Liabilities & Equity */}
-              <div>
+              <div className="neraca-col">
                 <h4 style={{ color: '#60a5fa', borderBottom: '2px solid #60a5fa', paddingBottom: '8px', fontWeight: 800 }}>2. KEWAJIBAN (LIABILITAS)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
-                  <ReportLine label="Simpanan Wadiah Yad Dhamanah" value={formatter.format(stats.totalLiabilities * 0.7)} />
-                  <ReportLine label="Simpanan Mudharabah Berjangka" value={formatter.format(stats.totalLiabilities * 0.25)} />
-                  <ReportLine label="Titipan Zakat, Infaq & Sedekah (ZIS)" value={formatter.format(stats.totalLiabilities * 0.05)} />
+                  <ReportLine label="Kewajiban Segera (21)" value={formatter.format(getBal('21', true))} />
+                  <ReportLine label="Simpanan Wadiah/Titipan (22)" value={formatter.format(getBal('22', true))} />
+                  <ReportLine label="Dana Syirkah Temporer (31+32)" value={formatter.format(getBal('3', true))} />
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px solid var(--border-primary)', paddingTop: '10px' }}>
                     <span>TOTAL KEWAJIBAN</span>
@@ -508,9 +703,9 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
                 <h4 style={{ color: '#34d399', borderBottom: '2px solid #34d399', paddingBottom: '8px', fontWeight: 800 }}>3. EKUITAS (MODAL)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(stats.totalEquity * 0.4)} />
-                  <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(stats.totalEquity * 0.4)} />
-                  <ReportLine label="Sisa Hasil Usaha (SHU) Berjalan" value={formatter.format(stats.totalEquity * 0.2)} />
+                  <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(getBal('400001', true))} />
+                  <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(getBal('400002', true))} />
+                  <ReportLine label="Sisa Hasil Usaha (SHU) Berjalan" value={formatter.format(stats.netProfit)} />
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px solid var(--border-primary)', paddingTop: '10px' }}>
                     <span>TOTAL EKUITAS</span>
@@ -525,17 +720,155 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               </div>
 
             </div>
+          </div>
 
-            <div style={{ marginTop: '40px', textAlign: 'center' }}>
+          {/* ======================================= */}
+          {/* INCOME STATEMENT (LABA RUGI KOMPREHENSIF) */}
+          {/* ======================================= */}
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #34d399', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+            <ReportHeader 
+              title="LAPORAN LABA RUGI KOMPREHENSIF" 
+              subtitle={`Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
+              
+              {/* PENDAPATAN OPERASIONAL */}
+              <div>
+                <h4 style={{ color: '#f3c653', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>PENDAPATAN OPERASIONAL (Akun 5)</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Total Pendapatan Margin & Bagi Hasil" value={formatter.format(stats.totalIncome)} />
+                </div>
+              </div>
+
+              {/* HAK PIHAK KETIGA / BAGI HASIL */}
+              <div>
+                <h4 style={{ color: '#fb923c', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>HAK PIHAK KETIGA ATAS BAGI HASIL (Akun 6)</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Distribusi Bagi Hasil Simpanan Mudharabah" value={formatter.format(stats.totalProfitShare)} isRed />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '15px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px', marginTop: '10px' }}>
+                  <span>PENDAPATAN BERSIH OPERASIONAL</span>
+                  <span style={{ color: '#34d399' }}>{formatter.format(stats.totalIncome - stats.totalProfitShare)}</span>
+                </div>
+              </div>
+
+              {/* BEBAN OPERASIONAL */}
+              <div>
+                <h4 style={{ color: '#fca5a5', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>BEBAN OPERASIONAL (Akun 7)</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Total Beban Kepegawaian, Administrasi & Umum" value={formatter.format(stats.totalExpense)} isRed />
+                </div>
+              </div>
+
+              {/* NET PROFIT */}
+              <div style={{ background: 'rgba(52, 211, 153, 0.1)', border: '2px solid #34d399', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#34d399' }}>SISA HASIL USAHA (SHU) BERSIH TAHUN BERJALAN</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Net Profit / Sisa Hasil Usaha otomatis ditransfer ke Ekuitas Neraca</div>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: stats.netProfit >= 0 ? '#34d399' : '#fca5a5' }}>
+                  {formatter.format(stats.netProfit)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ======================================= */}
+          {/* STATEMENT OF CHANGES IN EQUITY          */}
+          {/* ======================================= */}
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #60a5fa', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+            <ReportHeader 
+              title="LAPORAN PERUBAHAN EKUITAS" 
+              subtitle={`Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '800px', margin: '0 auto' }}>
+              <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(getBal('400001', true))} />
+              <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(getBal('400002', true))} />
+              <ReportLine label="Cadangan Umum & Khusus" value={formatter.format(getBal('400005', true) + getBal('400006', true))} />
+              <ReportLine label="SHU Tahun Lalu (Ditahan)" value={formatter.format(getBal('400008', true))} />
+              <ReportLine label="Laba Bersih (SHU Tahun Berjalan)" value={formatter.format(stats.netProfit)} />
+              
+              <div style={{ background: 'rgba(96, 165, 250, 0.1)', border: '2px solid #60a5fa', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#60a5fa' }}>TOTAL EKUITAS AKHIR TAHUN BERJALAN</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#60a5fa' }}>{formatter.format(stats.totalEquity)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ======================================= */}
+          {/* STATEMENT OF CASH FLOWS                 */}
+          {/* ======================================= */}
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #a78bfa', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+            <ReportHeader 
+              title="LAPORAN ARUS KAS (CASH FLOW)" 
+              subtitle={`Metode Tidak Langsung (Indirect Method) SAK EP | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
+              
+              {/* Aktivitas Operasi */}
+              <div>
+                <h4 style={{ color: '#f3c653', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>1. ARUS KAS DARI AKTIVITAS OPERASI</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Laba Bersih (SHU) Berjalan" value={formatter.format(stats.netProfit)} />
+                  <ReportLine label="Kenaikan Titipan & Dana Syirkah" value={formatter.format(stats.totalLiabilities)} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
+                    <span>Kas Bersih dari Aktivitas Operasi</span>
+                    <span style={{ color: '#34d399' }}>{formatter.format(stats.netProfit + stats.totalLiabilities)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Aktivitas Investasi */}
+              <div>
+                <h4 style={{ color: '#fca5a5', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. ARUS KAS DARI AKTIVITAS INVESTASI</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Penyaluran Pembiayaan Keluar (Penambahan Piutang)" value={`(${formatter.format(getBal('14') + getBal('15'))})`} isRed />
+                  <ReportLine label="Pembelian Aset Tetap" value={`(${formatter.format(getBal('16'))})`} isRed />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
+                    <span>Kas Bersih dari Aktivitas Investasi</span>
+                    <span style={{ color: '#fca5a5' }}>({formatter.format(getBal('14') + getBal('15') + getBal('16'))})</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Aktivitas Pendanaan */}
+              <div>
+                <h4 style={{ color: '#60a5fa', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. ARUS KAS DARI AKTIVITAS PENDANAAN</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
+                  <ReportLine label="Penerimaan Modal Pokok & Wajib" value={formatter.format(getBal('400001', true) + getBal('400002', true))} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
+                    <span>Kas Bersih dari Aktivitas Pendanaan</span>
+                    <span style={{ color: '#34d399' }}>{formatter.format(getBal('400001', true) + getBal('400002', true))}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* NET CASH BALANCE */}
+              <div style={{ background: 'rgba(167, 139, 250, 0.1)', border: '2px solid #a78bfa', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#a78bfa' }}>SALDO KAS & SETARA KAS AKHIR</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Operasi + Investasi + Pendanaan</div>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#a78bfa' }}>
+                  {formatter.format(getBal('11'))}
+                </div>
+              </div>
+
+            </div>
+            
+            <div style={{ marginTop: '50px', textAlign: 'center' }}>
               <button 
                 onClick={() => window.print()} 
-                style={{ padding: '14px 30px', background: '#022b1c', border: '2px solid #34d399', color: '#34d399', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}
+                style={{ padding: '16px 40px', background: 'linear-gradient(135deg, #022b1c 0%, #043121 100%)', border: '2px solid #f3c653', color: '#f3c653', borderRadius: '12px', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '1px' }}
               >
-                🖨️ CETAK LAPORAN RESMI
+                🖨️ CETAK SELURUH LAPORAN KEUANGAN (SAK EP)
               </button>
             </div>
-
           </div>
+
         </div>
       )}
 
@@ -663,9 +996,19 @@ function StatCard({ label, value, icon, color, subtitle }: any) {
 
 function ReportLine({ label, value, isRed = false }: any) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', padding: '6px 0', color: isRed ? '#fca5a5' : 'var(--text-primary)', fontWeight: 600 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', padding: '6px 0', color: isRed ? '#ef4444' : 'var(--text-primary)', fontWeight: 600 }}>
       <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
       <span style={{ fontWeight: 800 }}>{value}</span>
     </div>
   );
 }
+
+function ReportHeader({ title, subtitle }: any) {
+  return (
+    <div className="border-bottom" style={{ textAlign: 'center', borderBottom: '3px double var(--border-primary)', paddingBottom: '20px', marginBottom: '30px' }}>
+      <h3 style={{ color: 'var(--text-primary)', margin: '0', fontSize: '20px', fontWeight: 800 }}>{title}</h3>
+      <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '6px' }}>{subtitle}</div>
+    </div>
+  );
+}
+

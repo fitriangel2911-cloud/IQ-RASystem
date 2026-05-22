@@ -52,7 +52,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
       </div>
 
       {/* Metrics Cards Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '28px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7">
         {/* Total Balance Card */}
         <div style={cardStyle('var(--text-primary)')}>
           <div style={cardHeaderStyle}>💵 Total Saldo Keseluruhan</div>
@@ -79,7 +79,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
       </div>
 
       {/* Dual Columns: Blocker / Actions + Quick Transactions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '32px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.8fr] gap-6 md:gap-8">
         
         {/* Action Checklist Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

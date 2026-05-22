@@ -12,7 +12,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [resetMode, setResetMode] = useState(false);
@@ -53,16 +52,16 @@ export default function LoginPage() {
           
         if (dbProfile) {
           const role = dbProfile.role;
-          if (role === 'customer_service') router.push('/customer-service');
-          else if (role === 'teller') router.push('/teller');
-          else if (role === 'accounting') router.push('/accounting');
-          else if (role === 'manager') router.push('/manager');
-          else if (role === 'dps') router.push('/dps');
-          else if (role === 'member') router.push('/members');
-          else if (role === 'account_officer' || role === 'ao') router.push('/ao');
-          else router.push('/dashboard');
+          if (role === 'customer_service') window.location.href = '/customer-service';
+          else if (role === 'teller') window.location.href = '/teller';
+          else if (role === 'accounting') window.location.href = '/accounting';
+          else if (role === 'manager') window.location.href = '/manager';
+          else if (role === 'dps') window.location.href = '/dps';
+          else if (role === 'member') window.location.href = '/members';
+          else if (role === 'account_officer' || role === 'ao') window.location.href = '/ao';
+          else window.location.href = '/dashboard';
         } else {
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       }
     } catch (err: any) {
@@ -100,16 +99,15 @@ export default function LoginPage() {
   
   const getInputStyle = (fieldName: string) => ({
     width: '100%',
-    background: 'rgba(255, 255, 255, 0.08)', // Premium glass input background
-    border: `2px solid ${focusedField === fieldName ? '#cca334' : 'rgba(255, 255, 255, 0.25)'}`, // Gold focus border
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '2px solid rgba(255, 255, 255, 0.25)',
     borderRadius: '16px',
     padding: '18px 20px',
     paddingRight: fieldName === 'pass' ? '55px' : '20px',
-    color: '#ffffff', // Pure white typed text
-    fontSize: '18px', // Enlarged input text
+    color: '#ffffff',
+    fontSize: '18px',
     outline: 'none',
     transition: 'all 0.25s ease',
-    boxShadow: focusedField === fieldName ? '0 0 12px rgba(204, 163, 52, 0.25)' : 'none',
   });
 
   const labelStyle = {
@@ -126,25 +124,28 @@ export default function LoginPage() {
       <div style={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start', // Prevent center clipping on mobile
         justifyContent: 'center',
-        padding: '40px 20px',
+        padding: '32px 16px', // Enough padding for top margin
         position: 'relative',
-        zIndex: 10
+        zIndex: 50,
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch' // Smooth scroll on iOS
       }}>
-        
         <div 
           className="hero-glass-container"
           style={{
-            maxWidth: '500px', // Slightly wider for larger inputs
+            maxWidth: '500px',
             width: '100%',
-            padding: '60px 48px',
-            // Inherits the beautiful dark green glass background and gold border from the home page
-            animation: 'fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            padding: '40px 24px', // Smaller padding for mobile fit
+            margin: 'auto', // Centers vertically if taller than 100vh it pushes to top
+            animation: 'fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            position: 'relative',
+            zIndex: 60
           }}
         >
           
-          <div style={{ textAlign: 'center', marginBottom: '44px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '28px' }}>
               <BrandLogo size={72} fontSize="34px" /> {/* Enlarged logo */}
             </div>
@@ -203,9 +204,8 @@ export default function LoginPage() {
                 placeholder="nama@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
                 style={getInputStyle('email')}
+                className="focus:border-[#cca334] focus:shadow-[0_0_12px_rgba(204,163,52,0.25)]"
               />
             </div>
 
@@ -230,9 +230,8 @@ export default function LoginPage() {
                     placeholder="Masukkan kata sandi Anda"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setFocusedField('pass')}
-                    onBlur={() => setFocusedField(null)}
                     style={getInputStyle('pass')}
+                    className="focus:border-[#cca334] focus:shadow-[0_0_12px_rgba(204,163,52,0.25)]"
                   />
                   <button
                     type="button"
@@ -260,6 +259,7 @@ export default function LoginPage() {
 
             <button 
               type="submit" 
+              onClick={resetMode ? handleResetPassword : handleLogin}
               disabled={loading}
               className="btn-primary-gold" 
               style={{ 

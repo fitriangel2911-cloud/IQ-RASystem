@@ -238,6 +238,18 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchSession();
     fetchAccessRules();
+    
+    // Deteksi otomatis layar HP
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize(); // Saat pertama render
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [router]);
 
   const handleLogout = async () => {

@@ -1,0 +1,203 @@
+NO COA,NAMA COA
+100000,ASET
+110000,KAS DAN SETARA KAS
+110100,Kas
+110101,Kas Brankas
+110102,Kas Teller
+110102,Kas Kecil
+110200,Penempatan pada Bank
+110201,Giro Bank A
+110202,Tabungan Bank B
+110203,Deposito Bank C
+110300,Penempatan pada Koperasi lain
+110301,Simpanan Sukarela KSPPS A
+110302,Simpanan Berjangka KSPPS B
+120000,PIUTANG PENDAPATAN
+120001,Piutang Pendapatan Margin Murabahah
+120002,Piutang Pendapatan Ujroh Ijarah
+120003,Piutang Pendapatan Bagi Hasil Mudharabah
+120004,Piutang Pendapatan Bagi Hasil Musyarakah
+130000,PINJAMAN QARDH
+130001,Pinjaman Qardh Anggota
+130002,Pinjaman Qardh - Hawalah
+130003,Pinjaman Qardh - Rahn
+130004,Pinjaman Wakalah
+130005,Pinjaman Qardh Koperasi Lain
+140000,PIUTANG MURABAHAH
+140001,Piutang Murabahah Anggota
+140002,Piutang Murabahah Anggota - Amor (-)
+140003,MYDT Murabahah Anggota (-)
+140004,Piutang Murabahah Koperasi Lain
+140005,Piutang Murabahah Koperasi lain - Amor
+140006,MYDT Murabahah Koperasi Lain (-)
+150000,PIUTANG ISTISNA'
+150001,Piutang Istisna' Anggota
+150002,MYDT Istisna' Anggota (-)
+150003,Piutang Istisna' Koperasi Lain
+150004,MYDT Istisna' Koperasi Lain (-)
+160000,PIUTANG IJARAH MULTIJASA
+160001,Piutang Ijarah Multijasa Anggota
+160002,UYDT Ijarah Multijasa Anggota (-)
+160003,Piutang Ijarah Multijasa Koperasi Lain
+160004,UYDT Ijarah Multijasa Koperasi Lain (-)
+170000,PEMBIAYAAN MUDHARABAH
+170001,Pembiayaan Mudharabah Anggota
+170002,Pembiayaan Mudharabah Koperasi Lain
+180000,PEMBIAYAAN MUSYARAKAH
+180001,Pembiayaan Musyarakah Anggota
+180002,Pembiayaan Musyarakah Koperasi Lain
+190000,CADANGAN KERUGIAN PENURUNAN NILAI (CKPN)
+190001,CKPN Pinjaman Qardh (-)
+190002,CKPN Piutang Murabahah (-)
+190003,CKPN Piutang Istisna' (-)
+190004,CKPN Piutang Ijarah Multijasa (-)
+190005,CKPN Pembiayaan Mudharabah (-)
+190006,CKPN Pembiayaan Musyarakah (-)
+111000,ASET IJARAH
+111001,Aset Ijarah
+111002,Akumulasi Penyusutan Aset Ijarah
+112000,PENYERTAAN MODAL
+112001,Penyertaan Modal KSPPS A
+112002,Penyertaan Modal KSPPS B
+112003,Penyertaan Modal KSPPS C
+113000,ASET TETAP
+113010,Harga Perolehan
+113011,Tanah
+113012,Bangunan
+113013,Kendaraan
+113014,Peralatan Kantor
+113020,Akumulasi Penyusutan Aset Tetap
+113021,Akumulasi Penyusutan Bangunan
+113022,Akumulasi Penyusutan Kendaraan
+113023,Akumulasi Penyusutan Peralatan Kantor
+114000,ASET TIDAK BERWUJUD
+114001,Harga Perolehan Aset Tidak Berwujud
+114002,Akumulasi Amortisasi Aset Tidak Berwujud
+115000,ASET LAIN - LAIN
+115001,Biaya Dibayar Dimuka
+115002,Sewa Dibayar Dimuka
+115003,Pajak Dibayar Dimuka
+115004,Persediaan ATK
+115005,Persediaan Barang Cetak
+115006,Persediaan Murabahah
+115007,Aset Lainnya
+200000,LIABILITAS
+210000,UTANG BAGI HASIL SIMPANAN
+210001,Utang Bagi Hasil Simpanan Mudharabah
+210002,Utang Bagi Hasil Simpanan Berjangka Mudharabah
+210003,Utang Bagi Hasil Modal Penyertaan
+220000,DANA ZAKAT
+220001,Zakat Internal
+220002,Zakat Eksternal
+230000,DANA KEBAJIKAN
+220002,Dana Kebajikan - Infak dan Sedekah
+220003,Dana Kebajikan - Non Halal
+220004,Dana Kebajikan - Hasil Pengembangan Dana Wakaf
+230000,SIMPANAN WADIAH
+230001,Simpanan Wadiah Anggota
+230002,Simpanan Wadiah Koperasi Lain
+240000,PINJAMAN/PEMBIAYAAN YANG DITERIMA
+240001,Utang Pembiayaan Murabahah
+240002,Beban Murabahah Yang Ditangguhkan (-)
+250000,LIABILITAS IMBALAN PASKA KERJA
+250001,Liabilitas Imbalan Paska Kerja
+260000,LIABILITAS LAIN - LAIN
+260001,Titipan Dana Asuransi
+260002,Titipan Dana Pajak
+260003,Titipan Dana Notaris
+260004,Titipan Dana SHU
+260005,Titipan Dana BPJS
+260006,Liabilitas Lainnya
+300000,DANA SYIRKAH TEMPORER
+310000,SIMPANAN MUDHARABAH
+310001,Simpanan Mudharabah Anggota
+310002,Simpanan Mudharabah Koperasi Lain
+320000,SIMPANAN BERJANGKA MUDHARABAH
+320001,Simpanan Berjangka Mudharabah Anggota
+320002,Simpanan Berjangka Mudharabah Koperasi lain
+330000,PEMBIAYAAN YANG DITERIMA
+330001,Pembiayaan Yang Diterima - LPDB
+330002,Pembiayaan Yang Diterima - Bank A
+400000,EKUITAS
+400001,Simpanan Pokok
+400002,Simpanan Wajib
+400003,Modal Penyertaan
+400004,Penyetaraan Modal
+400005,Cadangan Umum
+400006,Cadangan Khusus
+400007,Dana Hibah
+400008,SHU Tahun Lalu
+400009,SHU Tahun Berjalan
+400010,SHU Bulan Berjalan
+500000,PENDAPATAN
+510000,PENDAPATAN MUDHARIB
+510001,Pendapatan Murabahah - Margin
+510002,Pendapatan Murabahah - Admin
+510003,Pendapatan Istisna'
+510004,Pendapatan Mudharabah
+510005,Pendapatan Musyarakah
+510006,Pendapatan Ujroh Ijarah Multijasa
+510007,Pendapatan Ujroh Ijarah
+510008,Beban Penyusutan Aset Ijarah
+520000,PENDAPATAN LAIN
+520001,Pendapatan Administrasi Pembiayaan
+520002,Pendapatan Administrasi Simpanan
+520003,Pendapatan lainnya
+530000,PENDAPATAN INVESTASI
+530001,Pendapatan Bagi Hasil Bank
+530002,Pendapatan Bagi Hasil Koperasi Lain
+530003,Pendapatan Bagi Hasil Penyertaan Modal
+540000,PENDAPATAN NON-OPERASIONAL
+540001,Pendapatan Penjualan Aset Tetap
+540002,Pendapatan Jasa Transfer
+540003,Fee PPOB
+540004,Pendapatan Non Operasional Lainnya
+600000,BAGI HASIL PEMILIK DANA
+600001,Bagi Hasil Simpanan Mudharabah
+600002,Bagi Hasil Simpanan Berjangka Mudharabah
+600003,Bagi Hasil Pembiayaan Yang Diterima
+700000,BEBAN
+710000,BEBAN CKPN PEMBIAYAAN
+710001,Beban CKPN Qardh
+710002,Beban CKPN Murabahah
+710003,Beban CKPN Istisna'
+710004,Beban CKPN Ijarah
+710005,Beban CKPN Musyarakah
+710006,Beban CKPN Mudharabah
+720000,BEBAN KEPEGAWAIAN
+720001,Gaji/Honor
+720002,Tunjangan
+720003,Lembur
+730000,BEBAN ADMINISTRASI DAN UMUM
+730001,Beban Listrik dan Air
+730002,Beban Barang Cetak
+730003,Beban Sewa
+730004,Beban Rumah Tangga
+730005,Beban ATK
+730006,Beban Konsumsi
+730007,Beban Transportasi
+730008,Beban Pengiriman Dokumen
+730009,Beban Administrasi Bank
+730010,Beban Audit Eksternal
+730011,Beban Perizinan
+730012,Beban Telepon
+730013,Beban Promosi
+730014,Beban Umum
+730015,Beban Pajak
+730016,Beban Bonus Simpanan
+730017,Beban Lainnya
+740000,BEBAN PENYUSUTAN DAN AMORTISASI
+740001,Beban Penyusutan Bangunan
+740002,Beban Penyusutan Kendaraan
+740003,Beban Penyusutan Peralatan Kantor
+740004,Beban Amortisasi Aset Tidak Berwujud
+750000,BEBAN PERKOPERASIAN
+750001,Beban Pengurus
+750002,Beban Pengawas
+750003,Beban Pembinaan Anggota
+750004,Beban RAT
+760000,BEBAN NON-OPERASIONAL
+760001,Beban Infak dan Sedekah
+760002,Beban Non-Operasional Lainnya
+770000,ZAKAT KOPERASI
+780000,PAJAK PENGHASILAN

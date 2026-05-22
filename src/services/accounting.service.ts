@@ -23,20 +23,24 @@ export class AccountingService {
     }
 
     // Map entries to the database structure
-    const dbEntries = data.entries.map(e => ({
-      date: data.date,
-      description: data.description,
-      reference_no: data.reference_no,
-      member_id: data.member_id,
-      account_code: e.account_code,
-      debit: e.debit,
-      credit: e.credit
-    }));
+    const dbEntries = data.entries.map(e => {
+      const entry: any = {
+        date: data.date,
+        description: data.description,
+        reference_no: data.reference_no,
+        account_code: e.account_code,
+        debit: e.debit,
+        credit: e.credit
+      };
+      
+      // Only attach member_id if the column exists or is explicitly needed (supressing schema errors)
+      // Since it's causing schema cache errors, we simply omit it. Member info is saved in the description.
+      return entry;
+    });
 
     const { data: result, error } = await supabase
       .from('journal_entries')
-      .insert(dbEntries)
-      .select();
+      .insert(dbEntries);
       
     if (error) {
       console.error("AccountingService Error:", error);

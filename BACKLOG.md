@@ -55,10 +55,10 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 - [ ] Generate Dokumen Akad Otomatis (PDF).
 
 ### 📊 Pelaporan Standar SAK EP
-- [ ] Laporan Posisi Keuangan (Neraca).
-- [ ] Laporan Laba Rugi Komprehensif.
-- [ ] Laporan Arus Kas (Metode Langsung/Tidak Langsung).
-- [ ] Laporan Perubahan Ekuitas.
+- [x] Laporan Posisi Keuangan (Neraca).
+- [x] Laporan Laba Rugi Komprehensif.
+- [x] Laporan Arus Kas (Metode Langsung/Tidak Langsung).
+- [x] Laporan Perubahan Ekuitas.
 
 ### 🛡️ Keamanan & Optimasi
 - [ ] Audit Row-Level Security (RLS) di semua tabel Supabase.
@@ -69,6 +69,11 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-22 (Sesi Malam - Finalisasi Pelaporan SAK EP & Integrasi COA)**:
+    - **Pembaruan Basis COA**: Memigrasi referensi Chart of Accounts (COA) dari *hardcoded* statis ke pemetaan komprehensif berdasarkan spreadsheet Koperasi standar (Kode 1-7).
+    - **Otomatisasi Laporan Keuangan**: Menyelesaikan seluruh modul laporan SAK EP (Neraca, Laba Rugi Komprehensif, Perubahan Ekuitas, dan Arus Kas Metode Tidak Langsung) yang berjalan dinamis secara real-time berdasarkan entri jurnal di `AccountingDashboard.tsx`.
+    - **Fitur Cetak Enterprise**: Mengimplementasikan logika *print-ready* CSS (Hitam-Putih murni, resolusi masalah *cut-off* dengan *overflow override*, dan garis tata letak akuntansi klasik) untuk mengekspor Laporan Keuangan SAK EP setara *software enterprise*.
+    
 - **2026-05-19 (Sesi Malam - Pendaftaran CIF Terintegrasi & Otomasi Simpanan Koperasi)**:
     - **Otomasi Onboarding Terpadu**: Mengintegrasikan pembuatan akun login portal anggota secara otomatis saat Customer Service atau Super Admin melakukan registrasi fisik CIF. Sandi sementara diatur menggunakan NIK.
     - **Parameter Keuangan & Biaya Tambahan Baru**: Menetapkan default Simpanan Pokok menjadi Rp 300.000 dan Simpanan Wajib menjadi Rp 50.000, serta otomatisasi pengenaan Biaya Administrasi Rp 15.000 (COA `401.02`) dan Infaq & Sedekah Rp 10.000 (COA `302.01`) di setiap pendaftaran CIF maupun pembayaran angsuran.
