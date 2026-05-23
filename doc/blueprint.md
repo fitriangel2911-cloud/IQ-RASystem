@@ -52,18 +52,23 @@ Untuk menjamin kepercayaan pengguna pada platform finansial, IQ-RA System mengad
 ●      Optimasi Aksesibilitas: Penyesuaian kontras warna tingkat tinggi pada seluruh halaman (Home, Login, Register) untuk memastikan teks tetap terbaca tajam bebas blur.
 4.1. Manajemen Keanggotaan dan Data Utama (Cooperative Member Onboarding / CIF Flow)
 Modul ini memfasilitasi onboarding terintegrasi anggota baru secara real-time langsung melalui kontrol panel Admin/Customer Service:
-1. Pendaftaran CIF & Akun Portal: Pengelola menginput data demografis lengkap (Nama, NIK, KK, Alamat, Pekerjaan, HP, Ibu Kandung) dan Alamat Email. Sistem secara otomatis membuat akun login (Auth & Users Table) dengan peran 'member' dan kata sandi sementara berbasis NIK.
+1. Pendaftaran CIF & Akun Portal (KYC & APU-PPT Lengkap): Pengelola menginput data demografis yang komprehensif sesuai kepatuhan regulasi APU-PPT dan prinsip kehati-hatian koperasi syariah, terbagi dalam 4 bagian utama:
+   - **A. Data Pribadi (Sesuai KTP)**: Nama Lengkap (tanpa singkatan), NIK, Tempat & Tanggal Lahir, Jenis Kelamin, Status Pernikahan, Nama Ibu Kandung, Agama, & Kewarganegaraan (WNI/WNA).
+   - **B. Data Kontak & Alamat**: Nomor HP (koneksi WhatsApp), Alamat Email, Alamat KTP, dan Alamat Domisili saat ini (yang dilengkapi dengan **Toggle efisiensi "Sama dengan KTP"** untuk mempercepat input data).
+   - **C. Data Pekerjaan & Keuangan (Profil Risiko APU-PPT)**: Jenis Pekerjaan / Profesi, Nama Perusahaan / Bidang Usaha, Estimasi Pendapatan Bulanan, serta **Sumber Dana** wajib.
+   - **D. Data Ahli Waris**: Nama Ahli Waris, Hubungan Keluarga, & Kontak WhatsApp Ahli Waris untuk perlindungan hukum saldo simpanan.
+   Sistem secara otomatis membuat akun login (Auth & Users Table) dengan peran 'member' dan kata sandi sementara berbasis NIK.
 2. Pembuatan Rekening Simpanan Koperasi Otomatis: Segera setelah CIF terbuat, sistem secara otomatis menggenerasi tiga jenis rekening simpanan anggota dengan nomor rekening unik 10-digit:
    - Simpanan Pokok (jenis: 'pokok', awalan kode rekening: 11xxxx)
    - Simpanan Wajib (jenis: 'wajib', awalan kode rekening: 12xxxx)
    - Simpanan Sukarela / Wadiah (jenis: 'wadiah', awalan kode rekening: 21xxxx)
-3. Integrasi Setoran Awal & Penjurnalan SAK EP: Saat registrasi, setoran awal untuk Simpanan Pokok (default Rp 300.000) dan Simpanan Wajib (default Rp 50.000) langsung diinput. Selain itu, transaksi dikenakan Biaya Administrasi Rp 15.000 dan Infaq & Sedekah Rp 10.000 serta Kode Unik 3 Digit Terakhir yang dimiliki anggota. Sistem secara otomatis melakukan posting akuntansi double-entry real-time yang mematuhi standar SAK EP dan PSAK Syariah:
+3. Integrasi Setoran Awal & Penjurnalan SAK EP: Saat registrasi, setoran awal untuk Simpanan Pokok (default Rp 300.000) dan Simpanan Wajib (default Rp 50.000) langsung diinput. Selain itu, transaksi dikenakan Biaya Administrasi Rp 15.000 dan Infaq & Sedekah Rp 10.000 serta Kode Unik 3 Digit Terakhir yang dimiliki anggota. Nilai-nilai nominal parameter simpanan dasar, biaya admin, dan infaq ini tidak lagi bersifat hardcoded, melainkan ditarik secara dinamis dari tabel konfigurasi sistem di database. Sistem secara otomatis melakukan posting akuntansi double-entry real-time yang mematuhi standar SAK EP dan PSAK Syariah:
    - Debit: Kas di Tangan (COA 101.01) senilai Total Setoran + Biaya + Kode Unik (misal Rp 375.xxx)
-   - Kredit: Simpanan Pokok Anggota (COA 301.01) senilai Setoran Pokok (Rp 300.000)
-   - Kredit: Simpanan Wajib Anggota (COA 301.02) senilai Setoran Wajib (Rp 50.000)
-   - Kredit: Pendapatan Administrasi (COA 401.02) senilai Biaya ADM (Rp 15.000)
-   - Kredit: Dana Kebajikan / Infaq & Sedekah (COA 302.01) senilai Infaq + Kode Unik (Rp 10.xxx)
-4. Pencatatan Mutasi Simpanan: Sistem mencatat transaksi setoran awal ini secara atomik ke dalam tabel `savings_transactions` sebagai tipe 'deposit' yang terhubung dengan akun simpanan masing-masing, menciptakan audit trail yang kokoh.
+   - Kredit: Simpanan Pokok Anggota (COA 301.01) senilai Setoran Pokok (ditarik dari database, default Rp 300.000)
+   - Kredit: Simpanan Wajib Anggota (COA 301.02) senilai Setoran Wajib (ditarik dari database, default Rp 50.000)
+   - Kredit: Pendapatan Administrasi (COA 401.02) senilai Biaya ADM (ditarik dari database, default Rp 15.000)
+   - Kredit: Dana Kebajikan / Infaq & Sedekah (COA 302.01) senilai Infaq (ditarik dari database, default Rp 10.000) + Kode Unik (3 digit belakang no telp)
+4. Pencatatan Mutasi Simpanan & Audit Berkas: Sistem mencatat transaksi setoran awal ini secara atomik ke dalam tabel `savings_transactions` sebagai tipe 'deposit'. Selain itu, seluruh berkas data pribadi & keuangan yang dikumpulkan dapat ditinjau dan dievaluasi secara interaktif di **Dasbor Verifikasi Berkas KYC (Dossier Audit)** dan **Floating Profile Card** pada Database Anggota Aktif untuk memastikan validitas data sebelum pengajuan pembiayaan syariah.
 
 4.2. Siklus Penerimaan Kas (Revenue Cycle)
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
@@ -73,9 +78,17 @@ Mengatur penyaluran dana untuk pembiayaan anggota (Murabahah, Mudharabah, Musyar
 Layanan konsultasi dan alat bantu keputusan (decision support) berbasis AI yang mengekstraksi informasi dari korpus dokumen Fatwa DSN-MUI dan regulasi syariah guna merekomendasikan kesesuaian jenis akad pembiayaan secara sistematis sebelum disahkan.
 4.5. Laporan Keuangan Berbasis SAK EP dan PSAK
 Generasi otomatis laporan posisi keuangan, laporan laba rugi, laporan perubahan ekuitas, dan laporan arus kas yang memenuhi kriteria SAK EP, termasuk pemisahan akun sesuai ketentuan PSAK Syariah (401-407).
+
+4.6. Pusat Kontrol Super Admin (Dynamic Parameter Engine & Flat Sidebar)
+Modul administrasi IT terintegrasi untuk mengendalikan jalannya operasional koperasi syariah secara dinamis:
+1. Konfigurasi Parameter Terpusat: Super Admin dibekali dasbor kendali bertema Emerald Glassmorphic untuk memodifikasi nominal Simpanan Pokok, Simpanan Wajib, Biaya ADM, Infaq, Nisbah Mudharabah, minimal skor Syariah AI, dan endpoint API WhatsApp Gateway secara instan tanpa menyentuh kode program.
+2. API Keamanan Lapis Peran: Perubahan parameter diproses melalui endpoint aman `/api/admin/parameters` dengan validasi sesi dan pemblokiran ketat bagi aktor non-admin.
+3. Sidebar Flat Berorientasi Tugas: Navigasi Super Admin dirombak menjadi flat (langsung ke intinya) sehingga seluruh sub-modul operasional (seperti form pendaftaran CIF, kasir, jurnal, dan laporan keuangan) terpampang langsung secara horizontal di sidebar utama, mem-bypass menu kategori yang lambat dan meningkatkan kecepatan audit/pengawasan.
+
 5.     Perancangan Basis Data dan Keamanan Informasi
 Struktur Data Keuangan (Relasional)
 ●      users: Menyimpan kredensial terenkripsi dan otoritas peran pengguna dengan Row-Level Security (RLS).
+●      system_parameters: Penyimpanan terpusat parameter operasional koperasi syariah berbasis key-value dengan pengawasan keamanan RLS (hanya Super Admin yang dapat menulis/mengedit).
 ●      journal_entries: Pencatatan riwayat transaksi ganda (double-entry) yang merupakan fondasi fundamental pelaporan keuangan SAK EP.
 ●      financing_contracts: Dokumentasi rinci parameter akad, plafon pinjaman, rasio margin/bagi hasil, dan jadwal amortisasi angsuran.
 Struktur Data Pengetahuan (Vektor)

@@ -26,3 +26,11 @@ Tantangan utama di lapangan adalah tingginya subjektivitas petugas (Account Offi
 
 - **Row-Level Security (RLS) di Database:** Pembatasan akses berbasis peran memastikan integritas operasional. (Contoh: Karyawan Teller secara fisik dan sistem tidak memiliki otorisasi untuk mengakses fitur penentu kelulusan pembiayaan yang dipegang Komite/Manajer).
 - **Jejak Audit Otomatis (Audit Log):** Sistem memiliki kapabilitas perekaman aktivitas pengguna. Setiap modifikasi data, pembatalan (*void*), atau koreksi jurnal harian terekam identitas penggunanya beserta tanggal kejadian (*timestamp*) untuk mempermudah proses pemeriksaan oleh auditor independen.
+
+## 5. Kepatuhan APU-PPT & Standar KYC Keanggotaan (CIF)
+
+Untuk memitigasi risiko Tindak Pidana Pencucian Uang dan Pencegahan Pendanaan Terorisme (APU-PPT), pendaftaran keanggotaan (Customer Information File - CIF) di IQ-RA System telah diperluas dengan field kepatuhan ketat:
+- **Demografi KYC Lengkap:** Identifikasi mendalam meliputi Nama Lengkap (tanpa singkatan), NIK, Tempat/Tanggal Lahir, Jenis Kelamin, Status Pernikahan, Agama, dan Kewarganegaraan (WNI/WNA).
+- **Kesesuaian Domisili:** Verifikasi alamat KTP fisik yang disandingkan dengan Alamat Domisili tinggal saat ini dengan fungsionalitas efisiensi "Sama dengan KTP".
+- **Kepatuhan Profil Risiko Keuangan:** Pencatatan Jenis Pekerjaan, Nama Perusahaan/Instansi Bidang Usaha, Estimasi Pendapatan Bulanan, serta deklarasi wajib **Sumber Dana** keanggotaan.
+- **Perlindungan Hak Waris Koperasi:** Integrasi data nama ahli waris, hubungan keluarga, serta nomor kontak aktif ahli waris guna pemenuhan ketentuan operasional koperasi simpan pinjam syariah.

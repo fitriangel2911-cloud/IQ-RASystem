@@ -4,9 +4,10 @@ Dokumen ini menjabarkan aturan bisnis (*business rules*) inti yang berlaku opera
 
 ## 1. Manajemen Keanggotaan (CIF)
 
-- **Single Customer Information File (CIF):** Setiap individu/anggota yang terdaftar hanya boleh memiliki tepat satu nomor CIF (ID unik yang merepresentasikan profil demografis dan rekam jejaknya).
+- **Single Customer Information File (CIF):** Setiap individu/anggota yang terdaftar hanya boleh memiliki tepat satu nomor CIF.
+- **Kepatuhan KYC & APU-PPT Mutlak:** CIF wajib mengumpulkan data kependudukan lengkap sesuai KTP, verifikasi alamat domisili, profil finansial (jenis pekerjaan, perusahaan, pendapatan), deklarasi **Sumber Dana (APU-PPT)**, serta pencatatan **Ahli Waris** sebelum keanggotaan disahkan.
 - **Multi-Rekening Terpusat:** Melalui satu CIF, anggota dapat membuka serta menautkan banyak sub-rekening sekaligus (Contoh: Buku Simpanan Harian, Tabungan Umrah, dan Buku Tagihan Cicilan Pembiayaan).
-- **Prasyarat Pembiayaan:** Modul pengajuan pembiayaan (*pipeline*) akan terkunci dan menolak pengajuan baru apabila status keanggotaan belum "Aktif" (belum melunasi Simpanan Pokok & Wajib awal) atau terdeteksi memiliki rekam jejak buruk (*Internal PI Checking*).
+- **Prasyarat Pembiayaan:** Modul pengajuan pembiayaan (*pipeline*) akan terkunci dan menolak pengajuan baru apabila status keanggotaan belum "Aktif" (belum melunasi Simpanan Pokok & Wajib awal), terdeteksi memiliki rekam jejak buruk (*Internal PI Checking*), atau data profil KYC tidak lengkap.
 
 ## 2. Aturan Siklus Penerimaan Kas
 

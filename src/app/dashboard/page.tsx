@@ -72,6 +72,7 @@ export default function DashboardPage() {
   // System parameters state
   const [systemParams, setSystemParams] = useState<any[]>([]);
   const [loadingParams, setLoadingParams] = useState(false);
+  const [isSavingParams, setIsSavingParams] = useState(false);
   
   // Access rules state
   const [accessRules, setAccessRules] = useState<any[]>([]);
@@ -168,6 +169,9 @@ export default function DashboardPage() {
       const isStaffRole = ['super_admin', 'manager', 'account_officer', 'ao', 'accounting', 'dps'].includes(role);
       if (isStaffRole) {
         fetchUsersList();
+        if (role === 'super_admin') {
+          fetchSystemParams();
+        }
       }
     } catch (err) {
       console.error('Session fetch crash:', err);
@@ -211,15 +215,48 @@ export default function DashboardPage() {
   // ==== NEW: FETCH SYSTEM PARAMETERS ==== 
   const fetchSystemParams = async () => {
     setLoadingParams(true);
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('system_parameters')
-      .select('*')
-      .order('key', { ascending: true });
-    if (!error && data) {
-      setSystemParams(data);
+    try {
+      const res = await fetch('/api/admin/parameters');
+      const data = await res.json();
+      if (res.ok && data.success && data.parameters) {
+        setSystemParams(data.parameters);
+      } else {
+        // Fallback to supabase direct query
+        const supabase = createClient();
+        const { data: dbData } = await supabase
+          .from('system_parameters')
+          .select('*')
+          .order('key', { ascending: true });
+        if (dbData) setSystemParams(dbData);
+      }
+    } catch (e) {
+      console.error("Error fetching system params:", e);
+    } finally {
+      setLoadingParams(false);
     }
-    setLoadingParams(false);
+  };
+
+  const handleSaveParams = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingParams(true);
+    try {
+      const res = await fetch('/api/admin/parameters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parameters: systemParams })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert('🎉 BERHASIL!\nParameter sistem telah berhasil diperbarui dan langsung aktif di seluruh jaringan.');
+        await fetchSystemParams();
+      } else {
+        throw new Error(data.error || 'Gagal menyimpan konfigurasi.');
+      }
+    } catch (err: any) {
+      alert('Error menyimpan parameter: ' + err.message);
+    } finally {
+      setIsSavingParams(false);
+    }
   };
 
   const fetchAccessRules = async () => {
@@ -508,16 +545,21 @@ export default function DashboardPage() {
             
             <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="📊" label="Ringkasan Eksekutif" />
 
-            {/* KEANGGOTAAN (CS) */}
-            <DashboardMenuButton active={activeTab === 'cs'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="🎧" label="Modul Keanggotaan" />
-            {activeTab === 'cs' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('onboarding')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'onboarding' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pendaftaran Anggota (CIF)</button>
-                <button onClick={() => setActiveSubMenu('members')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'members' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Database Anggota Aktif</button>
-              </div>
-            )}
+            {/* KEANGGOTAAN (CS) - DIRECT FLAT ACCESS */}
+            <DashboardMenuButton 
+              active={activeTab === 'cs' && activeSubMenu === 'onboarding'} 
+              onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} 
+              icon="📝" 
+              label="Pendaftaran Anggota (CIF)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'cs' && activeSubMenu === 'members'} 
+              onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} 
+              icon="👥" 
+              label="Database Anggota Aktif" 
+            />
 
-            {/* KASIR (TELLER) */}
+            {/* KASIR (TELLER) - DIRECT FLAT ACCESS */}
             <DashboardMenuButton 
               active={activeTab === 'teller'} 
               onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} 
@@ -526,25 +568,45 @@ export default function DashboardPage() {
               isSpecial={true}
             />
 
-            {/* PEMBIAYAAN (AO) */}
-            <DashboardMenuButton active={activeTab === 'ao'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="🤝" label="Manajemen Pembiayaan" />
-            {activeTab === 'ao' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('overview')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'overview' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Pipeline Nasabah</button>
-                <button onClick={() => setActiveSubMenu('prospects')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'prospects' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Analisis Akad & AI</button>
-                <button onClick={() => setActiveSubMenu('survey')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'survey' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Verifikasi Lapangan</button>
-              </div>
-            )}
+            {/* PEMBIAYAAN (AO) - DIRECT FLAT ACCESS */}
+            <DashboardMenuButton 
+              active={activeTab === 'ao' && activeSubMenu === 'overview'} 
+              onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} 
+              icon="🤝" 
+              label="Pipeline Nasabah (AO)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'ao' && activeSubMenu === 'prospects'} 
+              onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} 
+              icon="🔬" 
+              label="Analisis Akad & AI (AO)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'ao' && activeSubMenu === 'survey'} 
+              onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} 
+              icon="📍" 
+              label="Verifikasi Lapangan (AO)" 
+            />
 
-            {/* AKUNTANSI (ACCOUNTING) */}
-            <DashboardMenuButton active={activeTab === 'accounting'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="💼" label="Keuangan & Akuntansi" />
-            {activeTab === 'accounting' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', borderLeft: theme === 'light' ? '2px solid rgba(4, 49, 33, 0.3)' : '2px solid rgba(243, 198, 83, 0.3)', marginBottom: '8px' }}>
-                <button onClick={() => setActiveSubMenu('journal')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'journal' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Jurnal Umum Otomatis</button>
-                <button onClick={() => setActiveSubMenu('ledger')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'ledger' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Buku Besar & Neraca</button>
-                <button onClick={() => setActiveSubMenu('reports')} style={{ background: 'transparent', border: 'none', color: activeSubMenu === 'reports' ? (theme === 'light' ? 'var(--emerald-deep)' : '#f3c653') : 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, textAlign: 'left', padding: '6px 0', cursor: 'pointer' }}>• Laporan SAK EP</button>
-              </div>
-            )}
+            {/* AKUNTANSI (ACCOUNTING) - DIRECT FLAT ACCESS */}
+            <DashboardMenuButton 
+              active={activeTab === 'accounting' && activeSubMenu === 'journal'} 
+              onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} 
+              icon="📖" 
+              label="Jurnal Umum Otomatis" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'accounting' && activeSubMenu === 'ledger'} 
+              onClick={() => { setActiveTab('accounting'); setActiveSubMenu('ledger'); }} 
+              icon="📊" 
+              label="Buku Besar & Neraca" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'accounting' && activeSubMenu === 'reports'} 
+              onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} 
+              icon="📜" 
+              label="Laporan Keuangan SAK EP" 
+            />
 
             <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
             
@@ -1325,6 +1387,232 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* ==================================== */}
+          {/* TAB: SYSTEM CONFIGURATION (SETTINGS) */}
+          {/* ==================================== */}
+          {activeTab === 'settings' && (
+            <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div style={{ 
+                background: 'rgba(4, 49, 33, 0.7)', 
+                backdropFilter: 'blur(16px)', 
+                border: '3px solid var(--gold-bright)', 
+                borderRadius: '28px', 
+                overflow: 'hidden', 
+                boxShadow: '0 20px 50px rgba(0,0,0,0.4)' 
+              }}>
+                <div style={{ 
+                  padding: '32px', 
+                  borderBottom: '1px solid rgba(255,255,255,0.1)', 
+                  background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(4, 49, 33, 0.7) 100%)', 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center' 
+                }}>
+                  <div>
+                    <h3 style={{ color: '#f3c653', fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>🛠️ Pusat Konfigurasi Parameter Sistem</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', margin: 0 }}>Kelola parameter operasional, nilai minimum simpanan pokok/wajib, biaya administrasi, infaq, dan parameter AI RAG.</p>
+                  </div>
+                  <button 
+                    onClick={fetchSystemParams}
+                    disabled={loadingParams}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '2px solid #cca334',
+                      color: '#f3c653',
+                      padding: '10px 20px',
+                      borderRadius: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {loadingParams ? '⏳ ...' : '🔄 Segarkan'}
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveParams} style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                  
+                  {loadingParams ? (
+                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '18px' }}>
+                      Menghubungkan ke tabel system_parameters...
+                    </div>
+                  ) : (
+                    <>
+                      {/* Section 1: Parameter Keuangan Koperasi */}
+                      <div>
+                        <h4 style={{ color: '#f3c653', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '18px', borderLeft: '4px solid #f3c653', paddingLeft: '10px' }}>
+                          💵 Parameter Keuangan Koperasi (SAK EP)
+                        </h4>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', background: 'rgba(255, 255, 255, 0.02)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          
+                          {/* Loop through financial parameters */}
+                          {['simpanan_pokok', 'simpanan_wajib', 'biaya_adm', 'biaya_infaq', 'nisbah_mudharabah'].map((key) => {
+                            const param = systemParams.find(p => p.key === key) || { key, value: '', description: '' };
+                            let label = '';
+                            let icon = '';
+                            let type = 'number';
+                            let suffix = '';
+
+                            if (key === 'simpanan_pokok') { label = 'Simpanan Pokok Anggota Baru'; icon = '🪙'; suffix = 'Rupiah'; }
+                            else if (key === 'simpanan_wajib') { label = 'Simpanan Wajib Bulanan'; icon = '💵'; suffix = 'Rupiah'; }
+                            else if (key === 'biaya_adm') { label = 'Biaya Administrasi CIF'; icon = '💼'; suffix = 'Rupiah'; }
+                            else if (key === 'biaya_infaq') { label = 'Biaya Infaq & Sedekah Registrasi'; icon = '🕌'; suffix = 'Rupiah'; }
+                            else if (key === 'nisbah_mudharabah') { label = 'Porsi Bagi Hasil Tabungan Mudharabah (Nasabah)'; icon = '📈'; suffix = '%'; }
+
+                            return (
+                              <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <label style={{ fontSize: '13px', fontWeight: 900, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>
+                                  {icon} {label}
+                                </label>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                  <input 
+                                    type={type}
+                                    required
+                                    value={param.value}
+                                    onChange={(e) => {
+                                      const newVal = e.target.value;
+                                      setSystemParams(prev => prev.map(p => p.key === key ? { ...p, value: newVal } : p));
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--bg-page)',
+                                      border: '2px solid var(--border-primary)',
+                                      borderRadius: '12px',
+                                      padding: '14px 16px',
+                                      paddingRight: suffix ? '70px' : '16px',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '16px',
+                                      fontWeight: 800,
+                                      outline: 'none',
+                                      transition: 'border 0.25s'
+                                    }}
+                                  />
+                                  {suffix && (
+                                    <span style={{ position: 'absolute', right: '16px', fontSize: '12px', fontWeight: 900, color: '#f3c653', background: 'rgba(243,198,83,0.1)', padding: '4px 8px', borderRadius: '6px' }}>{suffix}</span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>{param.description || 'Parameter operasional dinamis.'}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Section 2: AI & WhatsApp Notification Gateway */}
+                      <div>
+                        <h4 style={{ color: '#f3c653', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', marginBottom: '18px', borderLeft: '4px solid #f3c653', paddingLeft: '10px' }}>
+                          🤖 Integrasi Sistem & Kecerdasan Buatan (RAG AI)
+                        </h4>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', background: 'rgba(255, 255, 255, 0.02)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          
+                          {/* min_syariah_score */}
+                          {(() => {
+                            const key = 'min_syariah_score';
+                            const param = systemParams.find(p => p.key === key) || { key, value: '', description: '' };
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <label style={{ fontSize: '13px', fontWeight: 900, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>🛡️ Kelayakan Kepatuhan Syariah AI</label>
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                  <input 
+                                    type="number"
+                                    required
+                                    min={0}
+                                    max={100}
+                                    value={param.value}
+                                    onChange={(e) => {
+                                      const newVal = e.target.value;
+                                      setSystemParams(prev => prev.map(p => p.key === key ? { ...p, value: newVal } : p));
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--bg-page)',
+                                      border: '2px solid var(--border-primary)',
+                                      borderRadius: '12px',
+                                      padding: '14px 16px',
+                                      paddingRight: '60px',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '16px',
+                                      fontWeight: 800,
+                                      outline: 'none'
+                                    }}
+                                  />
+                                  <span style={{ position: 'absolute', right: '16px', fontSize: '12px', fontWeight: 900, color: '#f3c653', background: 'rgba(243,198,83,0.1)', padding: '4px 8px', borderRadius: '6px' }}>%</span>
+                                </div>
+                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>{param.description || 'Ambang batas kelayakan AI.'}</span>
+                              </div>
+                            );
+                          })()}
+
+                          {/* wa_api_url */}
+                          {(() => {
+                            const key = 'wa_api_url';
+                            const param = systemParams.find(p => p.key === key) || { key, value: '', description: '' };
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <label style={{ fontSize: '13px', fontWeight: 900, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>📱 WhatsApp API Endpoint Gateway</label>
+                                <input 
+                                  type="url"
+                                  required
+                                  value={param.value}
+                                  onChange={(e) => {
+                                    const newVal = e.target.value;
+                                    setSystemParams(prev => prev.map(p => p.key === key ? { ...p, value: newVal } : p));
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    background: 'var(--bg-page)',
+                                    border: '2px solid var(--border-primary)',
+                                    borderRadius: '12px',
+                                    padding: '14px 16px',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '16px',
+                                    fontWeight: 800,
+                                    outline: 'none'
+                                  }}
+                                />
+                                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>{param.description || 'URL WhatsApp API Gateway.'}</span>
+                              </div>
+                            );
+                          })()}
+
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '30px', marginTop: '10px' }}>
+                        <button 
+                          type="submit"
+                          disabled={isSavingParams}
+                          style={{
+                            flexGrow: 2,
+                            background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)',
+                            border: 'none',
+                            color: '#02130e',
+                            padding: '18px',
+                            borderRadius: '14px',
+                            fontWeight: 900,
+                            fontSize: '16px',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 20px rgba(243,198,83,0.3)',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px'
+                          }}
+                        >
+                          💾 {isSavingParams ? 'Menyimpan Konfigurasi...' : 'Simpan Seluruh Parameter'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  
+                </form>
+              </div>
             </div>
           )}
 

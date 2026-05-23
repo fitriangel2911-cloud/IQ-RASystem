@@ -14,41 +14,65 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
   // Form states
   const [formData, setFormData] = useState({
     nik: '',
-    kk_number: '',
     mother_name: '',
     religion: 'Islam',
     occupation: '',
     monthly_income: 0,
     phone_number: '',
     ktp_address: '',
-    domicile_address: ''
+    domicile_address: '',
+    birth_place_date: '',
+    gender: 'Laki-laki',
+    marital_status: 'Belum Kawin',
+    citizenship: 'WNI',
+    company_name: '',
+    funding_source: 'Gaji',
+    heir_name: '',
+    heir_relationship: '',
+    heir_phone: ''
   });
 
   useEffect(() => {
     if (profile) {
       setFormData({
         nik: profile.nik || '',
-        kk_number: profile.kk_number || '',
         mother_name: profile.mother_name || '',
         religion: profile.religion || 'Islam',
         occupation: profile.occupation || '',
         monthly_income: profile.monthly_income || 0,
         phone_number: profile.phone_number || profile.users?.phone_number || '',
         ktp_address: profile.ktp_address || '',
-        domicile_address: profile.domicile_address || ''
+        domicile_address: profile.domicile_address || '',
+        birth_place_date: profile.birth_place_date || '',
+        gender: profile.gender || 'Laki-laki',
+        marital_status: profile.marital_status || 'Belum Kawin',
+        citizenship: profile.citizenship || 'WNI',
+        company_name: profile.company_name || '',
+        funding_source: profile.funding_source || 'Gaji',
+        heir_name: profile.heir_name || '',
+        heir_relationship: profile.heir_relationship || '',
+        heir_phone: profile.heir_phone || ''
       });
     }
   }, [profile]);
 
   const isProfileComplete = 
     formData.nik && 
-    formData.kk_number && 
     formData.mother_name && 
     formData.occupation && 
     formData.monthly_income > 0 && 
     formData.phone_number && 
     formData.ktp_address && 
-    formData.domicile_address;
+    formData.domicile_address &&
+    formData.birth_place_date &&
+    formData.gender &&
+    formData.marital_status &&
+    formData.citizenship &&
+    formData.company_name &&
+    formData.funding_source &&
+    formData.heir_name &&
+    formData.heir_relationship &&
+    formData.heir_phone;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,33 +193,58 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
         {editing ? (
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              {/* Left Col */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* A. DATA PRIBADI */}
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
+                A. DATA PRIBADI (SESUAI KTP)
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Induk Kependudukan (NIK KTP)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Induk Kependudukan (NIK)</label>
                   <input 
                     type="text" maxLength={16} required
                     value={formData.nik}
                     onChange={e => setFormData({...formData, nik: e.target.value})}
                     style={inputStyle}
-                    placeholder="Masukkan 16 digit NIK..."
+                    placeholder="16 digit NIK..."
                   />
                 </div>
-                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kartu Keluarga (KK)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Tempat & Tanggal Lahir</label>
                   <input 
-                    type="text" maxLength={16} required
-                    value={formData.kk_number}
-                    onChange={e => setFormData({...formData, kk_number: e.target.value})}
+                    type="text" required
+                    value={formData.birth_place_date}
+                    onChange={e => setFormData({...formData, birth_place_date: e.target.value})}
                     style={inputStyle}
-                    placeholder="Masukkan 16 digit KK..."
+                    placeholder="Contoh: Jakarta, 17 Agustus 1990..."
                   />
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Kandung Ibu (Untuk Verifikasi Bank)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Jenis Kelamin</label>
+                  <select
+                    value={formData.gender}
+                    onChange={e => setFormData({...formData, gender: e.target.value})}
+                    style={inputStyle}
+                  >
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Status Pernikahan</label>
+                  <select
+                    value={formData.marital_status}
+                    onChange={e => setFormData({...formData, marital_status: e.target.value})}
+                    style={inputStyle}
+                  >
+                    <option value="Belum Kawin">Belum Kawin</option>
+                    <option value="Kawin">Kawin</option>
+                    <option value="Cerai Hidup">Cerai Hidup</option>
+                    <option value="Cerai Mati">Cerai Mati</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Ibu Kandung</label>
                   <input 
                     type="text" required
                     value={formData.mother_name}
@@ -204,9 +253,8 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                     placeholder="Nama lengkap ibu kandung..."
                   />
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Agama / Kepercayaan</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Agama</label>
                   <select
                     value={formData.religion}
                     onChange={e => setFormData({...formData, religion: e.target.value})}
@@ -218,25 +266,70 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                     <option value="Hindu">Hindu</option>
                     <option value="Buddha">Buddha</option>
                     <option value="Konghucu">Konghucu</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Kewarganegaraan</label>
+                  <select
+                    value={formData.citizenship}
+                    onChange={e => setFormData({...formData, citizenship: e.target.value})}
+                    style={inputStyle}
+                  >
+                    <option value="WNI">WNI (Warga Negara Indonesia)</option>
+                    <option value="WNA">WNA (Warga Negara Asing)</option>
                   </select>
                 </div>
               </div>
+            </div>
 
-              {/* Right Col */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* B. DATA KONTAK & ALAMAT */}
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
+                B. DATA KONTAK & ALAMAT DOMISILI
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kontak Aktif (WhatsApp)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor WhatsApp Aktif</label>
                   <input 
                     type="tel" required
                     value={formData.phone_number}
                     onChange={e => setFormData({...formData, phone_number: e.target.value})}
                     style={inputStyle}
-                    placeholder="Contoh: 0812xxxxxx"
+                    placeholder="Contoh: 0812xxxxxx..."
                   />
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Profesi / Pekerjaan Utama</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Sesuai KTP</label>
+                  <textarea 
+                    required rows={2}
+                    value={formData.ktp_address}
+                    onChange={e => setFormData({...formData, ktp_address: e.target.value})}
+                    style={{ ...inputStyle, resize: 'vertical' } as any}
+                    placeholder="Alamat lengkap sesuai KTP..."
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Domisili Sekarang</label>
+                  <textarea 
+                    required rows={2}
+                    value={formData.domicile_address}
+                    onChange={e => setFormData({...formData, domicile_address: e.target.value})}
+                    style={{ ...inputStyle, resize: 'vertical' } as any}
+                    placeholder="Alamat tinggal saat ini..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* C. DATA PEKERJAAN & KEUANGAN */}
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
+                C. DATA PEKERJAAN & KEUANGAN
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Profesi / Pekerjaan</label>
                   <input 
                     type="text" required
                     value={formData.occupation}
@@ -245,42 +338,79 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                     placeholder="Pekerjaan saat ini..."
                   />
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Penghasilan Rata-rata Per Bulan (Rp)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Perusahaan / Bidang Usaha</label>
+                  <input 
+                    type="text" required
+                    value={formData.company_name}
+                    onChange={e => setFormData({...formData, company_name: e.target.value})}
+                    style={inputStyle}
+                    placeholder="Nama instansi/bidang usaha..."
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Estimasi Pendapatan Rata-rata (Rp)</label>
                   <input 
                     type="number" min={0} required
                     value={formData.monthly_income}
                     onChange={e => setFormData({...formData, monthly_income: Number(e.target.value)})}
                     style={inputStyle}
-                    placeholder="Nominal penghasilan..."
+                    placeholder="Nominal pendapatan bulanan..."
                   />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Sumber Dana (APU-PPT)</label>
+                  <select
+                    value={formData.funding_source}
+                    onChange={e => setFormData({...formData, funding_source: e.target.value})}
+                    style={inputStyle}
+                  >
+                    <option value="Gaji">Gaji</option>
+                    <option value="Hasil Usaha">Hasil Usaha</option>
+                    <option value="Warisan">Warisan</option>
+                    <option value="Orang Tua/Suami">Orang Tua / Suami</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Full width addresses */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat KTP Asli</label>
-                <textarea 
-                  required rows={2}
-                  value={formData.ktp_address}
-                  onChange={e => setFormData({...formData, ktp_address: e.target.value})}
-                  style={{ ...inputStyle, resize: 'vertical' } as any}
-                  placeholder="Alamat lengkap sesuai KTP..."
-                />
+            {/* D. DATA AHLI WARIS */}
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
+                D. DATA AHLI WARIS (KHAS KOPERASI)
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Domisili Tinggal (Sekarang)</label>
-                <textarea 
-                  required rows={2}
-                  value={formData.domicile_address}
-                  onChange={e => setFormData({...formData, domicile_address: e.target.value})}
-                  style={{ ...inputStyle, resize: 'vertical' } as any}
-                  placeholder="Alamat tempat tinggal aktif saat ini..."
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Lengkap Ahli Waris</label>
+                  <input 
+                    type="text" required
+                    value={formData.heir_name}
+                    onChange={e => setFormData({...formData, heir_name: e.target.value})}
+                    style={inputStyle}
+                    placeholder="Sesuai KTP ahli waris..."
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Hubungan Keluarga</label>
+                  <input 
+                    type="text" required
+                    value={formData.heir_relationship}
+                    onChange={e => setFormData({...formData, heir_relationship: e.target.value})}
+                    style={inputStyle}
+                    placeholder="Contoh: Istri, Anak, Orang Tua..."
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kontak Ahli Waris</label>
+                  <input 
+                    type="tel" required
+                    value={formData.heir_phone}
+                    onChange={e => setFormData({...formData, heir_phone: e.target.value})}
+                    style={inputStyle}
+                    placeholder="Nomor telepon/WhatsApp aktif..."
+                  />
+                </div>
               </div>
             </div>
 
@@ -314,10 +444,10 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
           <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
               
-              {/* Group 1 */}
+              {/* Group A: Data Pribadi */}
               <div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
-                  1. Identitas Kewarganegaraan
+                  A. Identitas Pribadi (KYC)
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                   <div>
@@ -325,24 +455,28 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                     <div style={valueStyle}>{profile?.nik || '— Belum Diisi —'}</div>
                   </div>
                   <div>
-                    <div style={labelStyle}>KARTU KELUARGA (KK)</div>
-                    <div style={valueStyle}>{profile?.kk_number || '— Belum Diisi —'}</div>
+                    <div style={labelStyle}>TEMPAT & TANGGAL LAHIR</div>
+                    <div style={valueStyle}>{profile?.birth_place_date || '— Belum Diisi —'}</div>
+                  </div>
+                  <div>
+                    <div style={labelStyle}>JENIS KELAMIN & STATUS PERNIKAHAN</div>
+                    <div style={valueStyle}>{profile?.gender || 'Laki-laki'} ({profile?.marital_status || 'Belum Kawin'})</div>
                   </div>
                   <div>
                     <div style={labelStyle}>NAMA IBU KANDUNG</div>
                     <div style={valueStyle}>{profile?.mother_name || '— Belum Diisi —'}</div>
                   </div>
                   <div>
-                    <div style={labelStyle}>AGAMA</div>
-                    <div style={valueStyle}>{profile?.religion || 'Islam'}</div>
+                    <div style={labelStyle}>AGAMA & KEWARGANEGARAAN</div>
+                    <div style={valueStyle}>{profile?.religion || 'Islam'} ({profile?.citizenship || 'WNI'})</div>
                   </div>
                 </div>
               </div>
 
-              {/* Group 2 */}
+              {/* Group B & C: Kontak & Finansial */}
               <div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
-                  2. Kontak & Finansial
+                  B & C. Kontak & Finansial
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                   <div>
@@ -350,21 +484,45 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                     <div style={valueStyle}>{profile?.phone_number || profile?.users?.phone_number || '— Belum Diisi —'}</div>
                   </div>
                   <div>
-                    <div style={labelStyle}>PEKERJAAN</div>
-                    <div style={valueStyle}>{profile?.occupation || '— Belum Diisi —'}</div>
+                    <div style={labelStyle}>PEKERJAAN & PERUSAHAAN</div>
+                    <div style={valueStyle}>{profile?.occupation || '— Belum Diisi —'} {profile?.company_name ? `di ${profile?.company_name}` : ''}</div>
                   </div>
                   <div>
-                    <div style={labelStyle}>PENDAPATAN BULANAN</div>
-                    <div style={{ ...valueStyle, color: '#10b981', fontSize: '18px' }}>{profile?.monthly_income ? formatCurrency(profile.monthly_income) : '— Belum Diisi —'}</div>
+                    <div style={labelStyle}>ESTIMASI PENDAPATAN & SUMBER DANA</div>
+                    <div style={{ ...valueStyle, color: '#10b981', fontSize: '18px' }}>
+                      {profile?.monthly_income ? formatCurrency(profile.monthly_income) : '— Belum Diisi —'} 
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '10px' }}>({profile?.funding_source || 'Gaji'})</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Group 3 */}
+            {/* Group D: Ahli Waris */}
             <div>
               <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
-                3. Geografis & Domisili
+                D. Informasi Ahli Waris
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                <div>
+                  <div style={labelStyle}>NAMA AHLI WARIS</div>
+                  <div style={valueStyle}>{profile?.heir_name || '— Belum Diisi —'}</div>
+                </div>
+                <div>
+                  <div style={labelStyle}>HUBUNGAN KELUARGA</div>
+                  <div style={valueStyle}>{profile?.heir_relationship || '— Belum Diisi —'}</div>
+                </div>
+                <div>
+                  <div style={labelStyle}>KONTAK AHLI WARIS</div>
+                  <div style={valueStyle}>{profile?.heir_phone || '— Belum Diisi —'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Group E: Geografis & Domisili */}
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
+                E. Geografis & Domisili
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                 <div>

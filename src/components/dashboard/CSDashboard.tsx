@@ -18,6 +18,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   const [registeredReceiptData, setRegisteredReceiptData] = useState<any>(null); // Data nota bukti cetak
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [systemParams, setSystemParams] = useState<any[]>([]);
 
   useEffect(() => {
     if (selectedMemberProfile) {
@@ -35,19 +36,29 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     }
   }, [selectedMemberProfile]);
 
+  const [isSameAddress, setIsSameAddress] = useState(false);
+
   // Form State dengan Email, Password, dan Setoran Awal Simpanan Koperasi
   const [formData, setFormData] = useState({
     fullName: '',
     nik: '',
+    birthPlaceDate: '',
+    gender: 'Laki-laki',
+    maritalStatus: 'Belum Kawin',
+    motherName: '',
+    religion: 'Islam',
+    citizenship: 'WNI',
     email: '',
     phone: '',
-    motherName: '',
-    kkNumber: '',
     ktpAddress: '',
     domicileAddress: '',
     occupation: '',
+    companyName: '',
     monthlyIncome: '',
-    religion: 'Islam',
+    fundingSource: 'Gaji',
+    heirName: '',
+    heirRelationship: '',
+    heirPhone: '',
     password: '', // Sandi login anggota
     initialPrincipal: '300000', // Setoran awal Pokok (Default 300k)
     initialMandatory: '50000'   // Setoran awal Wajib (Default 50k)
@@ -94,6 +105,30 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const loadSystemParams = async () => {
+      try {
+        const res = await fetch('/api/admin/parameters');
+        const data = await res.json();
+        if (data.success && data.parameters) {
+          const pokokParam = data.parameters.find((p: any) => p.key === 'simpanan_pokok');
+          const wajibParam = data.parameters.find((p: any) => p.key === 'simpanan_wajib');
+          
+          setFormData(prev => ({
+            ...prev,
+            initialPrincipal: pokokParam ? pokokParam.value : '300000',
+            initialMandatory: wajibParam ? wajibParam.value : '50000'
+          }));
+          
+          setSystemParams(data.parameters);
+        }
+      } catch (err) {
+        console.error("CSDashboard: Failed to load system parameters dynamically", err);
+      }
+    };
+    loadSystemParams();
   }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -143,13 +178,22 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           user_id: userId,
           nik: formData.nik,
           mother_name: formData.motherName,
-          kk_number: formData.kkNumber,
+          kk_number: '',
           phone_number: formData.phone,
           ktp_address: formData.ktpAddress,
           domicile_address: formData.domicileAddress || formData.ktpAddress,
           occupation: formData.occupation,
           monthly_income: parseInt(formData.monthlyIncome) || 0,
           religion: formData.religion,
+          birth_place_date: formData.birthPlaceDate,
+          gender: formData.gender,
+          marital_status: formData.maritalStatus,
+          citizenship: formData.citizenship,
+          company_name: formData.companyName,
+          funding_source: formData.fundingSource,
+          heir_name: formData.heirName,
+          heir_relationship: formData.heirRelationship,
+          heir_phone: formData.heirPhone,
           status: 'active' // Langsung aktif karena menyertakan setoran awal & divalidasi sistem
         }])
         .select()
@@ -205,8 +249,11 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       const uniqueCodeStr = sourceDigits.slice(-3).padStart(3, '0');
       const uniqueCodeValue = Number(uniqueCodeStr) || 0;
 
-      const admFee = 15000;
-      const infaqSedekahBase = 10000;
+      const admParam = systemParams.find(p => p.key === 'biaya_adm');
+      const infaqParam = systemParams.find(p => p.key === 'biaya_infaq');
+      
+      const admFee = admParam ? Number(admParam.value) : 15000;
+      const infaqSedekahBase = infaqParam ? Number(infaqParam.value) : 10000;
       const infaqSedekahTotal = infaqSedekahBase + uniqueCodeValue;
 
       const grandTotalPayment = totalInitialDeposit + admFee + infaqSedekahTotal;
@@ -291,11 +338,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       // Reset Form ke Default
       setFormData({
-        fullName: '', nik: '', email: '', phone: '',
-        motherName: '', kkNumber: '', ktpAddress: '', domicileAddress: '',
-        occupation: '', monthlyIncome: '', religion: 'Islam',
+        fullName: '', nik: '', birthPlaceDate: '', gender: 'Laki-laki',
+        maritalStatus: 'Belum Kawin', motherName: '', religion: 'Islam',
+        citizenship: 'WNI', email: '', phone: '', ktpAddress: '', domicileAddress: '',
+        occupation: '', companyName: '', monthlyIncome: '', fundingSource: 'Gaji',
+        heirName: '', heirRelationship: '', heirPhone: '',
         password: '', initialPrincipal: '300000', initialMandatory: '50000'
       });
+      setIsSameAddress(false);
 
       fetchStats();
 
@@ -534,57 +584,234 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             </div>
           ) : (
             <form onSubmit={handleRegister} style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            
-            {/* Section 1: Demografi */}
-            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '10px' }}>
-              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>📍 DATA DEMOGRAFI CIF</h3>
-            </div>
-            
-            <CSInputField label="Nama Lengkap Anggota" placeholder="Sesuai KTP..." value={formData.fullName} onChange={(val: string) => setFormData({...formData, fullName: val})} />
-            <CSInputField label="Nomor Induk Kependudukan (NIK)" placeholder="16 Digit..." value={formData.nik} onChange={(val: string) => setFormData({...formData, nik: val})} />
-            
-            <CSInputField label="Nomor Kartu Keluarga (KK)" placeholder="16 Digit..." value={formData.kkNumber} onChange={(val: string) => setFormData({...formData, kkNumber: val})} />
-            <CSInputField label="Nama Ibu Kandung" placeholder="Untuk verifikasi keamanan..." value={formData.motherName} onChange={(val: string) => setFormData({...formData, motherName: val})} />
+             {/* A. DATA PRIBADI (SESUAI KTP) */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '10px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>👤 A. DATA PRIBADI (SESUAI KTP)</h3>
+             </div>
+             
+             <CSInputField 
+               label="Nama Lengkap (Tanpa Singkatan)" 
+               placeholder="Sesuai KTP..." 
+               value={formData.fullName} 
+               onChange={(val: string) => setFormData({...formData, fullName: val})} 
+             />
+             <CSInputField 
+               label="Nomor Induk Kependudukan (NIK)" 
+               placeholder="16 Digit NIK..." 
+               value={formData.nik} 
+               onChange={(val: string) => setFormData({...formData, nik: val})} 
+             />
+             <CSInputField 
+               label="Tempat & Tanggal Lahir" 
+               placeholder="Contoh: Jakarta, 17 Agustus 1990..." 
+               value={formData.birthPlaceDate} 
+               onChange={(val: string) => setFormData({...formData, birthPlaceDate: val})} 
+             />
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Jenis Kelamin</label>
+               <select 
+                 value={formData.gender} 
+                 onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+               >
+                 <option value="Laki-laki">Laki-laki</option>
+                 <option value="Perempuan">Perempuan</option>
+               </select>
+             </div>
 
-            <div style={{ gridColumn: 'span 2' }}>
-              <CSInputField label="Alamat Sesuai KTP" placeholder="Jalan, No Rumah, RT/RW, Desa/Kelurahan..." value={formData.ktpAddress} onChange={(val: string) => setFormData({...formData, ktpAddress: val})} />
-            </div>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Status Pernikahan</label>
+               <select 
+                 value={formData.maritalStatus} 
+                 onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})}
+                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+               >
+                 <option value="Belum Kawin">Belum Kawin</option>
+                 <option value="Kawin">Kawin</option>
+                 <option value="Cerai Hidup">Cerai Hidup</option>
+                 <option value="Cerai Mati">Cerai Mati</option>
+               </select>
+             </div>
 
-            <div style={{ gridColumn: 'span 2' }}>
-              <CSInputField label="Alamat Domisili Aktif" placeholder="Biarkan kosong jika sama dengan KTP..." value={formData.domicileAddress} onChange={(val: string) => setFormData({...formData, domicileAddress: val})} />
-            </div>
+             <CSInputField 
+               label="Nama Ibu Kandung" 
+               placeholder="Untuk verifikasi keamanan..." 
+               value={formData.motherName} 
+               onChange={(val: string) => setFormData({...formData, motherName: val})} 
+             />
 
-            <CSInputField label="Pekerjaan / Profesi" placeholder="Contoh: Wiraswasta, PNS, Petani..." value={formData.occupation} onChange={(val: string) => setFormData({...formData, occupation: val})} />
-            <CSInputField label="Estimasi Pendapatan Per Bulan" placeholder="Dalam Rupiah..." value={formData.monthlyIncome} onChange={(val: string) => setFormData({...formData, monthlyIncome: val})} />
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Agama</label>
+               <select 
+                 value={formData.religion} 
+                 onChange={(e) => setFormData({...formData, religion: e.target.value})}
+                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+               >
+                 <option value="Islam">Islam</option>
+                 <option value="Kristen">Kristen</option>
+                 <option value="Katolik">Katolik</option>
+                 <option value="Hindu">Hindu</option>
+                 <option value="Buddha">Buddha</option>
+                 <option value="Konghucu">Konghucu</option>
+                 <option value="Lainnya">Lainnya</option>
+               </select>
+             </div>
 
-            <CSInputField label="Nomor WhatsApp/HP" placeholder="08xxxx..." value={formData.phone} onChange={(val: string) => setFormData({...formData, phone: val})} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Keyakinan / Agama</label>
-              <select 
-                value={formData.religion} 
-                onChange={(e) => setFormData({...formData, religion: e.target.value})}
-                style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
-              >
-                <option value="Islam">Islam</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
-            </div>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Kewarganegaraan</label>
+               <select 
+                 value={formData.citizenship} 
+                 onChange={(e) => setFormData({...formData, citizenship: e.target.value})}
+                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+               >
+                 <option value="WNI">WNI (Warga Negara Indonesia)</option>
+                 <option value="WNA">WNA (Warga Negara Asing)</option>
+               </select>
+             </div>
 
-            {/* Section 2: Kredensial Akun Portal */}
-            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>🛡️ KREDENSIAL LOGIN PORTAL ANGGOTA</h3>
-            </div>
-            
-            <CSInputField label="Alamat Email Anggota" placeholder="Contoh: anggota@gmail.com..." value={formData.email} onChange={(val: string) => setFormData({...formData, email: val})} />
-            <CSInputField label="Kata Sandi Akun (Opsional)" placeholder="Bawaan menggunakan NIK..." value={formData.password} onChange={(val: string) => setFormData({...formData, password: val})} />
+             {/* B. DATA KONTAK & ALAMAT */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>📞 B. DATA KONTAK & ALAMAT</h3>
+             </div>
 
-            {/* Section 3: Setoran Awal Koperasi compliant SAK EP */}
-            <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-              <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💵 SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
-            </div>
+             <div style={{ gridColumn: 'span 2' }}>
+               <CSInputField 
+                 label="Alamat Sesuai KTP" 
+                 placeholder="Jalan, RT/RW, No. Rumah, Kecamatan, Kota, Provinsi..." 
+                 value={formData.ktpAddress} 
+                 onChange={(val: string) => {
+                   setFormData(prev => ({
+                     ...prev,
+                     ktpAddress: val,
+                     domicileAddress: isSameAddress ? val : prev.domicileAddress
+                   }));
+                 }} 
+               />
+             </div>
 
-            <CSInputField label="Simpanan Pokok (Setoran Awal)" placeholder="Contoh: 100000" value={formData.initialPrincipal} onChange={(val: string) => setFormData({...formData, initialPrincipal: val})} />
-            <CSInputField label="Simpanan Wajib (Setoran Awal)" placeholder="Contoh: 20000" value={formData.initialMandatory} onChange={(val: string) => setFormData({...formData, initialMandatory: val})} />
+             <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '-10px' }}>
+               <input 
+                 type="checkbox" 
+                 id="sameAddressToggle" 
+                 checked={isSameAddress}
+                 onChange={(e) => {
+                   const checked = e.target.checked;
+                   setIsSameAddress(checked);
+                   if (checked) {
+                     setFormData(prev => ({ ...prev, domicileAddress: prev.ktpAddress }));
+                   }
+                 }}
+                 style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--gold-intense)' }} 
+               />
+               <label htmlFor="sameAddressToggle" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                 Alamat Domisili Saat Ini Sama dengan KTP (Efisiensi Pengisian)
+               </label>
+             </div>
+
+             <div style={{ gridColumn: 'span 2' }}>
+               <CSInputField 
+                 label="Alamat Domisili Saat Ini" 
+                 placeholder={isSameAddress ? "Sama dengan alamat KTP" : "Jalan, RT/RW, No. Rumah, Kecamatan, Kota, Provinsi..."} 
+                 value={isSameAddress ? formData.ktpAddress : formData.domicileAddress} 
+                 onChange={(val: string) => {
+                   if (!isSameAddress) setFormData({...formData, domicileAddress: val});
+                 }} 
+               />
+             </div>
+
+             <CSInputField 
+               label="Nomor Handphone / WhatsApp" 
+               placeholder="Contoh: 081234567890..." 
+               value={formData.phone} 
+               onChange={(val: string) => setFormData({...formData, phone: val})} 
+             />
+             <CSInputField 
+               label="Alamat Email Anggota" 
+               placeholder="Contoh: budi.santoso@gmail.com..." 
+               value={formData.email} 
+               onChange={(val: string) => setFormData({...formData, email: val})} 
+             />
+
+             {/* C. DATA PEKERJAAN & KEWANGAAN */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💼 C. DATA PEKERJAAN & KEWANGAAN</h3>
+             </div>
+
+             <CSInputField 
+               label="Jenis Pekerjaan / Profesi" 
+               placeholder="Contoh: Karyawan Swasta, Wiraswasta, PNS..." 
+               value={formData.occupation} 
+               onChange={(val: string) => setFormData({...formData, occupation: val})} 
+             />
+             <CSInputField 
+               label="Nama Perusahaan / Bidang Usaha" 
+               placeholder="Nama Kantor atau Jenis Usaha Mandiri..." 
+               value={formData.companyName} 
+               onChange={(val: string) => setFormData({...formData, companyName: val})} 
+             />
+             <CSInputField 
+               label="Estimasi Pendapatan Per Bulan" 
+               placeholder="Dalam Rupiah (Contoh: 5000000)..." 
+               value={formData.monthlyIncome} 
+               onChange={(val: string) => setFormData({...formData, monthlyIncome: val})} 
+             />
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Sumber Dana (APU-PPT Compliance)</label>
+               <select 
+                 value={formData.fundingSource} 
+                 onChange={(e) => setFormData({...formData, fundingSource: e.target.value})}
+                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+               >
+                 <option value="Gaji">Gaji / Slip Penghasilan</option>
+                 <option value="Hasil Usaha">Hasil Usaha / Bisnis</option>
+                 <option value="Warisan">Warisan</option>
+                 <option value="Orang Tua/Suami">Orang Tua / Suami</option>
+                 <option value="Lainnya">Sumber Lain yang Sah</option>
+               </select>
+             </div>
+
+             {/* D. DATA AHLI WARIS */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>👪 D. DATA AHLI WARIS (Khas Koperasi)</h3>
+             </div>
+
+             <CSInputField 
+               label="Nama Ahli Waris" 
+               placeholder="Nama Lengkap Sesuai KTP Ahli Waris..." 
+               value={formData.heirName} 
+               onChange={(val: string) => setFormData({...formData, heirName: val})} 
+             />
+             <CSInputField 
+               label="Hubungan Keluarga" 
+               placeholder="Contoh: Istri, Suami, Anak Kandung, Orang Tua..." 
+               value={formData.heirRelationship} 
+               onChange={(val: string) => setFormData({...formData, heirRelationship: val})} 
+             />
+             <div style={{ gridColumn: 'span 2' }}>
+               <CSInputField 
+                 label="Nomor Kontak Ahli Waris" 
+                 placeholder="WhatsApp atau Handphone Aktif..." 
+                 value={formData.heirPhone} 
+                 onChange={(val: string) => setFormData({...formData, heirPhone: val})} 
+               />
+             </div>
+
+             {/* Section 2: Kredensial Akun Portal */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>🛡️ KREDENSIAL LOGIN PORTAL ANGGOTA</h3>
+             </div>
+             
+             <CSInputField label="Kata Sandi Akun (Opsional)" placeholder="Bawaan menggunakan NIK..." value={formData.password} onChange={(val: string) => setFormData({...formData, password: val})} />
+
+             {/* Section 3: Setoran Awal Koperasi compliant SAK EP */}
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💵 SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
+             </div>
+
+             <CSInputField label="Simpanan Pokok (Setoran Awal)" placeholder="Contoh: 100000" value={formData.initialPrincipal} onChange={(val: string) => setFormData({...formData, initialPrincipal: val})} />
+             <CSInputField label="Simpanan Wajib (Setoran Awal)" placeholder="Contoh: 20000" value={formData.initialMandatory} onChange={(val: string) => setFormData({...formData, initialMandatory: val})} />
             
             <div style={{ gridColumn: 'span 2', marginTop: '30px' }}>
               <button 
@@ -706,16 +933,24 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.nik}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nomor Kartu Keluarga</span>
-                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.kk_number || '-'}</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Tempat/Tgl Lahir</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.birth_place_date || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Jenis Kelamin</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.gender || 'Laki-laki'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Status Pernikahan</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.marital_status || 'Belum Kawin'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Ibu Kandung</span>
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.mother_name || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Agama / Keyakinan</span>
-                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.religion || 'Islam'}</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Agama & WNI/WNA</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.religion || 'Islam'} ({selectedKyc.citizenship || 'WNI'})</span>
                       </div>
                     </div>
                   </div>
@@ -729,8 +964,16 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.occupation || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Perusahaan/Usaha</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.company_name || '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Estimasi Pendapatan</span>
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.monthly_income ? `Rp ${selectedKyc.monthly_income.toLocaleString('id-ID')} / bulan` : '-'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Sumber Dana (APU)</span>
+                        <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.funding_source || 'Gaji'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / HP</span>
@@ -739,6 +982,25 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Email Terdaftar</span>
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.users?.email}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ahli Waris Info */}
+                  <div style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>👪 Informasi Ahli Waris</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                      <div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NAMA AHLI WARIS</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedKyc.heir_name || '-'}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>HUBUNGAN KELUARGA</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedKyc.heir_relationship || '-'}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NOMOR TELEPON</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedKyc.heir_phone || '-'}</div>
                       </div>
                     </div>
                   </div>
@@ -1018,16 +1280,24 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.nik}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nomor Kartu Keluarga</span>
-                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.kk_number || '-'}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Tempat/Tgl Lahir</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.birth_place_date || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Jenis Kelamin</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.gender || 'Laki-laki'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Status Pernikahan</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.marital_status || 'Belum Kawin'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Ibu Kandung</span>
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.mother_name || '-'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Keyakinan / Agama</span>
-                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.religion || 'Islam'}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Agama & Kewarganegaraan</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.religion || 'Islam'} ({selectedMemberProfile.citizenship || 'WNI'})</span>
                   </div>
                 </div>
               </div>
@@ -1041,8 +1311,16 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.occupation}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Perusahaan/Usaha</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.company_name || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pendapatan Bulanan</span>
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>Rp {selectedMemberProfile.monthly_income?.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Sumber Dana (APU)</span>
+                    <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.funding_source || 'Gaji'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / Phone</span>
@@ -1051,6 +1329,25 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Email Portal</span>
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.users?.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ahli Waris Info */}
+              <div style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>👪 Informasi Ahli Waris (Khas Koperasi)</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NAMA AHLI WARIS</div>
+                    <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedMemberProfile.heir_name || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>HUBUNGAN KELUARGA</div>
+                    <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedMemberProfile.heir_relationship || '-'}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NOMOR TELEPON</div>
+                    <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedMemberProfile.heir_phone || '-'}</div>
                   </div>
                 </div>
               </div>

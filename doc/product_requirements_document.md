@@ -45,7 +45,11 @@ Peran (Role)
 ○      Similarity search ke database vektor hukum syariah.
 ○      Output: Skor kecocokan akad (misal: 90% Murabahah, 40% Mudharabah), mitigasi risiko, dan syarat administrasi tambahan.
 4.2. Modul Core Banking Syariah
-●      Manajemen Keanggotaan (CIF): Satu CIF untuk multi-rekening (simpanan & pembiayaan). Terintegrasi dengan fitur cek rekam jejak kredit (PI Checking internal).
+●      Manajemen Keanggotaan (CIF - KYC & APU-PPT Lengkap): Satu CIF untuk multi-rekening (simpanan & pembiayaan). Terintegrasi dengan fitur cek rekam jejak kredit (PI Checking internal). Pendaftaran anggota dikemas dalam formulir premium 4 bagian:
+  1. **A. Data Pribadi (Sesuai KTP)**: NIK, Tempat/Tgl Lahir, Jenis Kelamin, Status Pernikahan, Nama Ibu Kandung, Agama, & Kewarganegaraan (WNI/WNA).
+  2. **B. Data Kontak & Alamat**: WhatsApp, Email, Alamat KTP, dan Alamat Domisili saat ini (yang dilengkapi dengan **Toggle efisiensi "Sama dengan KTP"**).
+  3. **C. Data Pekerjaan & Keuangan (APU-PPT)**: Jenis Pekerjaan / Profesi, Nama Perusahaan / Bidang Usaha, Estimasi Pendapatan Bulanan, serta deklarasi wajib **Sumber Dana**.
+  4. **D. Data Ahli Waris**: Nama Ahli Waris, Hubungan Keluarga, & Kontak WhatsApp Ahli Waris untuk perlindungan saldo simpanan.
 ●      Siklus Penerimaan Kas: * Simpanan umum (Wadiah Yad Dhamanah).
 ○      Simpanan khusus (Haji, Umrah).
 ○      Penerimaan angsuran pembiayaan.
