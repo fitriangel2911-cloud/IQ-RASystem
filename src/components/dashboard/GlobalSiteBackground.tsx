@@ -58,7 +58,6 @@ export default function GlobalSiteBackground() {
           backgroundSize: '500px auto',
           backgroundRepeat: 'repeat',
           opacity: patternOpacity,
-          animation: 'movePatternTop 90s linear infinite',
           filter: 'none', 
           mixBlendMode: 'normal',
           transition: 'all 0.5s ease',
@@ -78,13 +77,6 @@ export default function GlobalSiteBackground() {
           pointerEvents: 'none'
         }}
       />
-
-      <style jsx global>{`
-        @keyframes movePatternTop {
-          from { transform: translate(0, 0); }
-          to { transform: translate(500px, 500px); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -44,6 +44,7 @@ Peran (Role)
 ○      Form input parameter pembiayaan (tujuan modal kerja/konsumtif/investasi).
 ○      Similarity search ke database vektor hukum syariah.
 ○      Output: Skor kecocokan akad (misal: 90% Murabahah, 40% Mudharabah), mitigasi risiko, dan syarat administrasi tambahan.
+○      Otomasi Dokumen Legal (Dynamic Contract PDF): Pembangkitan dokumen akad legal secara instan di sisi klien (browser) sesaat setelah rekomendasi AI disetujui secara manual oleh pengurus, mencakup klausul dinamis berdasarkan jenis akad (Bagi Hasil/Jual Beli) tanpa membebani server backend.
 4.2. Modul Core Banking Syariah
 ●      Manajemen Keanggotaan (CIF - KYC & APU-PPT Lengkap): Satu CIF untuk multi-rekening (simpanan & pembiayaan). Terintegrasi dengan fitur cek rekam jejak kredit (PI Checking internal). Pendaftaran anggota dikemas dalam formulir premium 4 bagian:
   1. **A. Data Pribadi (Sesuai KTP)**: NIK, Tempat/Tgl Lahir, Jenis Kelamin, Status Pernikahan, Nama Ibu Kandung, Agama, & Kewarganegaraan (WNI/WNA).

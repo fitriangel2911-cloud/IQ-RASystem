@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "23514",
+    "details": null,
+    "hint": null,
+    "message": "new row for relation \"prospects\" violates check constraint \"prospects_status_check\""
+  },
+  "message": "new row for relation \"prospects\" violates check constraint \"prospects_status_check\"",
+  "details": null
+}

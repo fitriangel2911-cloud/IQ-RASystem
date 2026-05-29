@@ -154,6 +154,18 @@ export default function AOPage() {
             label="Input Prospek" 
           />
           <AOMenuButton 
+            active={activeMenu === 'prospects'} 
+            onClick={() => setActiveMenu('prospects')} 
+            icon="🤖" 
+            label="Analisis AI" 
+          />
+          <AOMenuButton 
+            active={activeMenu === 'survey'} 
+            onClick={() => setActiveMenu('survey')} 
+            icon="🗺️" 
+            label="Survei Lapangan" 
+          />
+          <AOMenuButton 
             active={activeMenu === 'portfolio'} 
             onClick={() => setActiveMenu('portfolio')} 
             icon="📂" 
@@ -225,6 +237,8 @@ export default function AOPage() {
             <h2 style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '28px', margin: 0 }}>
               {activeMenu === 'overview' && '📊 Dashboard Operasional AO'}
               {activeMenu === 'leads' && '🎯 Manajemen Prospek & Lead'}
+              {activeMenu === 'prospects' && '🤖 Analisis Akad Berbasis AI'}
+              {activeMenu === 'survey' && '🗺️ Modul Verifikasi Lapangan'}
               {activeMenu === 'portfolio' && '📂 Monitoring Portofolio Aktif'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
@@ -254,30 +268,34 @@ function AOMenuButton({ active, onClick, icon, label }: any) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
-        padding: '18px 24px',
+        gap: '12px',
+        padding: '14px 18px',
         background: active 
           ? 'var(--text-primary)' 
           : (isHovered ? 'var(--border-primary)' : 'transparent'),
         color: active ? 'var(--bg-page)' : 'var(--text-primary)',
         border: active ? 'none' : '1.5px solid var(--border-primary)',
-        borderRadius: '20px',
-        fontSize: '16px',
-        fontWeight: 900,
+        borderRadius: '16px',
+        fontSize: '14px',
+        fontWeight: 800,
         textAlign: 'left',
         cursor: 'pointer',
         transform: !active && isHovered ? 'translateX(6px)' : 'scale(1)',
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: active ? '0 8px 20px var(--shadow-color)' : 'none',
-        width: '100%'
+        width: '100%',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
       }}
     >
       <span style={{ 
-        fontSize: '22px',
+        fontSize: '20px',
         transform: isHovered ? 'scale(1.15)' : 'scale(1)',
-        transition: 'transform 0.2s ease'
+        transition: 'transform 0.2s ease',
+        flexShrink: 0
       }}>{icon}</span>
-      {label}
+      <span style={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
     </button>
   );
 }

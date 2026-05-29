@@ -52,7 +52,7 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ### 📜 Manajemen Akad & Kepatuhan
 - [x] Modul Ingesti Dokumen (Upload PDF Fatwa DSN-MUI & PSAK).
 - [x] Validasi Akad Otomatis oleh AI sebelum pengesahan DPS.
-- [ ] Generate Dokumen Akad Otomatis (PDF).
+- [x] Generate Dokumen Akad Otomatis (PDF).
 
 ### 📊 Pelaporan Standar SAK EP
 - [x] Laporan Posisi Keuangan (Neraca).

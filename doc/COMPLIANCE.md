@@ -21,6 +21,7 @@ Sebagai entitas berbadan hukum syariah, perlakuan pencatatan transaksi dan pemis
 Tantangan utama di lapangan adalah tingginya subjektivitas petugas (Account Officer) yang sering kali berujung pada pemilihan jenis akad pinjaman yang tidak sesuai peruntukannya secara Islam. IQ-RA System menanggulanginya dengan *AI Engine*:
 - **Knowledge Base DSN-MUI:** Menggunakan teknologi AI berjenis *Retrieval-Augmented Generation* (RAG) yang terhubung ke *database* vektor literatur otentik seperti **Fatwa DSN-MUI** dan **SOP Koperasi**.
 - **Validasi dan Rekomendasi Akad:** AI bertugas mengekstraksi parameter pembiayaan yang diajukan (tujuan, aset, jaminan). Sistem lalu mengeluarkan persentase kecocokan akad beserta panduan syariahnya (Misal: *"Pembiayaan ini 90% cocok menggunakan Murabahah, dengan syarat administratif kuitansi pembelian aset fisik harus dilampirkan"*).
+- **Otomasi Pencetakan Dokumen Akad (Dynamic Contract):** Inovasi *client-side* PDF generation secara instan memastikan dokumen legal kontrak syariah yang ditandatangani memuat rincian hukum dan pasal yang terpersonalisasi persis dengan rekomendasi AI yang disetujui petugas (menghindari *human error* pengisian form akad secara manual).
 
 ## 4. Keamanan Sistem & Audit Internal
 

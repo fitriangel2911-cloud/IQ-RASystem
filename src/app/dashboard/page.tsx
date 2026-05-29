@@ -570,6 +570,12 @@ export default function DashboardPage() {
 
             {/* PEMBIAYAAN (AO) - DIRECT FLAT ACCESS */}
             <DashboardMenuButton 
+              active={activeTab === 'ao' && activeSubMenu === 'leads'} 
+              onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} 
+              icon="📝" 
+              label="Input Prospek Baru (AO)" 
+            />
+            <DashboardMenuButton 
               active={activeTab === 'ao' && activeSubMenu === 'overview'} 
               onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} 
               icon="🤝" 
@@ -586,6 +592,12 @@ export default function DashboardPage() {
               onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} 
               icon="📍" 
               label="Verifikasi Lapangan (AO)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'ao' && activeSubMenu === 'portfolio'} 
+              onClick={() => { setActiveTab('ao'); setActiveSubMenu('portfolio'); }} 
+              icon="📂" 
+              label="Portofolio Anggota (AO)" 
             />
 
             {/* AKUNTANSI (ACCOUNTING) - DIRECT FLAT ACCESS */}
@@ -612,7 +624,30 @@ export default function DashboardPage() {
             
             <div style={{ fontSize: '11px', color: theme === 'light' ? 'var(--emerald-deep)' : '#cca334', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '16px', marginBottom: '4px' }}>PENGAWASAN & OTO</div>
 
-            <DashboardMenuButton active={activeTab === 'manager'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="🏢" label="Otorisasi Manager" />
+            <DashboardMenuButton 
+              active={activeTab === 'manager' && activeSubMenu === 'overview'} 
+              onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} 
+              icon="🏢" 
+              label="Ikhtisar Manajer" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'manager' && activeSubMenu === 'approvals'} 
+              onClick={() => { setActiveTab('manager'); setActiveSubMenu('approvals'); }} 
+              icon="⚖️" 
+              label="Persetujuan Akad (Manajer)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'manager' && activeSubMenu === 'contracts'} 
+              onClick={() => { setActiveTab('manager'); setActiveSubMenu('contracts'); }} 
+              icon="📋" 
+              label="Riwayat Keputusan (Manajer)" 
+            />
+            <DashboardMenuButton 
+              active={activeTab === 'manager' && activeSubMenu === 'rag'} 
+              onClick={() => { setActiveTab('manager'); setActiveSubMenu('rag'); }} 
+              icon="🤖" 
+              label="RAG AI (Manajer)" 
+            />
             <DashboardMenuButton active={activeTab === 'dps'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="🕌" label="Audit Syariah (DPS)" />
 
             <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />

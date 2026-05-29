@@ -74,8 +74,9 @@ Modul ini memfasilitasi onboarding terintegrasi anggota baru secara real-time la
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
 4.3. Siklus Pengeluaran Kas (Expenditure Cycle)
 Mengatur penyaluran dana untuk pembiayaan anggota (Murabahah, Mudharabah, Musyarakah, Ijarah, Istishna), biaya operasional koperasi, serta perhitungan distribusi bagi hasil (Nisbah) secara otomatis.
-4.4. Rekomendasi Kepatuhan Syariah (RAG Pipeline)
-Layanan konsultasi dan alat bantu keputusan (decision support) berbasis AI yang mengekstraksi informasi dari korpus dokumen Fatwa DSN-MUI dan regulasi syariah guna merekomendasikan kesesuaian jenis akad pembiayaan secara sistematis sebelum disahkan.
+4.4. Rekomendasi Kepatuhan Syariah & Dynamic Contract (RAG Pipeline)
+Layanan konsultasi dan alat bantu keputusan (decision support) berbasis AI yang mengekstraksi informasi dari korpus dokumen Fatwa DSN-MUI dan regulasi syariah guna merekomendasikan kesesuaian jenis akad pembiayaan secara sistematis sebelum disahkan. 
+**Inovasi Dynamic Contract:** Sebagai kelanjutan langsung dari keputusan AI, setelah Account Officer melakukan persetujuan (approval) manual atas rekomendasi AI, sistem secara otomatis melakukan "Pembangkitan Dokumen Akad Legal" (PDF Generation) secara instan di sisi klien (*browser-side processing* menggunakan jsPDF). Inovasi ini menyatukan hasil analisis kepatuhan syariah dengan pembuatan dokumen kontrak hukum yang dinamis, memuat klausa spesifik (seperti Nisbah untuk Mudharabah atau Margin untuk Murabahah), serta meniadakan *human error* pengisian form manual tanpa membebani kinerja server backend.
 4.5. Laporan Keuangan Berbasis SAK EP dan PSAK
 Generasi otomatis laporan posisi keuangan, laporan laba rugi, laporan perubahan ekuitas, dan laporan arus kas yang memenuhi kriteria SAK EP, termasuk pemisahan akun sesuai ketentuan PSAK Syariah (401-407).
 

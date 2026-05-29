@@ -230,3 +230,12 @@ aside::-webkit-scrollbar, aside *::-webkit-scrollbar, [class*="sidebar"]::-webki
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
 }
+
+@keyframes movePatternTop {
+  0% { transform: translate(0px, 0px); }
+  100% { transform: translate(500px, 500px); }
+}
+
+.islamic-pattern-overlay-top {
+  animation: movePatternTop 90s linear infinite !important;
+}
