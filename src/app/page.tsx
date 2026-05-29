@@ -16,7 +16,7 @@ function Navbar() {
         {/* Logo area */}
         <div className="flex-shrink-0">
           <Link href="/" className="no-underline">
-            <BrandLogo size={42} fontSize="22px" />
+            <BrandLogo size={56} fontSize="28px" />
           </Link>
         </div>
 
@@ -60,7 +60,7 @@ function HeroSection() {
   const [showContact, setShowContact] = useState(false);
 
   return (
-    <section className="page-content-section py-8 md:py-16 px-6">
+    <section className="page-content-section pt-2 pb-8 md:pt-4 md:pb-16 px-6">
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div className="hero-glass-container px-6 py-10 md:py-16 md:px-10 text-center text-white">
           
@@ -166,7 +166,7 @@ function HeroSection() {
 
 function ProfilSection() {
   return (
-    <section id="profil" className="page-content-section py-16 md:py-20 px-6 bg-transparent">
+    <section id="profil" className="page-content-section pt-4 pb-16 md:pt-6 md:pb-20 px-6 bg-transparent">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center" style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div className="reveal">
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, color: '#cca334', marginBottom: 20, lineHeight: 1.1, letterSpacing: '-1px' }}>

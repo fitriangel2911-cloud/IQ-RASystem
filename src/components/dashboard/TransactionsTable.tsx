@@ -19,18 +19,18 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     switch (type.toLowerCase()) {
       case 'deposit':
       case 'simpanan': 
-        return { label: '📥 SETORAN TUNAI', color: '#10b981', sign: '+' };
+        return { label: 'SETORAN TUNAI', color: '#10b981', sign: '+' };
       case 'withdrawal':
       case 'penarikan': 
-        return { label: '📤 PENARIKAN TUNAI', color: '#ef4444', sign: '-' };
+        return { label: 'PENARIKAN TUNAI', color: '#ef4444', sign: '-' };
       case 'transfer_in': 
-        return { label: '📥 TRANSFER MASUK', color: '#10b981', sign: '+' };
+        return { label: 'TRANSFER MASUK', color: '#10b981', sign: '+' };
       case 'transfer_out': 
-        return { label: '📤 TRANSFER KELUAR', color: '#ef4444', sign: '-' };
+        return { label: 'TRANSFER KELUAR', color: '#ef4444', sign: '-' };
       case 'profit_share': 
-        return { label: '💎 BAGI HASIL (NISBAH)', color: 'var(--text-primary)', sign: '+' };
+        return { label: 'BAGI HASIL (NISBAH)', color: 'var(--text-primary)', sign: '+' };
       case 'financing_disbursement': 
-        return { label: '🤝 PENCAIRAN PEMBIAYAAN', color: '#3b82f6', sign: '+' };
+        return { label: 'PENCAIRAN PEMBIAYAAN', color: '#3b82f6', sign: '+' };
       default: 
         return { label: type.toUpperCase(), color: 'var(--text-primary)', sign: '' };
     }

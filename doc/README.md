@@ -1,42 +1,79 @@
 # IQ-RA System (Platform Keuangan Mikro Syariah Terintegrasi AI)
 
-IQ-RA System adalah platform perangkat lunak komprehensif berbasis web dan mobile yang dirancang khusus untuk Koperasi Simpan Pinjam Syariah (KSPS). Sistem ini bertujuan untuk mentransformasi operasional koperasi menuju ekosistem digital mandiri yang adaptif, stabil, transparan, dan sesuai syariah.
+IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dirancang khusus untuk Koperasi Simpan Pinjam Syariah (KSPS). Sistem ini bertujuan untuk mentransformasi operasional koperasi menuju ekosistem digital mandiri yang adaptif, stabil, transparan, dan sesuai syariah.
+
+---
+
+## Status Pengembangan (Per 24 Mei 2026)
+
+| Modul | Status | Keterangan |
+|---|---|---|
+| **Homepage Publik** | ✅ SELESAI & DIKUNCI | Navbar, Hero, Profil, Produk, Laporan, AI Section, Footer |
+| **Halaman Login** | ✅ SELESAI & DIKUNCI | Glassmorphism emerald, autentikasi Supabase |
+| **Halaman Register** | ✅ SELESAI & DIKUNCI | Form pendaftaran awal |
+| **Super Admin Dashboard** | ✅ Selesai | Flat sidebar, parameter engine, CIF registration |
+| **Customer Service (CS)** | ✅ Selesai | Pendaftaran anggota 4-bagian KYC/APU-PPT, auto-journaling |
+| **Account Officer (AO)** | ✅ Selesai | Pipeline pembiayaan, rekomendasi AI |
+| **Accounting** | ✅ Selesai | Jurnal double-entry, laporan SAK EP |
+| **Manager Dashboard** | ✅ Selesai | Approval, analitik |
+| **DPS Dashboard** | ✅ Selesai | Pengawasan syariah |
+| **Layanan Kasir / Teller** | ✅ SELESAI | 100% fungsional, 6 UI Utama, Denominasi Calc, Otorisasi Supervisor, Verifikasi Fisik KTP & Kartu Anggota, Cetak Laporan Konsolidasi Normatif |
+
+---
 
 ## Fitur Utama & Keunggulan (USPs)
 
 1. **Rekomendasi Akad Berbasis RAG (AI)**
-   Integrasi *Retrieval-Augmented Generation* (RAG) sebagai asisten pembuat keputusan (*Smart Decision Support System*) untuk menganalisis parameter pembiayaan dan merekomendasikan kecocokan akad berdasarkan *knowledge base* seperti Fatwa DSN-MUI.
+   Integrasi *Retrieval-Augmented Generation* (RAG) sebagai asisten pembuat keputusan (*Smart Decision Support System*) untuk menganalisis parameter pembiayaan dan merekomendasikan kecocokan akad berdasarkan *knowledge base* Fatwa DSN-MUI.
+
 2. **Kepatuhan Akuntansi SAK EP & PSAK Syariah (401-407)**
-   Arsitektur buku besar (*General Ledger*) real-time yang secara bawaan mendukung penjurnalan ganda (*double-entry*) otomatis, serta kemampuan auto-generate Laporan Posisi Keuangan, Laba Rugi, dan Arus Kas sesuai regulasi SAK EP terbaru.
+   Arsitektur buku besar (*General Ledger*) real-time yang secara bawaan mendukung penjurnalan ganda (*double-entry*) otomatis, serta kemampuan auto-generate Laporan Posisi Keuangan, Laba Rugi, dan Arus Kas.
+
 3. **Core Banking Syariah & KYC APU-PPT**
-   Mendukung manajemen keanggotaan terpusat (satu CIF untuk multi-rekening) yang memenuhi standar kepatuhan APU-PPT & perlindungan ahli waris melalui formulir pendaftaran 4-bagian (Data KTP, Kontak & Domisili dengan toggle efisiensi, Pekerjaan & Sumber Dana, dan Data Ahli Waris). Didukung oleh siklus simpanan kas, serta penyaluran dana (pembiayaan) dengan algoritma bagi hasil (Nisbah) dan margin untuk akad Murabahah, Musyarakah, Mudharabah, dan Qardhul Hasan.
+   Satu CIF untuk multi-rekening dengan formulir pendaftaran 4-bagian (Data KTP, Kontak & Domisili, Pekerjaan & Sumber Dana, Data Ahli Waris). Didukung siklus simpanan kas dan penyaluran dana (pembiayaan).
+
 4. **Integrasi Mobile & Pihak Ketiga**
-   Konektivitas siap pakai (*out-of-the-box*) untuk gerbang pembayaran (Flip API), layanan PPOB, serta IQ-RA Mobile Gateway yang melayani transaksi *mobile banking* anggota.
+   Konektivitas untuk gerbang pembayaran (Flip API), layanan PPOB, dan IQ-RA Mobile Gateway.
+
 5. **Modul Super Admin Terpusat & Flat Sidebar**
-   Navigasi flat langsung ke intinya untuk mempercepat audit operasional, didukung oleh mesin parameter dinamis (`system_parameters`) untuk mengubah nominal setoran simpanan dasar, biaya administrasi, dan infaq secara live ke seluruh jaringan CS.
+   Navigasi flat langsung untuk mempercepat audit operasional, didukung mesin parameter dinamis (`system_parameters`).
+
+---
 
 ## Target Pengguna & Hak Akses Berjenjang
 
-Sistem menerapkan Row-Level Security (RLS) di level *database* untuk berbagai entitas:
-- **Teller**: Transaksi penerimaan dan pengeluaran kas harian.
+Sistem menerapkan Row-Level Security (RLS) di level *database*:
+- **Teller**: Transaksi kas harian — 6 UI Utama (Dasbor Shift, Profil Anggota, Setoran, Penarikan, Angsuran, Buka/Tutup Shift).
 - **Customer Service**: Registrasi anggota dan pembukaan rekening.
 - **Account Officer (AO)**: Analisis pembiayaan, interaksi RAG AI.
-- **Manajer / Komite**: *Approval* pencairan pembiayaan dan pemantauan dasbor analitik.
+- **Manajer / Komite**: Approval pencairan dan pemantauan dasbor analitik.
 - **Accounting**: Verifikasi jurnal harian dan pencetakan laporan.
-- **Super Admin (IT)**: Konfigurasi parameter sistem secara penuh dan pengawasan operasional langsung dengan Flat Sidebar.
-- **Anggota (Aplikasi Mobile)**: Akses hanya-baca untuk saldo pribadi dan transaksi transfer/PPOB.
+- **Super Admin (IT)**: Konfigurasi parameter sistem secara penuh dengan Flat Sidebar.
+- **Anggota (Aplikasi Mobile)**: Akses hanya-baca untuk saldo pribadi.
+
+---
 
 ## Arsitektur Teknologi
 
-Dibangun menggunakan arsitektur *Full-stack Serverless* untuk memaksimalkan efisiensi performa dan redundansi:
-- **Antarmuka (Frontend):** Next.js (React), TypeScript, Tailwind CSS.
-- **Backend & Database:** Supabase (PostgreSQL relasional) dilengkapi ekstensi **pgvector** untuk *database* vektor AI.
-- **Mesin AI (Orchestrator):** LangChain.js untuk pemrosesan NLP (Natural Language Processing) dan ekstraksi informasi hukum syariah.
-- **Keamanan & Kualitas:** Pipeline CI/CD GitHub Actions terintegrasi SonarCloud.
+- **Frontend:** Next.js (React), TypeScript, Tailwind CSS
+- **Backend & Database:** Supabase (PostgreSQL + pgvector)
+- **Mesin AI:** LangChain.js (RAG Pipeline)
+- **Keamanan & Kualitas:** CI/CD GitHub Actions + SonarCloud
+
+---
 
 ## Peta Jalan Implementasi (Roadmap)
 
-1. **Fase 1 (Bulan 1-2):** Inisialisasi arsitektur Next.js & Supabase, konfigurasi RLS, migrasi data anggota.
-2. **Fase 2 (Bulan 3-4):** Modul Core Banking (Teller/CS) dan otomasi Akuntansi.
-3. **Fase 3 (Bulan 5-6):** Ingesti dokumen vektor Fatwa DSN-MUI (RAG AI) dan integrasi API pihak ketiga.
-4. **Fase 4 (Bulan 7):** UAT (User Acceptance Testing), simulasi sistem harian, dan rilis penuh (*Go-Live*).
+| Fase | Periode | Status |
+|---|---|---|
+| **Fase 1** — Fondasi & Migrasi | Bulan 1-2 | ✅ Selesai |
+| **Fase 2** — Core Banking & Akuntansi | Bulan 3-4 | ✅ Selesai |
+| **Fase 3** — RAG AI & Integrasi API | Bulan 5-6 | 🔄 Aktif |
+| **Fase 4** — UAT & Go-Live | Bulan 7 | ⏳ Menunggu |
+
+### Pekerjaan Aktif Saat Ini (Fase 3)
+- Integrasi RAG AI Engine + LangChain secara komprehensif ke basis data pengetahuan.
+
+### Pekerjaan Berikutnya
+- Pengujian Beban (Load Testing) untuk sistem RAG AI.
+- UAT modular terintegrasi penuh bersama pengguna nyata.

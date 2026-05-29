@@ -32,6 +32,14 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Otomasi Pembuatan Rekening Simpanan Koperasi (Pokok, Wajib, Sukarela/Wadiah) saat Pendaftaran.
 - [x] Automasi Jurnal Akuntansi (Double-Entry SAK EP) & Rekam Mutasi untuk Setoran Awal Simpanan.
 
+### 💰 Operasional Keuangan (Siklus Kas Teller)
+- [x] Siklus Penerimaan Kas (Simpanan Wadiah/Mudharabah).
+- [x] Siklus Pengeluaran Kas (Penarikan Tunai & Penyaluran Pembiayaan).
+- [x] Automasi Jurnal Akuntansi Double-Entry (SAK EP).
+- [x] Sistem Otorisasi Penarikan Limit Supervisor (> Rp 5.000.000).
+- [x] Kalkulator Denominasi Kas Fisik Teller.
+- [x] Verifikasi Fisik KTP & Kartu Anggota (Protokol Nomor Kartu Anggota) untuk Kenyamanan Layanan.
+
 ---
 
 ## 🚧 Sedang Dikerjakan (In Progress)
@@ -41,13 +49,6 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 - [x] Integrasi LangChain.js untuk orkestrasi RAG.
 - [x] UI Konsultasi Kepatuhan Syariah (AI Analysis di AO Dashboard).
 - [x] Setup pgvector untuk penyimpanan basis pengetahuan syariah.
-
-### 💰 Operasional Keuangan
-- [x] Siklus Penerimaan Kas (Simpanan Wadiah/Mudharabah).
-- [x] Siklus Pengeluaran Kas (Penyaluran Pembiayaan).
-- [x] Automasi Jurnal Akuntansi (Double-entry).
-
----
 
 ### 📜 Manajemen Akad & Kepatuhan
 - [x] Modul Ingesti Dokumen (Upload PDF Fatwa DSN-MUI & PSAK).
@@ -69,6 +70,14 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+- **2026-05-29 (Sesi Sore - Finalisasi Modul Teller Terminal & Standardisasi Readability)**:
+    - **Penyelesaian & Sinkronisasi Sif Kasir**: Shift Teller sekarang terintegrasi penuh ke database Supabase `teller_shifts`, mendukung auto-resume shift aktif saat masuk sistem.
+    - **Protokol Verifikasi Fisik KTP & Kartu Anggota**: Mengubah alur penarikan dari PIN rahasia ke pencocokan fisik KTP & Kartu Anggota oleh Teller dengan input Nomor Kartu Anggota (tercatat jelas di Buku Jurnal dan struk penarikan).
+    - **Laporan Keuangan Konsolidasi & Mutasi Normatif Anggota**: Tabulasi interaktif Simpanan, Utang Pembiayaan aktif, Neraca Bersih, dan tombol Cetak Laporan Konsolidasi Normatif berformat formal syariah.
+    - **Kalkulator Denominasi Kas Fisik**: Mengintegrasikan kalkulator pecahan lembaran uang tunai di panel Setoran untuk kenyamanan input kas.
+    - **Standardisasi Skala Typography Laptop**: Memperbesar ukuran teks input, nominal, penjelasan akad syariah, status keaktifan rekening, dan total saldo hingga skala `13px` - `36px` tebal agar sangat terbaca di layar laptop teller.
+    - **Pembersihan Visual Baku Koperasi**: Menghapus seluruh emoji informal dan ikon dekorasi non-profesional dari seluruh panel dan struk, digantikan dengan status modern berbasis CSS.
+
 - **2026-05-22 (Sesi Malam - Finalisasi Pelaporan SAK EP & Integrasi COA)**:
     - **Pembaruan Basis COA**: Memigrasi referensi Chart of Accounts (COA) dari *hardcoded* statis ke pemetaan komprehensif berdasarkan spreadsheet Koperasi standar (Kode 1-7).
     - **Otomatisasi Laporan Keuangan**: Menyelesaikan seluruh modul laporan SAK EP (Neraca, Laba Rugi Komprehensif, Perubahan Ekuitas, dan Arus Kas Metode Tidak Langsung) yang berjalan dinamis secara real-time berdasarkan entri jurnal di `AccountingDashboard.tsx`.

@@ -44,18 +44,28 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
             Selamat datang kembali di portal layanan syariah mandiri Anda. Anda dapat mengelola tabungan, melihat imbal hasil mudharabah, dan mengajukan pembiayaan tanpa riba dari sini.
           </p>
         </div>
-        {/* Giant faint background vector element */}
+        {/* Giant faint background geometric vector element instead of Mosque emoji */}
         <div style={{
-          position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%) scale(1.6)',
-          opacity: 0.04, fontSize: '120px', pointerEvents: 'none', userSelect: 'none'
-        }}>🕌</div>
+          position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%)',
+          opacity: 0.03, color: 'var(--text-primary)', pointerEvents: 'none', userSelect: 'none'
+        }}>
+          <svg width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
       </div>
 
       {/* Metrics Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7">
         {/* Total Balance Card */}
         <div style={cardStyle('var(--text-primary)')}>
-          <div style={cardHeaderStyle}>💵 Total Saldo Keseluruhan</div>
+          <div style={cardHeaderStyle}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px', verticalAlign: 'middle', display: 'inline-block' }}>
+              <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            Total Saldo Keseluruhan
+          </div>
           <div style={cardValueStyle}>{formatCurrency(totalBalance)}</div>
           <div style={cardSubText}>{accounts.length} Rekening terdaftar</div>
           <button onClick={() => setActiveTab('accounts')} style={cardButtonStyle}>Lihat Rekening ↗</button>
@@ -63,7 +73,14 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
         {/* Transactions Counter Card */}
         <div style={cardStyle('#10b981')}>
-          <div style={cardHeaderStyle}>📊 Volume Transaksi</div>
+          <div style={cardHeaderStyle}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px', verticalAlign: 'middle', display: 'inline-block' }}>
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            Volume Transaksi
+          </div>
           <div style={cardValueStyle}>{transactions.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.5 }}>Aktivitas</span></div>
           <div style={cardSubText}>Pembukuan mutasi real-time</div>
           <button onClick={() => setActiveTab('transactions')} style={cardButtonStyle}>Mutasi Rekening ↗</button>
@@ -71,7 +88,15 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
 
         {/* Financing Card */}
         <div style={cardStyle('#3b82f6')}>
-          <div style={cardHeaderStyle}>🤝 Akad Pembiayaan</div>
+          <div style={cardHeaderStyle}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px', verticalAlign: 'middle', display: 'inline-block' }}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Akad Pembiayaan
+          </div>
           <div style={cardValueStyle}>{contracts.length} <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-secondary)', opacity: 0.5 }}>Pengajuan</span></div>
           <div style={cardSubText}>{contracts.filter(c => c.status === 'pending').length} Menunggu Tinjauan</div>
           <button onClick={() => setActiveTab('financing')} style={cardButtonStyle}>Status Akad ↗</button>
@@ -98,7 +123,11 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
               boxShadow: '0 15px 30px var(--shadow-color)'
             }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px' }}>🚨</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fecaca" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
                 <span style={{ fontWeight: 900, color: '#fecaca', fontSize: '16px' }}>Segera Lengkapi Dokumen!</span>
               </div>
               <p style={{ color: '#ffffff', fontSize: '13px', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
@@ -110,10 +139,14 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
                   background: '#fca5a5', color: '#450a0a', border: 'none',
                   padding: '12px 18px', borderRadius: '12px', fontWeight: 900, fontSize: '13px',
                   cursor: 'pointer', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
-                  marginTop: '4px'
+                  marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                 }}
               >
-                ✏️ Sunting & Lengkapi
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Sunting & Lengkapi
               </button>
             </div>
           )}
@@ -128,7 +161,13 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
             flexDirection: 'column',
             gap: '12px'
           }}>
-            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>💡 Tips Keamanan Finansial</h4>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f3c653" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Tips Keamanan Finansial
+            </h4>
             <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
               Ingatlah untuk tidak pernah memberikan kata sandi (password) akun iQ-RA Anda kepada siapa pun, termasuk kepada petugas koperasi kami. Petugas resmi tidak akan pernah meminta kredensial pribadi Anda.
             </p>
@@ -167,12 +206,32 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
                     background: 'var(--bg-page)', backdropFilter: 'blur(16px)', padding: '14px 18px', borderRadius: '14px',
                     border: '1px solid var(--border-primary)'
                   }}>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                        {tx.type.toLowerCase().includes('deposit') ? '📥 Setoran' : isOut ? '📤 Penarikan' : '💸 Transaksi'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '10px',
+                        background: isOut ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: isOut ? '#ef4444' : '#10b981'
+                      }}>
+                        {isOut ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="17" y1="17" x2="7" y2="7"></line>
+                            <polyline points="7 17 7 7 17 7"></polyline>
+                          </svg>
+                        )}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        {new Date(tx.created_at).toLocaleDateString('id-ID')}
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {tx.type.toLowerCase().includes('deposit') ? 'Setoran Masuk' : isOut ? 'Penarikan Tunai' : 'Transaksi Buku'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                          {new Date(tx.created_at).toLocaleDateString('id-ID')}
+                        </div>
                       </div>
                     </div>
                     <div style={{
@@ -211,7 +270,9 @@ const cardHeaderStyle = {
   opacity: 0.6,
   textTransform: 'uppercase' as any,
   letterSpacing: '1px',
-  marginBottom: '12px'
+  marginBottom: '12px',
+  display: 'flex',
+  alignItems: 'center'
 };
 
 const cardValueStyle = {
