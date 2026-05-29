@@ -108,12 +108,12 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
       if (error) throw error;
 
-      alert('✅ Profil & Dokumen Berhasil Diperbarui!');
+      alert('Profil & Dokumen Berhasil Diperbarui!');
       setEditing(false);
       onUpdateSuccess();
     } catch (err: any) {
       console.error('Save Profile Error:', err);
-      alert('❌ Gagal memperbarui profil: ' + err.message);
+      alert('Gagal memperbarui profil: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -141,7 +141,20 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         gap: '20px',
         boxShadow: '0 15px 35px var(--shadow-color)'
       }}>
-        <div style={{ fontSize: '48px' }}>{isProfileComplete ? '✅' : '⚠️'}</div>
+        <div style={{ flexShrink: 0 }}>
+          {isProfileComplete ? (
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          ) : (
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          )}
+        </div>
         <div>
           <h4 style={{ 
             fontSize: '18px', 
@@ -172,7 +185,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid var(--border-primary)', paddingBottom: '20px' }}>
-          <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>🗂️ Berkas Dokumen & KYC Fisik</h3>
+          <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Berkas Dokumen & KYC Fisik</h3>
           {!editing && (
             <button
               onClick={() => setEditing(true)}
@@ -181,12 +194,19 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 border: 'none', padding: '10px 24px', borderRadius: '12px',
                 fontSize: '14px', fontWeight: 800, cursor: 'pointer',
                 boxShadow: '0 4px 15px var(--shadow-color)',
-                transition: 'transform 0.2s'
+                transition: 'transform 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              ✏️ Sunting Profil
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Sunting Profil
             </button>
           )}
         </div>
@@ -432,10 +452,30 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                   background: '#10b981', border: 'none',
                   color: 'var(--bg-page)', padding: '14px 40px', borderRadius: '12px',
                   fontSize: '15px', fontWeight: 900, cursor: 'pointer',
-                  boxShadow: '0 4px 15px var(--shadow-color)'
+                  boxShadow: '0 4px 15px var(--shadow-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                {saving ? '🔄 Mengunggah...' : '💾 Simpan Dokumen'}
+                {saving ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="animate-spin">
+                      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)"></circle>
+                      <path d="M12 2v20M2 12h20"></path>
+                    </svg>
+                    Mengunggah...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Simpan Dokumen
+                  </>
+                )}
               </button>
             </div>
           </form>

@@ -1,52 +1,124 @@
 # Panduan Pengembangan (Developer Guide): IQ-RA System
 
-Dokumen ini berisi standar teknis, konvensi, dan alur kerja (*workflow*) yang wajib diikuti oleh seluruh pengembang (*developer*) yang berkontribusi dalam repositori IQ-RA System.
+Dokumen ini berisi standar teknis, konvensi, dan alur kerja (*workflow*) yang wajib diikuti oleh seluruh pengembang yang berkontribusi dalam repositori IQ-RA System.
 
-## 1. Lingkungan Pengembangan (Development Environment)
+**Versi:** 1.2 | **Diperbarui:** 24 Mei 2026
+
+---
+
+## 1. Lingkungan Pengembangan
 
 ### Prasyarat Perangkat Lunak
-- **Node.js**: Versi 18.x atau yang lebih baru.
-- **Package Manager**: Sesuai dengan konfigurasi proyek (`npm`, `pnpm`, atau `yarn`).
+- **Node.js**: Versi 18.x atau lebih baru.
+- **Package Manager**: `npm` (sesuai konfigurasi proyek).
 - **Git**: Manajemen versi repositori.
-- **Supabase CLI**: Sangat disarankan untuk menjalankan *database* dan manajemen *migrations* secara lokal.
+- **Supabase CLI**: Disarankan untuk manajemen *migrations* lokal.
 
 ### Tech Stack Utama
-- **Frontend Utama**: Next.js (App Router disarankan), React.js.
-- **Bahasa Pemrograman**: TypeScript (*Strict Mode* wajib diaktifkan).
-- **Styling**: Tailwind CSS.
-- **Database & Auth**: Supabase (PostgreSQL, pgvector, GoTrue).
-- **Mesin Orkestrasi AI**: LangChain.js.
+- **Frontend:** Next.js (App Router), React.js, TypeScript (*Strict Mode*).
+- **Styling:** Tailwind CSS + CSS Variables global.
+- **Database & Auth:** Supabase (PostgreSQL, pgvector, GoTrue).
+- **AI Orchestration:** LangChain.js.
 
-## 2. Standar Penulisan Kode (Coding Standards)
+### Perintah Dasar
+```bash
+npm run dev      # Jalankan dev server (localhost:3000)
+npm run build    # Build produksi (hanya jika diminta)
+npm run lint     # Cek linting TypeScript
+```
 
-- **Wajib TypeScript (Type-Safety):** Penggunaan tipe `any` sangat dilarang kecuali dalam keadaan darurat. Semua objek respons *database* (misal: *JournalEntry*, *CIF*, *FinancingContract*) harus memiliki definisi antarmuka (`interface` atau `type`) yang tegas untuk memblokir *bug* sebelum fase *runtime*.
-- **Arsitektur React:** Gunakan *Functional Components*. Disarankan untuk mengisolasi logika UI (presentasional) dari logika pengambilan data (*fetching*).
-- **Server Components (Next.js):** Manfaatkan *Server Components* sebisa mungkin untuk mengurangi ukuran *bundle* di *client* dan untuk menyembunyikan logika serta *API keys* yang bersifat rahasia.
-- **Desain UI & Multi-Theme**:
-  - Gunakan standar utilitas Tailwind CSS serta CSS Variables global yang dinamis (`var(--bg-page)`, `var(--text-primary)`, dll.) untuk seluruh komponen dashboard agar mendukung Mode Siang (Light) dan Malam (Dark) secara otomatis.
-  - Untuk halaman publik yang bersifat sakral (Beranda, Login, Register), **desain telah dikunci sepenuhnya** menggunakan latar belakang papercut putih murni dan tidak boleh diubah. Pengembang dilarang keras memodifikasi `GlobalSiteBackground.tsx` tanpa menyertakan isolasi rute (`usePathname`) untuk mencegah kebocoran tema dasbor ke halaman publik.
-- **Sidebar & Navigasi:** Gunakan komponen `Sidebar` yang mendukung *state management* `isOpen`. Pastikan konten utama menggunakan margin dinamis atau transisi yang halus agar tidak menutupi (*overlap*) elemen navigasi. Khusus untuk dasbor **Super Admin**, navigasi wajib disusun secara **Flat** (akses langsung ke tugas spesifik operasional) tanpa panel kolaps/lipat bertingkat guna mempermudah audit operasional yang cepat dan efisien. Pada area Sidebar Staff, pastikan `ThemeToggle` memiliki margin atas yang cukup agar tidak bertumpukan dengan tombol tutup (✕). Pada portal anggota, tombol `ThemeToggle` diletakkan terpusat pada header atas bersandingan dengan lencana sinkronisasi aktif.
-- **Penekanan Visual (Special Props):** Untuk layanan inti operasional (seperti Layanan Kasir), gunakan prop `isSpecial={true}` pada `DashboardMenuButton` untuk memberikan penekanan visual berupa ukuran teks yang lebih besar dan warna *Dark Emerald Green* yang tegas.
+---
 
-## 3. Aturan Manajemen Database (Supabase)
+## 2. Standar Penulisan Kode
 
-- **Row-Level Security (RLS):** RLS **wajib** berstatus aktif di seluruh tabel operasional. Dilarang keras melakukan *bypass* autentikasi menggunakan *Service Role Key* secara langsung dari sisi klien (Browser/Aplikasi Mobile).
-- **Transaksi ACID (*Double-Entry*):** Setiap mutasi yang berkaitan dengan pergerakan saldo kas dan pembuatan jurnal (*General Ledger*) wajib dikemas dalam *Database Transactions* atau fungsi RPC (*Stored Procedures* PostgreSQL). Ini untuk menjamin tidak adanya mutasi "separuh-jalan" yang menyebabkan kebocoran kas saat koneksi API pihak ketiga terputus.
-- **Migrasi Database:** Segala modifikasi struktur tabel harus dieksekusi melalui *migration files* menggunakan Supabase CLI, bukan secara manual melalui *dashboard* antarmuka.
+### TypeScript
+- Penggunaan `any` dilarang kecuali darurat. Semua objek dari Supabase wajib memiliki `interface` atau `type` yang jelas.
+- Gunakan *Functional Components* untuk semua komponen React.
+- Manfaatkan *Server Components* Next.js semaksimal mungkin untuk menyembunyikan API keys.
 
-## 4. Keamanan & Manajemen Variabel Lingkungan
+### Desain UI & Tema
+- Gunakan **CSS Variables** global (`var(--bg-page)`, `var(--text-primary)`, dll.) untuk semua komponen dashboard agar mendukung Light/Dark Mode otomatis.
+- Palet warna resmi:
+  - Dark Emerald: `#043121` / `#084b35`
+  - Metallic Gold: `#cca334` / `#f3c653` / `#a67e26`
+  - Slate Arang: `#334155` / `#1e293b`
 
-- **File Rahasia:** File konfigurasi lokal seperti `.env` atau `.env.local` yang menyimpan kredensial Supabase, kunci API Payment Gateway (Flip/PPOB), dan API LLM **wajib dimasukkan** ke `.gitignore` dan tidak boleh di-komit.
-- **Eksekusi Server-Side:** Operasi berat atau sensitif (seperti pemrosesan AI via LangChain atau pemanggilan *Service Key* Supabase) harus ditempatkan secara eksklusif pada *API Routes* atau *Server Actions* Next.js.
+---
 
-## 5. Alur Kerja Git & Pipeline CI/CD
+## 3. ⚠️ Halaman yang DIKUNCI (LOCKED PAGES)
 
-- **Strategi Percabangan (*Branching*):**
-  - `main`: Kode *production* (*stable*).
-  - `staging`: Kode prapeluncuran untuk keperluan *User Acceptance Testing* (UAT).
-  - `feature/nama-fitur`: Untuk pengembangan modul baru.
-  - `hotfix/nama-bug`: Untuk perbaikan insiden kritis.
-- **Audit Otomatis (GitHub Actions & SonarCloud):**
-  - Setiap pengajuan *Pull Request* (PR) menuju `main` atau `staging` akan memicu *pipeline* **GitHub Actions** secara otomatis.
-  - Pipeline ini terintegrasi dengan **SonarCloud** untuk meninjau secara statis apakah terdapat *code smells*, *bugs*, atau *security vulnerabilities*.
-  - PR **tidak diizinkan** untuk di-*merge* jika indikator kualitas (*Quality Gate*) dari SonarCloud menunjukkan status *Failed*.
+Halaman berikut **TIDAK BOLEH diubah** dalam kondisi apapun tanpa persetujuan eksplisit:
+
+| File | Alasan Kunci |
+|---|---|
+| `src/app/page.tsx` | Homepage publik — desain final disetujui 24 Mei 2026 |
+| `src/app/login/` | Halaman login — desain glassmorphism final |
+| `src/app/register/` | Halaman register — desain final |
+| `src/components/dashboard/GlobalSiteBackground.tsx` | Background papercut — dilarang dimodifikasi tanpa isolasi rute |
+
+**Perubahan homepage yang sudah dikunci:**
+- Logo navbar diperbesar: `size={56}`, `fontSize="28px"`
+- Padding HeroSection dikurangi: `pt-2 pb-8 md:pt-4 md:pb-16`
+- Padding ProfilSection dikurangi: `pt-4 pb-16 md:pt-6 md:pb-20`
+
+---
+
+## 4. Konvensi Sidebar & Navigasi
+
+- Komponen `Sidebar` mendukung state `isOpen` dengan transisi halus.
+- Konten utama gunakan `marginLeft` dinamis saat sidebar terbuka.
+- **Super Admin:** Navigasi wajib **Flat** (akses langsung ke tugas) tanpa panel kolaps bertingkat.
+- **Teller Terminal:** Navigasi 6 panel via keyboard shortcut `[1]`–`[6]`. Setiap item menu menampilkan hint shortcut kecil.
+- Prop `isSpecial={true}` pada `DashboardMenuButton` untuk layanan inti (mis. Layanan Kasir).
+
+---
+
+## 5. Konvensi Modul Teller (6 UI Utama)
+
+Panel navigasi di `src/app/teller/page.tsx`:
+
+| Key | Panel | Shortcut |
+|---|---|---|
+| `dashboard` | Status Shift & Dasbor | `[1]` |
+| `member` | Profil & Pencarian Anggota | `[2]` |
+| `deposit` | Setoran Tunai | `[3]` |
+| `withdrawal` | Penarikan Tunai | `[4]` |
+| `payment` | Pembayaran Angsuran | `[5]` |
+| `shift` | Buka / Tutup Shift | `[6]` |
+
+**State yang di-share antar panel** (disimpan di `page.tsx`):
+- `selectedMember` — anggota yang sedang aktif dilayani
+- `balance` — saldo anggota terpilih
+- `shiftStatus` — status shift aktif/tutup
+
+**Limit otorisasi:** Penarikan > Rp 5.000.000 wajib memicu pop-up otorisasi supervisor.
+
+---
+
+## 6. Aturan Manajemen Database (Supabase)
+
+- **RLS wajib aktif** di seluruh tabel operasional. Dilarang bypass via Service Role Key dari sisi klien.
+- **Transaksi ACID (Double-Entry):** Mutasi saldo dan jurnal wajib dikemas dalam Database Transactions atau RPC.
+- **Migrasi Database:** Modifikasi struktur tabel hanya via Supabase CLI migration files.
+
+---
+
+## 7. Keamanan & Variabel Lingkungan
+
+- File `.env` / `.env.local` wajib masuk `.gitignore`.
+- Operasi sensitif (LangChain, Supabase Service Key) hanya di API Routes atau Server Actions Next.js.
+
+---
+
+## 8. Alur Kerja Git & CI/CD
+
+### Strategi Branching
+- `main` — Kode production (stable).
+- `staging` — Prapeluncuran untuk UAT.
+- `feature/nama-fitur` — Pengembangan modul baru.
+- `hotfix/nama-bug` — Perbaikan insiden kritis.
+
+### Pipeline Otomatis
+- Setiap PR ke `main` atau `staging` memicu GitHub Actions.
+- Terhubung SonarCloud untuk deteksi *code smells* & *vulnerabilities*.
+- PR tidak diizinkan merge jika Quality Gate SonarCloud *Failed*.

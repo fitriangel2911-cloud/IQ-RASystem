@@ -27,11 +27,59 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Ringkasan Akun', icon: '📊' },
-    { id: 'accounts', label: 'Daftar Rekening', icon: '💳' },
-    { id: 'transactions', label: 'Riwayat Transaksi', icon: '💸' },
-    { id: 'financing', label: 'Pengajuan Pembiayaan', icon: '🤝' },
-    { id: 'profile', label: 'Profil & Dokumen', icon: '👤' },
+    {
+      id: 'overview',
+      label: 'Ringkasan Akun',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+      )
+    },
+    {
+      id: 'accounts',
+      label: 'Daftar Rekening',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="3" ry="3"></rect>
+          <line x1="1" y1="10" x2="23" y2="10"></line>
+        </svg>
+      )
+    },
+    {
+      id: 'transactions',
+      label: 'Riwayat Transaksi',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      )
+    },
+    {
+      id: 'financing',
+      label: 'Pengajuan Pembiayaan',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      )
+    },
+    {
+      id: 'profile',
+      label: 'Profil & Dokumen',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      )
+    },
   ];
 
   const isProfileComplete = profile?.nik && profile?.kk_number && profile?.phone_number;
@@ -174,7 +222,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
                 boxShadow: isActive ? '0 10px 20px var(--shadow-color)' : 'none'
               }}
             >
-              <span style={{ fontSize: '20px', transform: isHovered ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.2s ease' }}>{item.icon}</span>
+              <span style={{ display: 'flex', alignItems: 'center', transform: isHovered ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.2s ease' }}>{item.icon}</span>
               {item.label}
             </button>
           );
@@ -211,7 +259,12 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
           e.currentTarget.style.color = 'var(--text-primary)';
         }}
       >
-        <span>🚪</span> Keluar Sesi
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        Keluar Sesi
       </button>
     </aside>
   );
