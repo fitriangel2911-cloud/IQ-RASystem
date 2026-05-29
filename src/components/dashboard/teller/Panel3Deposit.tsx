@@ -120,7 +120,8 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
         if (res.ok) {
           const data = await res.json();
           const mapped: Record<string, string> = {};
-          data.forEach((p: any) => { mapped[p.key] = p.value; });
+          const paramsList = data.success && Array.isArray(data.parameters) ? data.parameters : (Array.isArray(data) ? data : []);
+          paramsList.forEach((p: any) => { mapped[p.key] = p.value; });
           setSysParams(mapped);
         }
       } catch (err) {
