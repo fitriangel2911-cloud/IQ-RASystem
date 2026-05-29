@@ -35,7 +35,7 @@ export class AIService {
       });
 
       // Fetch 3 most relevant documents
-      let contextDocs = [];
+      let contextDocs: any[] = [];
       try {
         contextDocs = await vectorStore.similaritySearch(query, 3);
       } catch (e) {
