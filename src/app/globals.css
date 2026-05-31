@@ -24,6 +24,24 @@ html { scroll-behavior: smooth; }
   --pattern-opacity: 0.25;
   --shadow-color: rgba(0, 0, 0, 0.5);
   --gold-gradient: linear-gradient(135deg, #f3c653 0%, #cca334 100%);
+
+  /* Semantic Contrast Colors (Dark Mode Defaults) */
+  --text-success: #10b981;
+  --text-warning: #fbbf24;
+  --text-danger: #ef4444;
+  --text-info: #60a5fa;
+  --text-gold: #f3c653;
+  --bg-subtle-success: rgba(16, 185, 129, 0.1);
+  --bg-subtle-warning: rgba(251, 191, 36, 0.1);
+  --bg-subtle-danger: rgba(239, 68, 68, 0.1);
+  --bg-subtle-info: rgba(96, 165, 250, 0.08);
+  --border-success: rgba(16, 185, 129, 0.3);
+  --border-warning: rgba(251, 191, 36, 0.3);
+  --border-danger: rgba(239, 68, 68, 0.3);
+  --border-info: rgba(96, 165, 250, 0.3);
+  --bg-badge: rgba(255, 255, 255, 0.05);
+  --bg-dark-box: rgba(0, 0, 0, 0.2);
+  --bg-track: rgba(255, 255, 255, 0.06);
 }
 
 .light-mode {
@@ -32,7 +50,7 @@ html { scroll-behavior: smooth; }
   --bg-card: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.9);
   --text-primary: #010906; /* Ultra-dark near black forest primary text */
-  --text-secondary: #1f2937; /* Crisp dark charcoal secondary text for supreme readability */
+  --text-secondary: #000000; /* Extremely dark pure black text for maximum readability */
   --border-primary: rgba(4, 49, 33, 0.12); /* Soft forest green border */
   --pattern-opacity: 0.45;
   --shadow-color: rgba(4, 49, 33, 0.05);
@@ -45,6 +63,24 @@ html { scroll-behavior: smooth; }
   --emerald-deep: #043121;
   --emerald-mid: #084b35;
   --emerald-light: #bcf72b;
+
+  /* Semantic Contrast Colors (Light Mode Adaptations - Elegant White Box with Gold/Green borders) */
+  --text-success: #047857; /* Deep forest green for high contrast readability */
+  --text-warning: #b45309; /* Deep golden amber */
+  --text-danger: #b91c1c; /* Deep brick red */
+  --text-info: #1d4ed8; /* Deep professional royal blue */
+  --text-gold: #854d0e; /* Elegant bronze gold */
+  --bg-subtle-success: #ffffff; /* pure white background in light mode */
+  --bg-subtle-warning: #ffffff; /* pure white background in light mode */
+  --bg-subtle-danger: #ffffff; /* pure white background in light mode */
+  --bg-subtle-info: #ffffff; /* pure white background in light mode */
+  --border-success: #047857; /* crisp emerald/green border */
+  --border-warning: #cca334; /* crisp gold border */
+  --border-danger: #b91c1c; /* crisp brick red border */
+  --border-info: #1d4ed8; /* crisp blue border */
+  --bg-badge: rgba(4, 49, 33, 0.05);
+  --bg-dark-box: rgba(4, 49, 33, 0.04); /* Crisp, clean, extremely elegant light container */
+  --bg-track: rgba(4, 49, 33, 0.08);
 }
 
 body {
