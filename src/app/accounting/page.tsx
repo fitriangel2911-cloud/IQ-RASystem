@@ -8,6 +8,7 @@ import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 export default function AccountingPage() {
   const router = useRouter();
@@ -250,6 +251,9 @@ export default function AccountingPage() {
 
         <AccountingDashboard activeMenu={activeMenu} profile={profile} />
       </main>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="accounting" />
     </div>
   );
 }

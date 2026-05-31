@@ -13,6 +13,7 @@ import CSDashboard from '@/components/dashboard/CSDashboard';
 import AIKnowledgeManager from '@/components/dashboard/AIKnowledgeManager';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 // Intensely styled menu button for the dashboard sidebar
 function DashboardMenuButton({ active, onClick, icon, label, isSpecial = false }: { active: boolean, onClick: () => void, icon: string, label: string, isSpecial?: boolean }) {
@@ -2158,6 +2159,9 @@ export default function DashboardPage() {
           @keyframes scaleUp { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         `}</style>
 
+        {/* Immersive Global AI Chatbot */}
+        <AIChatbot role={profile?.role || 'super_admin'} />
+
       </div>
     );
   }
@@ -2303,6 +2307,9 @@ export default function DashboardPage() {
 
         </div>
       </div>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="member" />
     </>
   );
 }

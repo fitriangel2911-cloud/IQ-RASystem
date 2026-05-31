@@ -11,6 +11,7 @@ import ProfileForm from '@/components/dashboard/ProfileForm';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile';
 
@@ -267,6 +268,9 @@ export default function MemberPage() {
         </div>
 
       </main>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="member" />
 
       {/* Embedded Global Keyframes */}
       <style jsx global>{`

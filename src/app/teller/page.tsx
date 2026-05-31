@@ -8,6 +8,7 @@ import TellerTerminal from '@/components/dashboard/TellerTerminal';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 export default function TellerPage() {
   const router = useRouter();
@@ -207,6 +208,9 @@ export default function TellerPage() {
         </div>
 
       </main>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="teller" />
 
       <style jsx global>{`
         @keyframes fadeIn {

@@ -19,17 +19,19 @@ Sistem menggunakan kerangka kerja RAG untuk menekan angka halusinasi (*hallucina
 - **Knowledge Base (Korpus Data):** Tabel `sharia_knowledge` akan diisi secara berkala oleh Super Admin dengan literatur utama seperti:
   1. Dokumen resmi Fatwa DSN-MUI (Dewan Syariah Nasional - Majelis Ulama Indonesia).
   2. Standar Operasional Prosedur (SOP) Pembiayaan Koperasi.
-  3. Dokumen regulasi PSAK Syariah.
+  3. Dokumen Standar Akuntansi & PSAK (IAI) - Kategori `IAI_PSAK`.
+  4. Regulasi Pemerintah / Undang-Undang - Kategori `REGULASI`.
+  5. Sumber Buku / Kitab Fikih - Kategori `BUKU_FIKIH`.
 
 ## 3. Alur Pemrosesan (*RAG Pipeline*)
 
 Siklus kerja kecerdasan buatan ini dibagi menjadi lima tahapan sistematis:
 
-1. **Ingesti (Ingestion):** Super Admin/Administrator mengunggah dokumen referensi syariah berbentuk PDF atau teks.
-2. **Transformasi (Chunking):** Dokumen panjang dipecah-pecah (*chunking*) menjadi fragmen-fragmen pendek (misalnya per pasal atau poin fatwa) agar konteks batasannya lebih spesifik.
-3. **Vektorisasi (Embedding):** Model embedding mengubah teks tersebut menjadi array angka matriks (*embeddings*) yang kemudian disimpan secara permanen di `pgvector`.
-4. **Retrieval (Pencarian Konteks):** Ketika AO menginput data profil pengajuan anggota (contoh kasus: *"Butuh dana 50 juta untuk beli traktor sawah, agunan BPKB"*), LangChain menjalankan *Similarity Search* matematis untuk mencari fatwa atau SOP yang relevan dengan kasus "pembelian alat pertanian beragunan".
-5. **Generasi (Synthesis):** Konteks hukum yang didapatkan dari database diserahkan kepada LLM. LLM lalu merangkainya menjadi jawaban yang mudah dibaca oleh manusia.
+1. **Ingesti (Ingestion):** Administrator mengunggah dokumen referensi syariah berbentuk teks atau dokumen fisik.
+2. **Transformasi (Chunking):** Dokumen panjang dipecah-pecah (*chunking*) menjadi fragmen-fragmen pendek agar konteks batasannya lebih spesifik.
+3. **Vektorisasi (Embedding):** Model embedding mengubah teks tersebut menjadi array angka matriks (*embeddings*) berdimensi 1536 yang kemudian disimpan secara permanen di database `pgvector` (`sharia_knowledge`).
+4. **Retrieval (Pencarian Konteks):** Ketika AO menginput data profil pengajuan anggota, LangChain menjalankan *Similarity Search* matematis untuk mencari fatwa atau referensi syariah terdekat.
+5. **Generasi (Synthesis):** Konteks hukum yang didapatkan dari database diserahkan kepada LLM untuk merangkainya menjadi jawaban komprehensif.
 
 ## 4. Format Input dan Output (*Interface*)
 
@@ -39,6 +41,16 @@ Siklus kerja kecerdasan buatan ini dibagi menjadi lima tahapan sistematis:
 - **Kondisi Agunan:** Jenis jaminan (jika ada).
 
 **Output yang Dihasilkan LLM (Tampil di Dashboard AO):**
-- **Skor Kecocokan Akad:** Probabilitas bentuk akad yang paling ideal (Contoh visual: *Murabahah - 90%*, *Mudharabah - 30%*).
+- **Skor Kecocokan Akad:** Probabilitas bentuk akad yang paling ideal (Contoh: *Murabahah - 90%*, *Mudharabah - 30%*).
 - **Justifikasi Syariah:** Penjelasan singkat berbasis fatwa mengapa akad tersebut cocok.
-- **Syarat Mitigasi Risiko:** Syarat administratif (*compliance notes*) tambahan sebelum pencairan (Contoh: *"Karena menggunakan skema Murabahah (jual-beli), AO wajib menerbitkan surat Wakalah (perwakilan) jika anggota yang ditugaskan membeli traktor tersebut dari supplier, dan nota pembelian fisik wajib diarsip."*).
+- **Syarat Mitigasi Risiko:** Syarat administratif (*compliance notes*) tambahan sebelum pencairan.
+
+## 5. Spesifikasi Teknis Integrasi & Keandalan (*Robustness*)
+
+Untuk menjamin keandalan sistem pada level produksi, IQ-RA RAG Engine dilengkapi dengan mekanisme pertahanan mandiri berikut:
+
+- **Model Vektor Aktif (`gemini-embedding-001`)**: Migrasi penuh dari model lama `text-embedding-004` (dimatikan Google sejak Januari 2026) ke model handal `gemini-embedding-001`.
+- **Adaptasi Dimensi Otomatis (1536-dim)**: Dilengkapi modul *slicing* (pemotongan) dan *zero-padding* otomatis untuk menjamin semua output model embedding Google diselaraskan secara presisi ke tipe data database `vector(1536)`.
+- **Auto-Retry & Exponential Backoff (429 handling)**: Sistem secara otomatis menunda eksekusi selama 3 detik dan mencoba kembali hingga 3 kali jika mendeteksi batas kuota gratisan per menit dari Google terlampaui (*429 Resource Exhausted*).
+- **Server-Side RLS Bypass**: Jalur penulisan database pada `/api/ai/ingest` mendukung penggunaan kunci `SUPABASE_SERVICE_ROLE_KEY` secara aman di sisi server untuk kelancaran penyimpanan korpus data tanpa terhambat oleh kebijakan Row Level Security (RLS) pada tabel.
+- **Auto-Migration Skema Data**: Terintegrasi penyelarasan dinamis saat dasbor dibuka untuk secara otomatis merapikan dokumen lama ke struktur kategori terbaru tanpa merusak data asli.

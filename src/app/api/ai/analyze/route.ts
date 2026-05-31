@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AIService } from '@/services/ai.service';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +11,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Purpose and amount are required' }, { status: 400 });
     }
 
-    const result = await AIService.analyzeProspect({ purpose, amount, description });
+    const supabase = await createClient();
+    const result = await AIService.analyzeProspect({ purpose, amount, description }, supabase);
     
     return NextResponse.json(result);
   } catch (error: any) {

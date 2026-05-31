@@ -9,11 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@langchain/community": "^1.1.28",
-    "@langchain/core": "^1.1.46",
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.1.48",
+    "@langchain/google-genai": "^2.1.31",
     "@langchain/openai": "^1.4.7",
     "@supabase/ssr": "^0.10.3",
-    "@supabase/supabase-js": "^2.105.4",
+    "@supabase/supabase-js": "^2.106.2",
     "clsx": "^2.1.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

@@ -2,7 +2,7 @@
 
 Dokumen ini menguraikan arsitektur tingkat tinggi dari IQ-RA System.
 
-**Versi:** 1.2 | **Diperbarui:** 24 Mei 2026
+**Versi:** 1.3 | **Diperbarui:** 31 Mei 2026
 
 ---
 
@@ -109,16 +109,21 @@ src/
 | `users` | Kredensial & RBAC (7 peran) dengan RLS |
 | `members` | Data CIF anggota (KYC & APU-PPT) |
 | `savings_accounts` | Rekening simpanan (pokok/wajib/wadiah) |
+| `savings_transactions` | Mutasi setoran & penarikan harian |
 | `journal_entries` | Buku besar double-entry SAK EP |
-| `financing_contracts` | Akad pembiayaan, amortisasi, nisbah |
+| `financing_contracts` | Akad pembiayaan, amortisasi, nisbah, `audit_metadata` (JSONB) |
+| `prospects` | Pipeline pengajuan calon debitur (AO workflow) |
+| `purifications` | Riwayat alokasi dana non-halal ke sektor sosial (ZISWAF) |
+| `teller_shifts` | Log buka/tutup shift kasir harian |
 | `system_parameters` | Parameter dinamis operasional koperasi |
-| `sharia_knowledge` | Vector embeddings fatwa DSN-MUI (pgvector) |
-| `teller_shifts` *(planned)* | Log buka/tutup shift teller harian |
+| `sharia_knowledge` | Vector embeddings fatwa DSN-MUI (pgvector, 1536-dim) |
 
 ### 4.3. Modul RAG (AI Engine)
 - **LangChain.js:** Orkestrator prompt & pipeline RAG.
-- **pgvector:** Similarity search knowledge base syariah.
-- **Alur:** Input AO → Ekstraksi parameter → Similarity search → Skor kecocokan akad.
+- **pgvector:** Similarity search knowledge base syariah (1536-dim).
+- **Model Embedding:** `gemini-embedding-001` (Google AI) — dengan auto-retry 429, zero-padding/slicing otomatis.
+- **Model LLM:** `gemini-2.5-flash` (cascade fallback ke `gemini-1.5-flash`).
+- **Alur Audit DPS:** Kontrak dipilih → `/api/ai/audit-contract` → RAG context → Opini + Compliance Score → DPS checklist.
 
 ### 4.4. Chart of Accounts (COA SAK EP)
 Defined in `src/lib/constants/coa.ts`:

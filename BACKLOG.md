@@ -2,6 +2,8 @@
 
 Dokumen ini digunakan untuk melacak kemajuan pengembangan IQ-RA System (Platform Keuangan Mikro Syariah berbasis RAG).
 
+> **Status Terkini (31 Mei 2026):** Fase III 100% selesai. Semua modul (DPS, Teller, CS, AO, Accounting, Manager) sudah production-ready. Fase IV (UAT & Go-Live) menjadi prioritas utama berikutnya.
+
 ---
 
 ## ✅ Selesai (Completed)
@@ -23,7 +25,8 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Dashboard Manager (Ringkasan Eksekutif).
 - [x] Dashboard Accounting (Jurnal & Buku Besar).
 - [x] Dashboard AO (Manajemen Nasabah & Akad).
-- [x] Dashboard DPS (Pengawasan Syariah & RAG Pipeline View).
+- [x] Dashboard DPS (Pusat Pengawasan Kepatuhan - 6 UI Utama Premium & Ingesti Vektor RAG).
+- [x] Dashboard DPS — Standardisasi UI/UX Tema (High-Contrast, Theme-Aware CSS Variables, White Card Light Mode, Gold/Green Borders).
 - [x] Dashboard Teller (Transaksi Kas).
 - [x] Dashboard Customer Service (Registrasi Anggota).
 
@@ -40,20 +43,20 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Kalkulator Denominasi Kas Fisik Teller.
 - [x] Verifikasi Fisik KTP & Kartu Anggota (Protokol Nomor Kartu Anggota) untuk Kenyamanan Layanan.
 
----
-
-## 🚧 Sedang Dikerjakan (In Progress)
-Fitur yang dalam tahap pengembangan aktif atau integrasi.
-
 ### 🤖 Kecerdasan Buatan (AI & RAG)
 - [x] Integrasi LangChain.js untuk orkestrasi RAG.
 - [x] UI Konsultasi Kepatuhan Syariah (AI Analysis di AO Dashboard).
-- [x] Setup pgvector untuk penyimpanan basis pengetahuan syariah.
+- [x] Setup pgvector & Endpoint Ingesti Vektor Riil (`/api/ai/ingest`).
+- [x] Robustness Patch: Penanganan Rate Limit (429) Google Gemini secara otomatis dengan jeda 3 detik dan 3x Auto-Retry.
+- [x] Migrasi Model Vektor: Pembersihan model usang `text-embedding-004` ke model aktif `gemini-embedding-001` dengan slicing/padding otomatis 1536 dimensi.
 
 ### 📜 Manajemen Akad & Kepatuhan
-- [x] Modul Ingesti Dokumen (Upload PDF Fatwa DSN-MUI & PSAK).
-- [x] Validasi Akad Otomatis oleh AI sebelum pengesahan DPS.
-- [x] Generate Dokumen Akad Otomatis (PDF).
+- [x] Modul Ingesti & Vektorisasi Dokumen Fatwa Syariah.
+- [x] Refaktor Kategori Dasbor RAG: Pemisahan Regulasi Pemerintah dari PSAK, penyatuan IAI/PSAK, serta penambahan kategori Sumber Buku / Kitab Fikih.
+- [x] Penghapusan Dokumen RAG: Ditambahkan tombol Hapus dokumen di dasbor dengan konfirmasi aman.
+- [x] Server-Side RLS Bypass: Mengintegrasikan `SUPABASE_SERVICE_ROLE_KEY` pada api /api/ai/ingest untuk kelancaran penulisan data vektor.
+- [x] Validasi Akad Otomatis & Split-Screen Document Viewer pada DPS.
+- [x] Generate & Cetak Laporan Hasil Pengawasan Syariah Resmi RAT (PDF).
 
 ### 📊 Pelaporan Standar SAK EP
 - [x] Laporan Posisi Keuangan (Neraca).
@@ -61,15 +64,59 @@ Fitur yang dalam tahap pengembangan aktif atau integrasi.
 - [x] Laporan Arus Kas (Metode Langsung/Tidak Langsung).
 - [x] Laporan Perubahan Ekuitas.
 
-### 🛡️ Keamanan & Optimasi
-- [ ] Audit Row-Level Security (RLS) di semua tabel Supabase.
-- [ ] Pengujian Beban (Load Testing) untuk sistem RAG.
-- [ ] User Acceptance Testing (UAT) dengan user asli.
-- [ ] Deployment Produksi ke Vercel dengan optimasi build.
+---
+
+## 🚧 Rencana Berikutnya (Up Next — Fase IV)
+Fitur dan tugas yang menjadi prioritas pada fase deployment dan pengujian.
+
+### 🧪 Pengujian & Validasi
+- [ ] **User Acceptance Testing (UAT)** — Simulasi transaksi harian bersama user asli (Teller, AO, DPS, CS).
+- [ ] **Blackbox Testing** — Pengujian alur lengkap dari registrasi anggota → pengajuan pembiayaan → audit DPS → pencairan → pencatatan akuntansi.
+- [ ] **Pengujian Beban (Load Testing)** — Stress test paralel untuk sistem RAG dan endpoint AI.
+- [ ] **Audit Row-Level Security (RLS)** — Verifikasi kebijakan akses data antar-role di semua tabel Supabase.
+
+### 🚀 Deployment & Go-Live
+- [ ] **Deployment Produksi ke Vercel** — Build produksi Next.js dengan optimasi image, caching, dan environment secrets.
+- [ ] **Konfigurasi Domain & SSL** — Setup custom domain KSPPS + sertifikat HTTPS produksi.
+- [ ] **Migrasi Data Awal (Data Seeding)** — Import data anggota & akad aktif dari sistem lama ke Supabase produksi.
+- [ ] **Training Pengguna** — Sesi pelatihan singkat untuk setiap role staf operasional.
+
+### 🔮 Rencana Jangka Panjang (Fase V — Post Go-Live)
+- [ ] **Integrasi Payment Gateway (Flip API)** — Transfer antar bank real-time.
+- [ ] **Integrasi PPOB** — Pulsa, token PLN, e-wallet.
+- [ ] **IQ-RA Mobile Gateway** — API untuk anggota mengakses data mandiri.
+- [ ] **Notifikasi Otomatis (Push/WhatsApp)** — Notifikasi jatuh tempo angsuran, saldo masuk, dan laporan berkala.
+- [ ] **Dashboard Anggota (Member Portal)** — Versi ringkas cek saldo, mutasi, dan riwayat pembayaran angsuran mandiri.
 
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+
+- **2026-05-31 (Standardisasi UI/UX DPS — Tema & Aksesibilitas Visual)**:
+    - **Kontainer Putih Bersih Light Mode**: Mengganti seluruh kontainer berwarna hijau yang mengganggu di Mode Terang menjadi kartu putih murni (`#ffffff`) agar tampak bersih, premium, dan sangat mudah dibaca.
+    - **Token Border Semantik Baru**: Menambahkan 4 token CSS border khusus di `globals.css`: `--border-success` (hijau zamrud `#047857`), `--border-warning` (emas `#cca334`), `--border-danger` (merah bata `#b91c1c`), `--border-info` (biru royal `#1d4ed8`) — masing-masing diterapkan ke panel yang sesuai di `DPSDashboard.tsx`.
+    - **Huruf Hitam Pekat (High Contrast)**: Warna teks sekunder di Mode Terang diperbarui menjadi hitam murni (`#000000`) untuk memastikan keterbacaan maksimal sesuai standar aksesibilitas WCAG AA/AAA.
+    - **Penyelarasan Menyeluruh DPS (6 Tab)**: Seluruh elemen hardcoded hex color di Audit Tab, Product Approval Tab, ZISWAF/Purification Tab, LHPS Report Tab, dan global class `.glass-dark` telah dikonversi sepenuhnya ke variabel CSS semantik tema-agnostik.
+    - **Verifikasi Browser Otomatis**: Pengujian visual dengan *browser subagent* otonom mengkonfirmasi seluruh elemen UI sangat mudah dibaca, formal, dan berwibawa di kedua mode (Terang & Gelap).
+
+- **2026-05-30 (Sesi Malam — Finalisasi AI Chatbot & DPS Audit Infrastructure)**:
+    - **Multi-Model Gemini Cascade**: Implementasi sistem *cascade* model AI (gemini-2.5-flash → gemini-1.5-flash) untuk menghindari ketergantungan model tunggal dan mencegah halusinasi.
+    - **DPS Audit Endpoint**: Finalisasi `/api/ai/audit-contract/route.ts` dengan integrasi Supabase service role dan RAG context retrieval berbasis jenis akad.
+    - **Dossier Portofolio Debitur**: Penyempurnaan tampilan dossier debitur (jaminan, kelayakan bisnis, dan DSCR) yang terpicu oleh pilihan kontrak di tab Audit Pembiayaan.
+    - **Konfigurasi Gemini API Key Terbaru**: Validasi dan penggantian API key format `AQ.` yang aktif di `.env.local` untuk memastikan kelancaran koneksi ke Google AI Studio.
+
+- **2026-05-30 (Sesi Pagi - Pemantapan Pipeline AI RAG, Gemini 429 Auto-Retry, & Manajemen Kategori)**:
+    - **Resolusi Gemini API & Deprekasi Model**: Migrasi total dari model usang `text-embedding-004` yang telah dimatikan Google ke model aktif `gemini-embedding-001`. Berhasil memverifikasi konektivitas kunci API format baru `AQ.` di peramban dan server Next.js.
+    - **Penyembuhan Otomatis Kuota (Rate Limit 429)**: Memasang mekanisme *Exponential Backoff* & *Auto-Retry* selama 3 detik (hingga 3x percobaan) di `ai.service.ts` untuk mengatasi penolakan kuota gratisan per menit dari Google secara senyap di latar belakang.
+    - **Refaktor Kategori Dasbor RAG**: Menata ulang kategori RAG untuk memisahkan Regulasi Pemerintah dengan PSAK, menyatukan IAI & PSAK menjadi satu kategori `IAI_PSAK` (Standar Akuntansi & PSAK (IAI)), serta menambahkan kategori baru **Sumber Buku / Kitab Fikih**.
+    - **Pembersihan Basis Data Otomatis**: Menambahkan fitur penghapusan dokumen secara aman dengan dialog konfirmasi untuk membuang dokumen usang atau zero-vector dari database.
+    - **Bypass RLS Ingesti Sisi Server**: Memperbarui `/api/ai/ingest/route.ts` agar mendukung penggunaan `SUPABASE_SERVICE_ROLE_KEY` secara aman untuk melewati Row Level Security (RLS) di sisi server, menyelesaikan galat *permission denied* saat memproses vektor baru.
+    - **Auto-Migration Data Kategori**: Menjalankan migrasi otomatis di peramban untuk memindahkan seluruh dokumen kategori lama `REGULASI` dan `IAI` ke kategori terpadu `IAI_PSAK` secara aman dan instan tanpa kehilangan data fatwa yang telah terbentuk sebelumnya.
+- **2026-05-29 (Sesi Malam - Perluasan Dashboard DPS & Integrasi Riil RAG Ingestion)**:
+    - **Penyelesaian 5 UI Utama DPS**: Membangun 5 modul visual premium: Shariah Health Score Dashboard, Audit Pembiayaan Split-Screen, Manajemen Akad & Produk baru, Pengawasan Pendapatan Non-Halal, dan Generator Laporan RAT.
+    - **Integrasi Vektorisasi Riil (RAG Ingestion)**: Mengganti simulasi (mock) ingesti dengan endpoint riil `/api/ai/ingest` yang memproses OpenAI Embeddings dan menyimpannya ke database pgvector `sharia_knowledge`.
+    - **Split-Screen Viewer**: Membuat visualisasi dokumen fisik akad syariah bergaya kertas klasik dengan penyorotan (highlight) klausul sensitif secara otomatis oleh AI.
+    - **Ekspor PDF Laporan RAT**: Mengintegrasikan library `jsPDF` untuk menghasilkan dan mengunduh dokumen resmi Laporan Hasil Pengawasan Syariah ber-kop surat resmi dan bertanda tangan elektronik secara klien-side.
 - **2026-05-29 (Sesi Sore - Finalisasi Modul Teller Terminal & Standardisasi Readability)**:
     - **Penyelesaian & Sinkronisasi Sif Kasir**: Shift Teller sekarang terintegrasi penuh ke database Supabase `teller_shifts`, mendukung auto-resume shift aktif saat masuk sistem.
     - **Protokol Verifikasi Fisik KTP & Kartu Anggota**: Mengubah alur penarikan dari PIN rahasia ke pencocokan fisik KTP & Kartu Anggota oleh Teller dengan input Nomor Kartu Anggota (tercatat jelas di Buku Jurnal dan struk penarikan).

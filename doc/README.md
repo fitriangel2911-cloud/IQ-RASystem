@@ -4,7 +4,7 @@ IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dira
 
 ---
 
-## Status Pengembangan (Per 24 Mei 2026)
+## Status Pengembangan (Per 31 Mei 2026)
 
 | Modul | Status | Keterangan |
 |---|---|---|
@@ -16,7 +16,7 @@ IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dira
 | **Account Officer (AO)** | ✅ Selesai | Pipeline pembiayaan, rekomendasi AI |
 | **Accounting** | ✅ Selesai | Jurnal double-entry, laporan SAK EP |
 | **Manager Dashboard** | ✅ Selesai | Approval, analitik |
-| **DPS Dashboard** | ✅ Selesai | Pengawasan syariah |
+| **DPS Dashboard** | ✅ SELESAI | 6 Panel Pengawasan Syariah AI-RAG, audit split-screen, ZISWAF, LHPS PDF, UI/UX terstandarisasi (theme-aware) |
 | **Layanan Kasir / Teller** | ✅ SELESAI | 100% fungsional, 6 UI Utama, Denominasi Calc, Otorisasi Supervisor, Verifikasi Fisik KTP & Kartu Anggota, Cetak Laporan Konsolidasi Normatif |
 
 ---
@@ -68,12 +68,17 @@ Sistem menerapkan Row-Level Security (RLS) di level *database*:
 |---|---|---|
 | **Fase 1** — Fondasi & Migrasi | Bulan 1-2 | ✅ Selesai |
 | **Fase 2** — Core Banking & Akuntansi | Bulan 3-4 | ✅ Selesai |
-| **Fase 3** — RAG AI & Integrasi API | Bulan 5-6 | 🔄 Aktif |
-| **Fase 4** — UAT & Go-Live | Bulan 7 | ⏳ Menunggu |
+| **Fase 3** — RAG AI, DPS & Standarisasi | Bulan 5-6 | ✅ Selesai |
+| **Fase 4** — UAT & Go-Live | Bulan 7 | 🟡 Aktif |
+| **Fase 5** — Integrasi & Mobile | Bulan 8+ | ⏳ Menunggu |
 
-### Pekerjaan Aktif Saat Ini (Fase 3)
-- Integrasi RAG AI Engine + LangChain secara komprehensif ke basis data pengetahuan.
+### Pekerjaan Aktif Saat Ini (Fase 4)
+- **User Acceptance Testing (UAT)** — Simulasi transaksi harian bersama user asli per role.
+- **Audit RLS Supabase** — Verifikasi kebijakan Row-Level Security di semua tabel.
+- **Deployment ke Vercel** — Build produksi dengan environment secrets & optimasi.
 
-### Pekerjaan Berikutnya
-- Pengujian Beban (Load Testing) untuk sistem RAG AI.
-- UAT modular terintegrasi penuh bersama pengguna nyata.
+### Pekerjaan Berikutnya (Fase 5)
+- Integrasi Payment Gateway (Flip API) untuk transfer antar bank real-time.
+- Integrasi PPOB (pulsa, token PLN, e-wallet).
+- IQ-RA Mobile Gateway untuk portal mandiri anggota.
+- Notifikasi otomatis (Push/WhatsApp) jatuh tempo angsuran.

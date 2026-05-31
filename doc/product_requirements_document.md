@@ -1,7 +1,7 @@
 Product Requirements Document (PRD)
 Nama Produk: IQ-RA System (Platform Keuangan Mikro Syariah Terintegrasi AI)
-Versi: 1.0
-Tanggal Dokumen: 11 Mei 2026
+Versi: 1.2
+Tanggal Dokumen: 31 Mei 2026
 1. Ringkasan Eksekutif (Executive Summary)
 IQ-RA System adalah platform perangkat lunak komprehensif berbasis web dan mobile yang dirancang khusus untuk Koperasi Simpan Pinjam Syariah (KSPS). Sistem ini bertujuan untuk mentransformasi operasional koperasi dari sistem legacy (pihak ketiga) menuju ekosistem digital mandiri yang adaptif, stabil, transparan, dan sesuai syariah.
 Nilai jual utama (USPs) dari IQ-RA System adalah integrasi Retrieval-Augmented Generation (RAG) sebagai Smart Decision Support System untuk merekomendasikan kesesuaian akad pembiayaan, serta arsitektur akuntansi bawaan yang secara native mematuhi SAK EP dan regulasi PSAK Syariah terbaru (401-407).
@@ -159,9 +159,10 @@ Formulir pendaftaran premium 4 bagian:
 |---|---|---|
 | **Fase 1** — Fondasi & Migrasi | Setup Next.js, Supabase, RLS, SonarCloud, migrasi data awal | ✅ Selesai |
 | **Fase 2** — Core Banking & Akuntansi | Modul Teller (6 UI), CS, Accounting, COA SAK EP | ✅ Selesai |
-| **Fase 3** — RAG AI & Integrasi API | Ingesti fatwa DSN-MUI ke pgvector, LangChain, Flip/PPOB | 🔄 Aktif |
-| **Fase 4** — Testing, UAT & Go-Live | Blackbox testing, simulasi harian, training, Go-Live | ⏳ Menunggu |
+| **Fase 3** — RAG AI, DPS & Standarisasi | Ingesti fatwa DSN-MUI ke pgvector, LangChain, 6 Panel DPS, Standarisasi UI/UX Tema | ✅ Selesai |
+| **Fase 4** — Testing, UAT & Go-Live | Blackbox testing, simulasi harian, training, Deploy ke Vercel | 🟡 Aktif |
+| **Fase 5** — Integrasi & Mobile | Payment Gateway (Flip API), PPOB, IQ-RA Mobile Gateway, Push Notification | ⏳ Menunggu |
 
-**Pekerjaan Aktif:** RAG AI Engine + LangChain (Fase 3).
+**Sprint Aktif:** Persiapan UAT, Final RLS Audit, dan Deployment Produksi ke Vercel (Fase 4).
 
-> File: `src/components/dashboard/teller/Panel1Dashboard.tsx` s.d. `Panel6Shift.tsx` + `TellerTerminal.tsx` (orchestrator)
+> File utama yang harus diperhatikan: `src/components/dashboard/DPSDashboard.tsx`, `src/app/globals.css`, `src/app/api/ai/audit-contract/route.ts`

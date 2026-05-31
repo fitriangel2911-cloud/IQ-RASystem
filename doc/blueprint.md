@@ -1,7 +1,7 @@
 # Cetak Biru Sistem (Blueprint): IQ-RA System
 **Platform Keuangan Mikro Syariah Terintegrasi AI — RAG & SAK EP**
 
-**Versi:** 1.3 | **Diperbarui:** 29 Mei 2026
+**Versi:** 1.4 | **Diperbarui:** 31 Mei 2026
 
 4.2. Siklus Penerimaan Kas (Revenue Cycle)
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
@@ -121,9 +121,41 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 - Akad: Murabahah, Mudharabah, Musyarakah, Ijarah, Istishna, Qardhul Hasan.
 - Engine perhitungan Nisbah dan margin.
 
-### 4.5. Rekomendasi Syariah (RAG Pipeline)
-- Input parameter pembiayaan → Similarity search pgvector → Skor kecocokan akad.
-- Knowledge base: Fatwa DSN-MUI, SOP Koperasi, PSAK.
+### 4.5. Pengawasan Syariah & RAG Pipeline (Dewan Pengawas Syariah — 5 UI Utama Premium)
+
+> Status: **✅ Selesai (Sprint 31 Mei 2026)** — 6 panel lengkap Dewan Pengawas Syariah (DPS) dengan visualisasi makro Shariah Health Score, audit pembiayaan split-screen (Visual Dokumen Fisik Akad + Penyorotan AI), manajemen produk baru terintegrasi pencarian RAG Fatwa, form pembersihan dana non-halal (ta'zir/giro) ke sektor sosial, generator laporan RAT dengan ekspor PDF dinamis (`jsPDF`), dan ingesti basis pengetahuan pgvector secara riil via API `/api/ai/ingest`.
+>
+> **UI/UX Terstandarisasi (31 Mei 2026):** Seluruh 6 tab DPS menggunakan variabel CSS semantik tema-agnostik (`--bg-card`, `--text-gold`, `--border-success`, dll.) — menjamin keterbacaan tinggi, kontras WCAG AA/AAA, dan estetika formal di Mode Terang maupun Gelap.
+
+#### Panel 1 — 🕋 Dasbor Ringkasan Kepatuhan (Shariah Health Score)
+- **Gauge SVG Interaktif:** Visualisasi persentase makro kepatuhan syariah global (contoh: `98.6%`).
+- **Metric Cards:** Menampilkan Kepatuhan Score, Total Plafon Diaudit, Saldo Dana Kebajikan, dan Saldo Dana Non-Halal.
+- **Akad Distribution Chart:** Visualisasi persentase proporsi penggunaan akad syariah (Murabahah, Mudharabah, Musyarakah, Ijarah).
+- **AI Compliance Alert:** Banner pemberitahuan dini untuk potensi anomali akad dari RAG scanning.
+
+#### Panel 2 — 🛡️ Audit Pembiayaan (Sampling & Review)
+- **Split-Screen Viewer:**
+  - **Sisi Kiri:** Data sistem pembiayaan nasabah, status analisis AI RAG, Checklist Rukun Akad (Objek Aset, Transparansi Harga Beli/Margin, Urutan Serah Terima Awal, Bebas Riba), dan Form Keputusan/Catatan DPS.
+  - **Sisi Kanan:** Simulasi visual Dokumen Fisik Akad asli terunggah bergaya kertas klasik dengan stempel/tanda tangan dan penyorotan (highlight) otomatis klausul sensitif oleh AI.
+
+#### Panel 3 — 📖 Manajemen Akad & Persetujuan Produk Baru
+- **Product Proposals Ledger:** Menampilkan daftar draf produk baru yang diajukan oleh tim manajemen.
+- **Fiqh Clause Editor:** Menampilkan detail hak, kewajiban, biaya, dan risiko produk.
+- **RAG Search Fatwa DSN-MUI:** Input pencarian fatwa syariah yang melakukan similarity query langsung ke database pgvector `sharia_knowledge`.
+- **Action Otorisasi:** Tombol "Setujui (Halal)", "Butuh Revisi", atau "Tolak".
+
+#### Panel 4 — 💸 Pengawasan Dana Non-Halal & ZISWAF (Purification)
+- **Ledger Non-Halal:** Rekapitulasi dana mengendap dari sumber denda keterlambatan (ta'zir) atau bunga bank konvensional.
+- **Form Pembersihan Dana:** Distribusi dana ke sektor sosial (Sanitasi Desa, Sembako Yatim, Ponpes Air Bersih) dengan jaminan sistem anti-leakage (tidak masuk keuntungan inti koperasi).
+- **Riwayat Penyaluran:** Tabel penelusuran dana mutasi sosial syariah.
+
+#### Panel 5 — 🧾 Generator Laporan Pengawasan Syariah (RAT)
+- **Report Editor:** Pembuatan draf Laporan Hasil Pengawasan Syariah (LHPS) berkala.
+- **Cetak PDF Dinamis:** Menggunakan library `jsPDF` untuk menghasilkan berkas surat pengesahan resmi ber-kop surat, ringkasan metrik audit, opini syariah, dan tanda tangan digital DPS.
+
+#### Panel 6 — 🤖 Saluran Ingesti Pengetahuan AI RAG
+- **AI Knowledge Manager:** Antarmuka pengunggahan manual dokumen fatwa syariah dengan pemanggilan API `/api/ai/ingest` untuk membuat vector embeddings riil melalui model OpenAI.
+- **RAG Ingest Pipeline:** Integrasi visual sinkronisasi folder dan *chunking* naskah.
 
 ### 4.6. Laporan Keuangan SAK EP & PSAK
 - Auto-generate: Neraca, Laba Rugi, Arus Kas, Dana Kebajikan/Zakat.
@@ -145,20 +177,23 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 | `savings_accounts` | Rekening simpanan multi-jenis per anggota |
 | `savings_transactions` | Mutasi simpanan (deposit/withdrawal) |
 | `journal_entries` | Buku besar double-entry SAK EP |
-| `financing_contracts` | Akad, plafon, amortisasi, nisbah |
+| `financing_contracts` | Akad, plafon, amortisasi, nisbah, `audit_metadata` (JSONB) |
+| `prospects` | Data pengajuan calon debitur (AO pipeline) |
+| `purifications` | Riwayat alokasi dana non-halal ke sektor sosial |
 | `system_parameters` | Parameter dinamis (key-value), akses Super Admin |
-| `sharia_knowledge` | Vector embeddings fatwa (pgvector) |
-| `teller_shifts` *(planned)* | Log buka/tutup shift teller |
+| `sharia_knowledge` | Vector embeddings fatwa (pgvector, 1536-dim, `gemini-embedding-001`) |
+| `teller_shifts` | Log buka/tutup shift teller harian |
 
 ---
 
 ## 6. Metodologi RAG Pipeline
 
-1. **Ingesti:** Upload dokumen regulasi (PDF Fatwa DSN-MUI, PSAK).
+1. **Ingesti:** Upload dokumen regulasi (PDF Fatwa DSN-MUI, PSAK) via API `/api/ai/ingest`.
 2. **Transformasi:** Chunking teks agar konteks hukum terjaga.
-3. **Vektorisasi:** Konversi ke vector embeddings via model AI generatif.
-4. **Retrieval:** Similarity search fragmen teks paling relevan.
-5. **Generasi:** Sintesis rekomendasi oleh LLM berdasarkan dokumen hukum.
+3. **Vektorisasi:** Konversi ke vector embeddings via model **`gemini-embedding-001`** (1536-dim, auto-retry 429 handling, zero-padding/slicing otomatis).
+4. **Retrieval:** Similarity search fragmen teks paling relevan dari `sharia_knowledge`.
+5. **Generasi:** Sintesis rekomendasi oleh LLM (**Gemini 2.5 Flash** / cascade **Gemini 1.5 Flash**) berdasarkan dokumen hukum yang diambil.
+6. **Audit DPS:** AI RAG menghasilkan opini kepatuhan + skor match terhadap kontrak pembiayaan aktif via `/api/ai/audit-contract`.
 
 ---
 
@@ -167,11 +202,12 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 | Fase | Lingkup | Status |
 |---|---|---|
 | **Fase I** | Setup Next.js, Supabase, RLS, SonarCloud | ✅ Selesai |
-| **Fase II** | Core Banking: 6 UI Teller, CS, Accounting, COA | ✅ Teller Selesai |
-| **Fase III** | LangChain.js RAG, pgvector ingesti, Flip/PPOB API | ⏳ Menunggu |
-| **Fase IV** | UAT, Blackbox Testing, Training, Go-Live | ⏳ Menunggu |
+| **Fase II** | Core Banking: 6 UI Teller, CS, Accounting, COA | ✅ Selesai |
+| **Fase III** | LangChain.js RAG, pgvector ingesti riil, 6 Panel DPS, Standardisasi UI/UX | ✅ Selesai |
+| **Fase IV** | UAT, Blackbox Testing, Training, Go-Live ke Vercel | 🟡 Aktif |
+| **Fase V** | Integrasi Flip API, PPOB, Mobile Gateway, Push Notification | ⏳ Menunggu |
 
-**Sprint Aktif:** Integrasi RAG AI Engine & Basis Pengetahuan Syariah.
+**Sprint Aktif:** Persiapan UAT, Final RLS Audit, dan Deployment ke Vercel (Fase IV).
 
 ---
 

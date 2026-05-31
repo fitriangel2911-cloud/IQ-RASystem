@@ -8,6 +8,7 @@ import DPSDashboard from '@/components/dashboard/DPSDashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 export default function DPSPage() {
   const router = useRouter();
@@ -130,10 +131,13 @@ export default function DPSPage() {
           </span>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>
-          <DPSMenuButton active={activeMenu === 'overview'} onClick={() => setActiveMenu('overview')} icon="🕋" label="Monitor Kepatuhan" />
-          <DPSMenuButton active={activeMenu === 'audit'} onClick={() => setActiveMenu('audit')} icon="🛡️" label="Audit Akad Pembiayaan" />
-          <DPSMenuButton active={activeMenu === 'rag'} onClick={() => setActiveMenu('rag')} icon="🤖" label="RAG Pipeline" />
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1, overflowY: 'auto', paddingRight: '4px' }}>
+          <DPSMenuButton active={activeMenu === 'overview'} onClick={() => setActiveMenu('overview')} icon="🕋" label="Dasbor Kepatuhan" />
+          <DPSMenuButton active={activeMenu === 'audit'} onClick={() => setActiveMenu('audit')} icon="🛡️" label="Audit Pembiayaan" />
+          <DPSMenuButton active={activeMenu === 'products'} onClick={() => setActiveMenu('products')} icon="📖" label="Manajemen Akad & Produk" />
+          <DPSMenuButton active={activeMenu === 'purification'} onClick={() => setActiveMenu('purification')} icon="💸" label="Dana Non-Halal & ZISWAF" />
+          <DPSMenuButton active={activeMenu === 'report'} onClick={() => setActiveMenu('report')} icon="🧾" label="Laporan Pengawasan" />
+          <DPSMenuButton active={activeMenu === 'rag'} onClick={() => setActiveMenu('rag')} icon="🤖" label="Ingesti Data RAG" />
         </nav>
 
         <div style={{ 
@@ -199,9 +203,12 @@ export default function DPSPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
             <h2 style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '28px', margin: 0 }}>
-              {activeMenu === 'overview' && '🕋 Pusat Pengawasan Kepatuhan Syariah'}
-              {activeMenu === 'audit' && '🛡️ Audit & Otorisasi Syahadat Akad'}
-              {activeMenu === 'rag' && '🤖 Saluran Ingesti Data RAG'}
+              {activeMenu === 'overview' && '🕋 Dasbor Ringkasan Kepatuhan (Shariah Health)'}
+              {activeMenu === 'audit' && '🛡️ Audit Pembiayaan (Sampling & Review)'}
+              {activeMenu === 'products' && '📖 Manajemen Akad & Persetujuan Produk'}
+              {activeMenu === 'purification' && '💸 Pengawasan & Pembersihan Dana Non-Halal'}
+              {activeMenu === 'report' && '🧾 Generator Laporan Pengawasan Syariah'}
+              {activeMenu === 'rag' && '🤖 Saluran Ingesti Pengetahuan AI RAG'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
               Menjaga kemurnian operasional koperasi bebas dari unsur Riba, Gharar, dan Maysir.
@@ -215,6 +222,9 @@ export default function DPSPage() {
 
         <DPSDashboard activeMenu={activeMenu} profile={profile} />
       </main>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="dps" />
     </div>
   );
 }

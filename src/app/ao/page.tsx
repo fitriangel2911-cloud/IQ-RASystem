@@ -8,6 +8,7 @@ import AODashboard from '@/components/dashboard/AODashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
+import AIChatbot from '@/components/dashboard/AIChatbot';
 
 export default function AOPage() {
   const router = useRouter();
@@ -253,6 +254,9 @@ export default function AOPage() {
 
         <AODashboard activeMenu={activeMenu} profile={profile} />
       </main>
+
+      {/* Immersive Global AI Chatbot */}
+      <AIChatbot role="ao" />
     </div>
   );
 }
