@@ -22,6 +22,7 @@ Tantangan utama di lapangan adalah tingginya subjektivitas petugas (Account Offi
 - **Knowledge Base DSN-MUI:** Menggunakan teknologi AI berjenis *Retrieval-Augmented Generation* (RAG) yang terhubung ke *database* vektor literatur otentik seperti **Fatwa DSN-MUI** dan **SOP Koperasi**.
 - **Validasi dan Rekomendasi Akad:** AI bertugas mengekstraksi parameter pembiayaan yang diajukan (tujuan, aset, jaminan). Sistem lalu mengeluarkan persentase kecocokan akad beserta panduan syariahnya (Misal: *"Pembiayaan ini 90% cocok menggunakan Murabahah, dengan syarat administratif kuitansi pembelian aset fisik harus dilampirkan"*).
 - **Otomasi Pencetakan Dokumen Akad (Dynamic Contract):** Inovasi *client-side* PDF generation secara instan memastikan dokumen legal kontrak syariah yang ditandatangani memuat rincian hukum dan pasal yang terpersonalisasi persis dengan rekomendasi AI yang disetujui petugas (menghindari *human error* pengisian form akad secara manual).
+- **Purifikasi Estetika Institusional (Sistem Bukan Mainan):** Menghapus seluruh emoji dekoratif dan simbol visual informal pada dasbor Dewan Pengawas Syariah (DPS) serta antarmuka asisten AI untuk memelihara wibawa sistem, keseriusan pengawasan syariah, dan kepatuhan visual terhadap marwah lembaga keuangan syariah.
 
 ## 4. Keamanan Sistem & Audit Internal
 

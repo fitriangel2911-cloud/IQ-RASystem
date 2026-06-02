@@ -366,7 +366,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       // 2. Trigger dynamic stats recalculation from database!
       await fetchContracts();
 
-      setAuditSuccessMsg(`✅ Audit kontrak ${activeAuditContract.users?.full_name} berhasil disimpan ke database! Skor Kepatuhan: ${complianceScore}%`);
+      setAuditSuccessMsg(`Audit kontrak ${activeAuditContract.users?.full_name} berhasil disimpan ke database! Skor Kepatuhan: ${complianceScore}%`);
       
       setTimeout(() => {
         setAuditSuccessMsg('');
@@ -411,7 +411,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       // 2. Trigger dynamic stats recalculation from database!
       await fetchContracts();
 
-      setAuditSuccessMsg(`⚠️ Kontrak ${activeAuditContract.users?.full_name} berhasil ditandai sebagai Temuan (Perlu Revisi)!`);
+      setAuditSuccessMsg(`Kontrak ${activeAuditContract.users?.full_name} berhasil ditandai sebagai Temuan (Perlu Revisi)!`);
       
       setTimeout(() => {
         setAuditSuccessMsg('');
@@ -472,7 +472,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       setPurifyAmount(0);
       setPurifyDisplay('');
       setPurifyNotes('');
-      alert(`⚡ Pembersihan dana sebesar ${formatIDR.format(purifyAmount)} ke ${purifyDestination} berhasil disimpan ke database dan jurnal kas!`);
+      alert(`Pembersihan dana sebesar ${formatIDR.format(purifyAmount)} ke ${purifyDestination} berhasil disimpan ke database dan jurnal kas!`);
     } catch (err: any) {
       console.error(err);
       alert('Gagal merekam jurnal pembersihan ke database: ' + err.message);
@@ -601,7 +601,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
 
       // Save PDF to browser
       doc.save(`LHPS_IQRA_${reportPeriod.replace(/\s+/g, '_')}.pdf`);
-      alert('📄 Laporan Pengawasan Syariah PDF berhasil digenerate dan diunduh!');
+      alert('Laporan Pengawasan Syariah PDF berhasil digenerate dan diunduh!');
     } catch (e: any) {
       console.error(e);
       alert('Gagal mencetak PDF: ' + e.message);
@@ -663,7 +663,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
             {/* Right Health Assessment Status */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ background: 'var(--bg-subtle-success)', color: 'var(--text-success)', border: '1.5px solid var(--text-success)', width: 'fit-content', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                🟢 LEVEL AMAN & HALAL (KONDUSIF)
+                LEVEL AMAN & HALAL (KONDUSIF)
               </div>
               <h3 style={{ fontSize: '28px', fontWeight: 950, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px' }}>Status Kesehatan Syariah Makro</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.7', margin: 0 }}>
@@ -688,22 +688,22 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
             <div className="glass-dark" style={{ padding: '24px', borderRadius: '24px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' }}>RASIO KEPATUHAN</span>
               <span style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-success)' }}>{shariaHealthScore}%</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>🌙 Sangat Tinggi</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Sangat Tinggi</span>
             </div>
             <div className="glass-dark" style={{ padding: '24px', borderRadius: '24px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' }}>TOTAL PLAFON DIAUDIT</span>
               <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-gold)' }}>{formatIDR.format(auditedPlafond)}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>💼 Akumulasi Sampling</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Akumulasi Sampling</span>
             </div>
             <div className="glass-dark" style={{ padding: '24px', borderRadius: '24px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' }}>DANA SOSIAL / ZISWAF</span>
               <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-success)' }}>{formatIDR.format(socialFundsBalance)}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>🕌 Qardhul Hasan & Hibah</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Qardhul Hasan & Hibah</span>
             </div>
             <div className="glass-dark" style={{ padding: '24px', borderRadius: '24px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' }}>PENDAPATAN NON-HALAL</span>
               <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-danger)' }}>{formatIDR.format(nonHalalBalance)}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>⚠️ Menunggu Pembersihan</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Menunggu Pembersihan</span>
             </div>
           </div>
 
@@ -712,7 +712,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
             
             {/* Left: Akad Distribution Chart */}
             <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1px solid var(--border-primary)' }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 24px 0', fontSize: '18px', fontWeight: 900 }}>📊 DISTRIBUSI PENGGUNAAN AKAD SYARIAH</h4>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 24px 0', fontSize: '18px', fontWeight: 900 }}>DISTRIBUSI PENGGUNAAN AKAD SYARIAH</h4>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
@@ -737,7 +737,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
             {/* Right: AI Compliance Alert Panel */}
             <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1.5px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '20px', background: 'var(--bg-subtle-danger)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🚨</span>
                 <h4 style={{ color: 'var(--text-danger)', margin: 0, fontSize: '18px', fontWeight: 900 }}>PERINGATAN DETEKSI DINI AI RAG</h4>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
@@ -775,7 +774,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
               {/* LEFT SCREEN: Systems Transaction & AI RAG Assistant Panel */}
               <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '2.5px solid var(--gold-bright)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-primary)', paddingBottom: '15px' }}>
-                  <h3 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '20px' }}>🛡️ PENELAAHAN KEPATUHAN AKAD</h3>
+                  <h3 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '20px' }}>PENELAAHAN KEPATUHAN AKAD</h3>
                   <button onClick={() => setActiveAuditContract(null)} style={{ background: 'var(--border-primary)', border: 'none', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 900, fontSize: '12px' }}>✕ Batal</button>
                 </div>
 
@@ -805,7 +804,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                 {/* AI RAG Assistant Panel */}
                 <div style={{ background: 'var(--bg-subtle-info)', border: '1.5px solid var(--border-info)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '20px' }}>🤖</span>
                     <strong style={{ color: 'var(--text-info)', fontWeight: 900, fontSize: '15px' }}>iQ-RA AI RAG Compliance Assistant</strong>
                   </div>
                   {aiAuditLoading ? (
@@ -849,16 +847,16 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-gold)', fontWeight: 900, marginBottom: '8px' }}>📝 OPINI / KEPUTUSAN SYARIAH MANDAT DPS</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-gold)', fontWeight: 900, marginBottom: '8px' }}>OPINI / KEPUTUSAN SYARIAH MANDAT DPS</label>
                     <textarea required value={auditOpinion} onChange={e => setAuditOpinion(e.target.value)} placeholder="Tulis catatan persetujuan syariah resmi di sini (Misal: Akad sah memenuhi fatwa...)" style={{ width: '100%', minHeight: '80px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                   </div>
 
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <button type="submit" style={{ flex: 1, padding: '16px', background: 'var(--text-success)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
-                      ✅ SAHKAN KEPATUHAN SYARIAH (HALAL)
+                      SAHKAN KEPATUHAN SYARIAH (HALAL)
                     </button>
                     <button type="button" onClick={handleAuditReject} style={{ padding: '16px', background: 'var(--bg-subtle-danger)', color: 'var(--text-danger)', border: '1.5px solid var(--text-danger)', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
-                      ⚠️ Tolak / Temuan
+                      Tolak / Temuan
                     </button>
                   </div>
                 </form>
@@ -888,7 +886,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                       gap: '8px'
                     }}
                   >
-                    📂 Portofolio & Dossier Debitur
+                    Portofolio & Dossier Debitur
                   </button>
                   <button 
                     type="button"
@@ -909,7 +907,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                       gap: '8px'
                     }}
                   >
-                    📄 Draf Akad Perjanjian
+                    Draf Akad Perjanjian
                   </button>
                 </div>
 
@@ -969,7 +967,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             2. Jaminan / Agunan Syariah (Collateral)
                           </h4>
                           <div style={{ background: 'var(--bg-subtle-warning)', border: '1.5px solid var(--border-warning)', padding: '16px', borderRadius: '14px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <span style={{ fontSize: '20px' }}>🔑</span>
                             <div>
                               <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Aset Penjaminan Fisik</strong>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
@@ -985,7 +982,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             3. Kebutuhan & Penggunaan Dana
                           </h4>
                           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <span style={{ fontSize: '20px' }}>🎯</span>
                             <div>
                               <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Deskripsi Kebutuhan</strong>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
@@ -1001,7 +997,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             4. Prospek Kelayakan & Analisis Survei
                           </h4>
                           <div style={{ background: 'var(--bg-subtle-success)', border: '1.5px solid var(--border-success)', padding: '16px', borderRadius: '14px', display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '15px' }}>
-                            <span style={{ fontSize: '20px' }}>📈</span>
                             <div>
                               <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Analisis Kelayakan Bisnis</strong>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
@@ -1107,7 +1102,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           ) : (
             <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1px solid var(--border-primary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-                <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900, fontSize: '20px' }}>📋 DAFTAR SAMPEL AUDIT TRANSAKSI PEMBIAYAAN</h3>
+                <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900, fontSize: '20px' }}>DAFTAR SAMPEL AUDIT TRANSAKSI PEMBIAYAAN</h3>
                 <span style={{ background: 'var(--border-primary)', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 800 }}>Total: {contracts.length} Transaksi</span>
               </div>
 
@@ -1154,7 +1149,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             </td>
                             <td style={{ padding: '20px 16px', textAlign: 'center' }}>
                               <button onClick={() => handleSelectContractForAudit(c)} style={{ background: 'var(--gold-gradient)', color: '#043121', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', fontSize: '12px' }}>
-                                🔍 REVIEW AKAD
+                                REVIEW AKAD
                               </button>
                             </td>
                           </tr>
@@ -1180,7 +1175,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           
           {/* Main List of proposed products */}
           <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1px solid var(--border-primary)' }}>
-            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900, fontSize: '20px' }}>📦 USULAN SKEMA & DRAF PRODUK BARU</h3>
+            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900, fontSize: '20px' }}>USULAN SKEMA & DRAF PRODUK BARU</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '25px' }}>Daftar skema produk baru yang diajukan oleh tim Manajemen / AO untuk dievaluasi dasar syariahnya.</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1195,7 +1190,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{p.description}</span>
                   </div>
                   <button onClick={() => setSelectedProduct(p)} style={{ background: selectedProduct?.id === p.id ? 'var(--text-primary)' : 'var(--gold-gradient)', color: selectedProduct?.id === p.id ? 'var(--bg-page)' : '#043121', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '13px', flexShrink: 0 }}>
-                    {selectedProduct?.id === p.id ? 'SEDANG DITELAAH' : '🔍 REVIU DRAF'}
+                    {selectedProduct?.id === p.id ? 'SEDANG DITELAAH' : 'REVIU DRAF'}
                   </button>
                 </div>
               ))}
@@ -1206,7 +1201,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           {selectedProduct && (
             <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '2.5px solid var(--gold-bright)', display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-primary)', paddingBottom: '15px' }}>
-                <h4 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '18px' }}>📖 EVALUASI KLAUSUL HUKUM</h4>
+                <h4 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '18px' }}>EVALUASI KLAUSUL HUKUM</h4>
                 <button onClick={() => setSelectedProduct(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '18px', cursor: 'pointer' }}>✕</button>
               </div>
 
@@ -1227,7 +1222,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
 
               {/* Interactive RAG Search Tool */}
               <div style={{ background: 'var(--bg-dark-box)', padding: '20px', borderRadius: '16px', border: '1px dashed var(--border-primary)' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontWeight: 900, display: 'block', marginBottom: '10px' }}>🔍 ALAT RUJUKAN SYARIAH DSN-MUI RAG</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-gold)', fontWeight: 900, display: 'block', marginBottom: '10px' }}>ALAT RUJUKAN SYARIAH DSN-MUI RAG</span>
                 <form onSubmit={handleRagSearch} style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
                   <input type="text" value={productSearchQuery} onChange={e => setProductSearchQuery(e.target.value)} placeholder="Cari fatwa... (Misal: Emas, Ijarah, Ujrah)" style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }} />
                   <button type="submit" disabled={searchingRag} style={{ padding: '10px 16px', background: 'var(--gold-gradient)', color: '#043121', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '12px' }}>
@@ -1268,7 +1263,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                 </div>
 
                 <button type="submit" style={{ padding: '14px', background: 'var(--gold-gradient)', color: '#043121', border: 'none', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', fontSize: '13px' }}>
-                  ⚡ TERBITKAN KEPUTUSAN FATWA DPS
+                  TERBITKAN KEPUTUSAN FATWA DPS
                 </button>
               </form>
 
@@ -1287,7 +1282,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           {/* Left purification history ledger & ledger details */}
           <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '25px' }}>
             <div>
-              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0', fontWeight: 900, fontSize: '20px' }}>🧾 BUKU BESAR DANA NON-HALAL (TA'ZIR & GIRO)</h3>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0', fontWeight: 900, fontSize: '20px' }}>BUKU BESAR DANA NON-HALAL (TA'ZIR & GIRO)</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>Arus pencatatan pengendapan dana denda nasabah dan bunga penampungan bank konvensional.</p>
             </div>
 
@@ -1297,7 +1292,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                 <span style={{ color: 'var(--text-danger)', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Dana Mengendap Non-Halal</span>
                 <h4 style={{ fontSize: '32px', fontWeight: 950, color: 'var(--text-danger)', margin: '4px 0 0 0' }}>{formatIDR.format(nonHalalBalance)}</h4>
               </div>
-              <span style={{ fontSize: '36px' }}>💸</span>
             </div>
 
             {/* Inflows components detail */}
@@ -1317,7 +1311,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
 
             {/* Purification History */}
             <div>
-              <h4 style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '12px', textTransform: 'uppercase' }}>📜 Riwayat Pembersihan Dana</h4>
+              <h4 style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 900, marginBottom: '12px', textTransform: 'uppercase' }}>Riwayat Pembersihan Dana</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
                 {purificationHistory.map(h => (
                   <div key={h.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', padding: '16px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1339,7 +1333,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           {/* Right Allocation/Purification Request Form */}
           <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '2.5px solid var(--gold-bright)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h3 style={{ color: 'var(--text-gold)', margin: '0 0 6px 0', fontWeight: 950, fontSize: '18px', textTransform: 'uppercase' }}>⚡ FORMULIR PEMBERSIHAN DANA SOSIAL</h3>
+              <h3 style={{ color: 'var(--text-gold)', margin: '0 0 6px 0', fontWeight: 950, fontSize: '18px', textTransform: 'uppercase' }}>FORMULIR PEMBERSIHAN DANA SOSIAL</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0 }}>Gunakan form ini untuk mendistribusikan dana non-halal ke sektor sosial syariah demi membersihkan pos neraca koperasi.</p>
             </div>
 
@@ -1372,11 +1366,11 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
               </div>
 
               <div style={{ background: 'var(--bg-subtle-success)', border: '1.5px solid var(--border-success)', color: 'var(--text-success)', lineHeight: '1.5', padding: '16px', borderRadius: '12px', fontSize: '12px' }}>
-                🛡️ <strong>Jaminan Beban Syariah:</strong> Sistem memastikan 100% dana ini tidak akan dimasukkan ke pos bagi hasil atau menjadi keuntungan bersih koperasi simpan pinjam syariah.
+                <strong>Jaminan Beban Syariah:</strong> Sistem memastikan 100% dana ini tidak akan dimasukkan ke pos bagi hasil atau menjadi keuntungan bersih koperasi simpan pinjam syariah.
               </div>
 
               <button type="submit" style={{ padding: '16px', background: 'var(--text-success)', color: '#ffffff', border: 'none', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                ⚡ PROSES PEMBERSIHAN & REKAM KAS
+                PROSES PEMBERSIHAN & REKAM KAS
               </button>
             </form>
           </div>
@@ -1393,7 +1387,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
           {/* Left editor and report details compilation */}
           <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0', fontWeight: 900, fontSize: '20px' }}>🧾 LAPORAN PENGASAHAN HASIL AUDIT SYARIAH</h3>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0', fontWeight: 900, fontSize: '20px' }}>LAPORAN PENGASAHAN HASIL AUDIT SYARIAH</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>Gunakan antarmuka ini untuk mengompilasi rekapitulasi audit sepanjang periode buku untuk syarat Rapat Anggota Tahunan (RAT).</p>
             </div>
 
@@ -1419,7 +1413,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
 
           {/* Right report view & dynamic printable card */}
           <div className="glass-dark" style={{ padding: '36px', borderRadius: '28px', border: '2.5px solid var(--gold-bright)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h4 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📄 PRATINJAU LAPORAN PENGASAHAN</h4>
+            <h4 style={{ color: 'var(--text-gold)', margin: 0, fontWeight: 950, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>PRATINJAU LAPORAN PENGASAHAN</h4>
             
             <div style={{ background: '#fff', borderRadius: '20px', padding: '30px', color: '#1e293b', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '14px', border: '4px double var(--gold-bright)', minHeight: '320px', lineHeight: '1.5' }}>
               <div style={{ textTransform: 'uppercase', fontWeight: 900, textAlign: 'center', color: '#0f172a', borderBottom: '1px solid #cbd5e1', paddingBottom: '8px' }}>
@@ -1441,7 +1435,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
             </div>
 
             <button onClick={handleExportPDF} disabled={generatingReport} style={{ padding: '18px', background: 'var(--gold-gradient)', color: '#043121', border: 'none', borderRadius: '14px', fontWeight: 950, cursor: 'pointer', fontSize: '16px', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(243, 198, 83, 0.3)', transition: 'all 0.3s' }}>
-              {generatingReport ? '⏳ SEDANG MENCETAK LAPORAN...' : '📄 CETAK LAPORAN RESMI (PDF)'}
+              {generatingReport ? 'SEDANG MENCETAK LAPORAN...' : 'CETAK LAPORAN RESMI (PDF)'}
             </button>
           </div>
 

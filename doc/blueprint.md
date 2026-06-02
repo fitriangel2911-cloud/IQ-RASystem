@@ -1,7 +1,7 @@
 # Cetak Biru Sistem (Blueprint): IQ-RA System
 **Platform Keuangan Mikro Syariah Terintegrasi AI — RAG & SAK EP**
 
-**Versi:** 1.4 | **Diperbarui:** 31 Mei 2026
+**Versi:** 1.5 | **Diperbarui:** 2 Juni 2026
 
 4.2. Siklus Penerimaan Kas (Revenue Cycle)
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
@@ -154,17 +154,20 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 - **Cetak PDF Dinamis:** Menggunakan library `jsPDF` untuk menghasilkan berkas surat pengesahan resmi ber-kop surat, ringkasan metrik audit, opini syariah, dan tanda tangan digital DPS.
 
 #### Panel 6 — 🤖 Saluran Ingesti Pengetahuan AI RAG
-- **AI Knowledge Manager:** Antarmuka pengunggahan manual dokumen fatwa syariah dengan pemanggilan API `/api/ai/ingest` untuk membuat vector embeddings riil melalui model OpenAI.
+- **AI Knowledge Manager:** Antarmuka pengunggahan manual dokumen fatwa syariah dengan pemanggilan API `/api/ai/ingest` untuk membuat vector embeddings riil melalui model Google Gemini (`gemini-embedding-001`).
 - **RAG Ingest Pipeline:** Integrasi visual sinkronisasi folder dan *chunking* naskah.
 
 ### 4.6. Laporan Keuangan SAK EP & PSAK
 - Auto-generate: Neraca, Laba Rugi, Arus Kas, Dana Kebajikan/Zakat.
 - Provisioning otomatis untuk pembiayaan macet.
 
-### 4.7. Pusat Kontrol Super Admin
-- **Dynamic Parameter Engine:** Ubah nominal Simpanan Pokok/Wajib, Biaya ADM, Infaq, Nisbah secara live.
-- **Flat Sidebar:** Navigasi langsung ke sub-modul tanpa menu bertingkat.
-- **API Keamanan:** `/api/admin/parameters` dengan validasi sesi ketat.
+### 4.7. Pusat Kontrol Super Admin (IT Administrator)
+- **Modul Keamanan & Audit**: Log Audit Keamanan untuk melacak perubahan parameter dan hak akses (`audit_logs`).
+- **Modul Infrastruktur**: Diagnostik Sistem (Ping/Koneksi) dan Pencadangan & Pemulihan Database (Ekspor/Impor JSON).
+- **Modul Akuntansi & Operasional**: Manajemen dinamis Chart of Accounts (COA) untuk penjurnalan SAK EP dan Panel Penugasan/Delegasi Staf (`system_tasks`).
+- **Dynamic Parameter Engine**: Ubah batas nominal otorisasi supervisor (`supervisor_approval_limit`), parameter AI (`max_output_tokens`, `unified_context_threshold`), Simpanan Pokok/Wajib, Biaya ADM, Infaq, Nisbah secara live.
+- **Flat Sidebar**: Navigasi langsung ke sub-modul tanpa menu bertingkat.
+- **API Keamanan**: `/api/admin/parameters` dengan validasi sesi ketat.
 
 ---
 
@@ -183,6 +186,9 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 | `system_parameters` | Parameter dinamis (key-value), akses Super Admin |
 | `sharia_knowledge` | Vector embeddings fatwa (pgvector, 1536-dim, `gemini-embedding-001`) |
 | `teller_shifts` | Log buka/tutup shift teller harian |
+| `audit_logs` | Jejak audit keamanan sistem, mutasi parameter & role (Super Admin) |
+| `coa_accounts` | Chart of Accounts (COA) dinamis untuk penjurnalan SAK EP |
+| `system_tasks` | Sistem tiket pendelegasian tugas dari Super Admin ke Staf |
 
 ---
 
@@ -192,8 +198,9 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 2. **Transformasi:** Chunking teks agar konteks hukum terjaga.
 3. **Vektorisasi:** Konversi ke vector embeddings via model **`gemini-embedding-001`** (1536-dim, auto-retry 429 handling, zero-padding/slicing otomatis).
 4. **Retrieval:** Similarity search fragmen teks paling relevan dari `sharia_knowledge`.
-5. **Generasi:** Sintesis rekomendasi oleh LLM (**Gemini 2.5 Flash** / cascade **Gemini 1.5 Flash**) berdasarkan dokumen hukum yang diambil.
-6. **Audit DPS:** AI RAG menghasilkan opini kepatuhan + skor match terhadap kontrak pembiayaan aktif via `/api/ai/audit-contract`.
+5. **Generasi:** Sintesis rekomendasi oleh LLM (**Gemini 2.5 Flash** / cascade **Gemini 1.5 Flash**) berdasarkan dokumen hukum yang diambil. Menggunakan konfigurasi `maxOutputTokens: 4096` untuk menjamin kelengkapan teks jawaban syariah.
+6. **Optimasi Latensi & Rendering:** Ambang batas Unified Context disetel ke 120.000 karakter untuk mencegah timeout koneksi pada API Next.js dengan mengaktifkan fallback otomatis ke similarity search (top 30 chunk) ketika basis data dokumen besar. Jawaban di sisi UI dirender secara baris-demi-baris oleh parser pesan untuk menjaga urutan teks/daftar agar tidak teracak.
+7. **Audit DPS:** AI RAG menghasilkan opini kepatuhan + skor match terhadap kontrak pembiayaan aktif via `/api/ai/audit-contract`.
 
 ---
 

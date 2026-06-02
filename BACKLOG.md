@@ -2,7 +2,7 @@
 
 Dokumen ini digunakan untuk melacak kemajuan pengembangan IQ-RA System (Platform Keuangan Mikro Syariah berbasis RAG).
 
-> **Status Terkini (31 Mei 2026):** Fase III 100% selesai. Semua modul (DPS, Teller, CS, AO, Accounting, Manager) sudah production-ready. Fase IV (UAT & Go-Live) menjadi prioritas utama berikutnya.
+> **Status Terkini (2 Juni 2026):** Fase III 100% selesai. Semua tabel Supabase telah diaudit, disinkronkan, dan didokumentasikan. Tabel baru (`notifications`, `access_rules`) telah ditambahkan. MASTER_PATCH.sql telah dibuat dan dijalankan di Supabase Studio. Fase IV (UAT & Go-Live) sedang berjalan sebagai prioritas utama.
 
 ---
 
@@ -14,6 +14,8 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Integrasi Supabase (Auth, Database, Storage).
 - [x] Setup UI Dashboard Premium (Dark Emerald & Gold Aesthetic).
 - [x] Konfigurasi Role-Based Access Control (RBAC) dasar.
+- [x] **Infrastruktur IT Super Admin:** Implementasi UI & Logika CRUD untuk Audit Logs Keamanan, Diagnostik Sistem, Backup Konfigurasi JSON, Manajemen COA Dinamis, dan Ticketing Penugasan Staf.
+- [x] **Audit & Sinkronisasi Tabel Supabase:** Semua 16 tabel yang digunakan di kode dipetakan, diverifikasi, dan dihubungkan ke migration SQL. Tabel baru (`notifications`, `access_rules`) dibuat. `SUPABASE_TABLES.md` dan `supabase/tables_map.json` dibuat sebagai referensi linkage. `MASTER_PATCH.sql` tersedia untuk patch aman tanpa reset data.
 
 ### 👥 Manajemen Pengguna & Auth
 - [x] Sistem Login & Registrasi.
@@ -63,6 +65,7 @@ Status fitur yang sudah diimplementasikan dan siap digunakan.
 - [x] Laporan Laba Rugi Komprehensif.
 - [x] Laporan Arus Kas (Metode Langsung/Tidak Langsung).
 - [x] Laporan Perubahan Ekuitas.
+- [x] **Seeding Data COA:** Impor penuh 202 akun standar SAK EP dari CSV ke basis data untuk digunakan seluruh modul akuntansi.
 
 ---
 
@@ -78,7 +81,7 @@ Fitur dan tugas yang menjadi prioritas pada fase deployment dan pengujian.
 ### 🚀 Deployment & Go-Live
 - [ ] **Deployment Produksi ke Vercel** — Build produksi Next.js dengan optimasi image, caching, dan environment secrets.
 - [ ] **Konfigurasi Domain & SSL** — Setup custom domain KSPPS + sertifikat HTTPS produksi.
-- [ ] **Migrasi Data Awal (Data Seeding)** — Import data anggota & akad aktif dari sistem lama ke Supabase produksi.
+- [ ] **Migrasi Data Awal (Data Seeding)** — Melengkapi import data anggota & akad aktif dari sistem lama ke Supabase produksi jika ada.
 - [ ] **Training Pengguna** — Sesi pelatihan singkat untuk setiap role staf operasional.
 
 ### 🔮 Rencana Jangka Panjang (Fase V — Post Go-Live)
@@ -91,6 +94,17 @@ Fitur dan tugas yang menjadi prioritas pada fase deployment dan pengujian.
 ---
 
 ## 📝 Catatan Perubahan Terbaru
+
+- **2026-06-02 (Finalisasi Super Admin IT & Data Seeding COA)**:
+    - **UI CRUD IT Administrator**: Mengeksekusi pembuatan fungsionalitas UI secara penuh untuk 5 panel Super Admin: Tabel Log Audit, Status Diagnostik Real-time, Ekspor JSON Backup, Manajemen COA interaktif, dan Grid Penugasan Staf (Ticketing).
+    - **Global Audit Trailing**: Mengintegrasikan `logSuperAdminAction` di semua titik perubahan konfigurasi dan peran sistem, memastikan setiap mutasi terekam dengan jelas ke tabel `audit_logs`.
+    - **Data Seeding Ekstensif**: Membaca file `coa.csv` secara otomatis dan melakukan *upsert* terhadap seluruh 202 akun COA ke tabel `coa_accounts`, lengkap dengan resolusi otomatis untuk konflik duplikasi sandi akun. Sistem akuntansi kini sepenuhnya ditenagai oleh bagan akun riil.
+
+- **2026-06-02 (Purifikasi Estetika Dewan Pengawas Syariah & Perbaikan Chatbot)**:
+    - **Purifikasi Estetika Institusional (Sistem Bukan Mainan)**: Menghapus total seluruh emoji dekoratif dan simbol visual informal dari komponen `DPSDashboard.tsx`, `AIKnowledgeManager.tsx`, `RAGPipelineView.tsx`, dan `AIChatbot.tsx`. Semua visualisasi dan penanda digantikan dengan desain berbasis teks formal dan layout monokromatik/theme-aware.
+    - **Pencegahan Jawaban Chatbot Terpotong**: Meningkatkan `maxOutputTokens` pada inisialisasi Gemini di `ai.service.ts` menjadi 4096 token agar jawaban penjelasan syariah yang panjang dapat tercetak secara utuh.
+    - **Optimasi Ukuran Konteks RAG**: Menurunkan ambang batas Unified Context dari 600.000 ke 120.000 karakter di `ai.service.ts`. Apabila basis data besar (seperti kitab fiqih muamalah kontemporer), sistem secara otomatis menggunakan similarity search berdensitas tinggi (top 30 chunk) alih-alih memuat seluruh DB, meningkatkan kecepatan respons secara drastik (dari 15 detik menjadi 2-4 detik) dan mencegah timeout koneksi Next.js.
+    - **Penyelarasan Urutan Render Chatbot**: Membangun ulang markdown renderer `renderMessageText` di `AIChatbot.tsx` agar memproses teks secara baris-demi-baris (*line-by-line*) untuk menjaga keutuhan urutan pesan, daftar bullet/numbered, dan heading agar tidak teracak.
 
 - **2026-05-31 (Standardisasi UI/UX DPS — Tema & Aksesibilitas Visual)**:
     - **Kontainer Putih Bersih Light Mode**: Mengganti seluruh kontainer berwarna hijau yang mengganggu di Mode Terang menjadi kartu putih murni (`#ffffff`) agar tampak bersih, premium, dan sangat mudah dibaca.

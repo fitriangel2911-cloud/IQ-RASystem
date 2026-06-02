@@ -45,5 +45,9 @@ VALUES
   ('biaya_infaq', '10000', 'Nilai sumbangan dasar infaq & sedekah sukarela per transaksi registrasi (Rupiah)'),
   ('nisbah_mudharabah', '60', 'Porsi bagi hasil untuk nasabah/anggota pada skema tabungan mudharabah (%)'),
   ('min_syariah_score', '80', 'Ambang batas kelayakan/compliance akad syariah berdasarkan keputusan AI RAG (%)'),
-  ('wa_api_url', 'https://api.whatsapp.example.com/send', 'Gateway URL API pihak ketiga untuk pengiriman pesan OTP dan bukti transaksi')
+  ('wa_api_url', 'https://api.whatsapp.example.com/send', 'Gateway URL API pihak ketiga untuk pengiriman pesan OTP dan bukti transaksi'),
+  ('max_output_tokens', '4096', 'Batas output token penjelasan AI RAG'),
+  ('unified_context_threshold', '120000', 'Batas kapasitas Window Konteks RAG dalam karakter'),
+  ('supervisor_approval_limit', '5000000', 'Ambang batas penarikan kas teller untuk otorisasi supervisor (Rupiah)')
 ON CONFLICT (key) DO NOTHING;
+

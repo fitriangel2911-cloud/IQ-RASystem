@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTheme } from '@/context/ThemeContext';
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ showText = true }: { showText?: boolean }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -13,10 +13,11 @@ export default function ThemeToggle() {
         background: 'var(--bg-card)',
         border: '1px solid var(--border-primary)',
         borderRadius: '10px',
-        padding: '6px 12px',
+        padding: showText ? '6px 12px' : '6px 10px',
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
+        justifyContent: 'center',
+        gap: showText ? '8px' : '0px',
         color: 'var(--text-primary)',
         fontSize: '11px',
         fontWeight: 900,
@@ -32,9 +33,11 @@ export default function ThemeToggle() {
       <span style={{ fontSize: '14px' }}>
         {theme === 'light' ? '🌙' : '☀️'}
       </span>
-      <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-        {theme === 'light' ? 'GELAP' : 'TERANG'}
-      </span>
+      {showText && (
+        <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+          {theme === 'light' ? 'GELAP' : 'TERANG'}
+        </span>
+      )}
     </button>
   );
 }

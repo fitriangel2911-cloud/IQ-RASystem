@@ -43,8 +43,8 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     { accountCode: '230001', type: 'credit', amount: 0 }
   ]);
 
-  // Setup COA (Chart of Accounts) Helper - Berdasarkan Data Spreadsheet
-  const coaList = [
+  // Setup COA (Chart of Accounts) Helper
+  const [coaList, setCoaList] = useState<any[]>([
     { code: '110101', name: 'Kas Brankas', category: 'Aset' },
     { code: '110102', name: 'Kas Teller', category: 'Aset' },
     { code: '110201', name: 'Giro Bank A', category: 'Aset' },
@@ -63,7 +63,23 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     { code: '710002', name: 'Beban CKPN Murabahah', category: 'Beban' },
     { code: '720001', name: 'Gaji/Honor', category: 'Beban' },
     { code: '730001', name: 'Beban Listrik dan Air', category: 'Beban' }
-  ];
+  ]);
+
+  useEffect(() => {
+    async function fetchCoa() {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('coa_accounts').select('*').order('account_code');
+      if (!error && data && data.length > 0) {
+        setCoaList(data.map((c: any) => ({
+          code: c.account_code,
+          name: c.account_name,
+          category: c.category
+        })));
+      }
+    }
+    fetchCoa();
+  }, []);
+
 
   // Fetch Journals from Supabase real-time
   const fetchJournals = async () => {
@@ -361,73 +377,73 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
         <div>
           {/* 🚀 Quick Stats Display */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
-            <StatCard label="Total Aset Utama" value={formatter.format(stats.totalAssets)} icon="🏛️" color="#f3c653" subtitle="Aktiva Koperasi" />
-            <StatCard label="Total Kewajiban" value={formatter.format(stats.totalLiabilities)} icon="💳" color="#60a5fa" subtitle="Titipan & Simpanan Wadiah" />
-            <StatCard label="Modal & Ekuitas" value={formatter.format(stats.totalEquity)} icon="📈" color="#34d399" subtitle="Modal Pokok/Wajib & SHU" />
-            <StatCard label="Penyaluran Dana" value={formatter.format(stats.totalFinancing)} icon="🤝" color="#a78bfa" subtitle="Piutang Pembiayaan Aktif" />
+            <StatCard label="Total Aset Utama" value={formatter.format(stats.totalAssets)} icon="🏛️" subtitle="Aktiva Koperasi" />
+            <StatCard label="Total Kewajiban" value={formatter.format(stats.totalLiabilities)} icon="💳" subtitle="Titipan & Simpanan Wadiah" />
+            <StatCard label="Modal & Ekuitas" value={formatter.format(stats.totalEquity)} icon="📈" subtitle="Modal Pokok/Wajib & SHU" />
+            <StatCard label="Penyaluran Dana" value={formatter.format(stats.totalFinancing)} icon="🤝" subtitle="Piutang Pembiayaan Aktif" />
           </div>
 
           {/* Main Section Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '30px' }}>
             
             {/* Chart Mockup Box */}
-            <div className="glass-dark" style={{ padding: '36px', border: '2px solid rgba(243, 198, 83, 0.2)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
-              <h3 style={{ color: '#f3c653', margin: '0 0 24px 0', fontWeight: 900, letterSpacing: '1px' }}>📊 PERFORMA NERACA RILL (REAL-TIME)</h3>
+            <div className="glass-dark" style={{ padding: '36px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 24px 0', fontWeight: 900, letterSpacing: '1px' }}> PERFORMA NERACA RIIL (REAL-TIME)</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 
                 {/* Bar Aset */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)', marginBottom: '8px', fontSize: '14px', fontWeight: 700 }}>
-                    <span>🟢 AKTIVA / ASET</span>
+                    <span> AKTIVA / ASET</span>
                     <span>100%</span>
                   </div>
                   <div style={{ height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: '100%', background: '#34d399', boxShadow: '0 0 10px #34d399' }} />
+                    <div style={{ height: '100%', width: '100%', background: 'var(--emerald-deep)' }} />
                   </div>
                 </div>
 
                 {/* Bar Kewajiban */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)', marginBottom: '8px', fontSize: '14px', fontWeight: 700 }}>
-                    <span>🔵 PASIVA (Kewajiban)</span>
+                    <span> PASIVA (Kewajiban)</span>
                     <span>{Math.round((stats.totalLiabilities / stats.totalAssets) * 100)}%</span>
                   </div>
                   <div style={{ height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(stats.totalLiabilities / stats.totalAssets) * 100}%`, background: '#60a5fa', boxShadow: '0 0 10px #60a5fa' }} />
+                    <div style={{ height: '100%', width: `${(stats.totalLiabilities / stats.totalAssets) * 100}%`, background: 'var(--text-secondary)' }} />
                   </div>
                 </div>
 
                 {/* Bar Ekuitas */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)', marginBottom: '8px', fontSize: '14px', fontWeight: 700 }}>
-                    <span>🟡 PASIVA (Ekuitas/Modal)</span>
+                    <span> PASIVA (Ekuitas/Modal)</span>
                     <span>{Math.round((stats.totalEquity / stats.totalAssets) * 100)}%</span>
                   </div>
                   <div style={{ height: '16px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(stats.totalEquity / stats.totalAssets) * 100}%`, background: 'var(--text-primary)', boxShadow: '0 0 10px var(--text-primary)' }} />
+                    <div style={{ height: '100%', width: `${(stats.totalEquity / stats.totalAssets) * 100}%`, background: 'var(--text-primary)' }} />
                   </div>
                 </div>
 
               </div>
-              <div style={{ marginTop: '30px', padding: '16px', background: 'rgba(243, 198, 83, 0.1)', borderRadius: '12px', border: '1px solid rgba(243,198,83,0.3)', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
+              <div style={{ marginTop: '30px', padding: '16px', background: 'var(--bg-page)', borderRadius: '12px', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
                 💡 <strong>Prinsip Keseimbangan SAK EP:</strong> Posisi Neraca Anda Seimbang! Total Aset ({formatter.format(stats.totalAssets)}) === Total Kewajiban + Ekuitas ({formatter.format(stats.totalLiabilities + stats.totalEquity)}).
               </div>
             </div>
 
             {/* Audit Log Mini Table */}
-            <div className="glass-dark" style={{ padding: '36px', border: '2px solid rgba(243, 198, 83, 0.2)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
-              <h3 style={{ color: '#f3c653', margin: '0 0 20px 0', fontWeight: 900 }}>📋 Jurnal Terakhir Terposting</h3>
+            <div className="glass-dark" style={{ padding: '36px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontWeight: 900 }}> Jurnal Terakhir Terposting</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {journals.slice(0, 4).map((j, idx) => (
-                  <div key={j.id || idx} style={{ background: 'rgba(0,0,0,0.15)', padding: '14px', borderRadius: '12px', borderLeft: '3px solid #f3c653' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#f3c653', fontWeight: 800 }}>
+                  <div key={j.id || idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '12px', borderLeft: '3px solid var(--border-primary)', border: '1px solid var(--border-primary)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 800 }}>
                       <span>{j.reference_no}</span>
                       <span>{j.date}</span>
                     </div>
                     <div style={{ color: 'var(--text-primary)', fontWeight: 700, margin: '6px 0', fontSize: '14px' }}>{j.description}</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
                       <span>Kode Akun: {j.account_code}</span>
-                      <span style={{ color: '#34d399', fontWeight: 800 }}>{j.debit > 0 ? formatter.format(j.debit) : formatter.format(j.credit)}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{j.debit > 0 ? formatter.format(j.debit) : formatter.format(j.credit)}</span>
                     </div>
                   </div>
                 ))}
@@ -453,12 +469,12 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             backdropFilter: 'blur(20px)', 
             borderRadius: '32px', 
             overflow: 'hidden', 
-            border: '3px solid #cca334',
+            border: '1.5px solid var(--border-primary)',
             boxShadow: '0 40px 80px var(--shadow-color)'
           }}>
-            <div style={{ background: '#043121', padding: '24px 36px', borderBottom: '2px solid #cca334', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>✒️ INPUT JURNAL PENYESUAIAN (DOUBLE-ENTRY)</h2>
-              <span style={{ background: '#f3c653', color: '#02130e', fontWeight: 900, fontSize: '12px', padding: '6px 14px', borderRadius: '20px' }}>SAK EP COMPLIANT</span>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>✒️ INPUT JURNAL PENYESUAIAN (DOUBLE-ENTRY)</h2>
+              <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', fontWeight: 900, fontSize: '12px', padding: '6px 14px', borderRadius: '20px' }}>SAK EP COMPLIANT</span>
             </div>
             
             <form onSubmit={handlePostJournal} style={{ padding: '36px' }}>
@@ -466,15 +482,15 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               {/* Global Fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '20px', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#f3c653', fontSize: '12px', fontWeight: 800 }}>TANGGAL TRANSAKSI</label>
+                  <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>TANGGAL TRANSAKSI</label>
                   <input type="date" required value={jDate} onChange={(e) => setJDate(e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#f3c653', fontSize: '12px', fontWeight: 800 }}>NOMOR REFERENSI</label>
+                  <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>NOMOR REFERENSI</label>
                   <input type="text" required value={jRef} onChange={(e) => setJRef(e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ color: '#f3c653', fontSize: '12px', fontWeight: 800 }}>DESKRIPSI JURNAL / KETERANGAN</label>
+                  <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>DESKRIPSI JURNAL / KETERANGAN</label>
                   <input 
                     type="text" 
                     required 
@@ -588,20 +604,20 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             border: '1px solid var(--border-primary)',
             boxShadow: '0 40px 80px var(--shadow-color)'
           }}>
-            <div style={{ background: '#043121', padding: '24px 36px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between' }}>
-              <h3 style={{ color: '#ffffff', margin: 0, fontWeight: 900 }}>📜 BUKU BESAR (GENERAL LEDGER LOGS)</h3>
-              <button onClick={fetchJournals} style={{ background: 'transparent', border: 'none', color: '#f3c653', fontWeight: 800, cursor: 'pointer' }}>🔄 Segarkan Data</button>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900 }}>📜 BUKU BESAR (GENERAL LEDGER LOGS)</h3>
+              <button onClick={fetchJournals} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontWeight: 800, cursor: 'pointer' }}>🔄 Segarkan Data</button>
             </div>
             <div style={{ padding: '20px 36px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '2px solid rgba(243, 198, 83, 0.2)' }}>
-                    <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>TANGGAL</th>
-                    <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>REF NO</th>
-                    <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>KODE AKUN</th>
-                    <th style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '13px' }}>KETERANGAN</th>
-                    <th style={{ padding: '16px', color: '#34d399', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>DEBIT (Rp)</th>
-                    <th style={{ padding: '16px', color: '#fca5a5', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>KREDIT (Rp)</th>
+                  <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-primary)' }}>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>TANGGAL</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>REF NO</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>KODE AKUN</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>KETERANGAN</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>DEBIT (Rp)</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>KREDIT (Rp)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -612,15 +628,15 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   ) : journals.length > 0 ? journals.map((j, index) => (
                     <tr key={j.id || index} style={{ borderBottom: '1px solid var(--border-primary)', background: 'rgba(0,0,0,0.03)' }}>
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{j.date}</td>
-                      <td style={{ padding: '16px', color: '#f3c653', fontWeight: 800, fontSize: '14px' }}>{j.reference_no}</td>
+                      <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>{j.reference_no}</td>
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
-                        <code style={{ background: 'rgba(0,0,0,0.05)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border-primary)' }}>{j.account_code}</code>
+                        <code style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--border-primary)' }}>{j.account_code}</code>
                       </td>
                       <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{j.description}</td>
-                      <td style={{ padding: '16px', color: '#34d399', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
+                      <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
                         {j.debit > 0 ? formatter.format(j.debit) : '—'}
                       </td>
-                      <td style={{ padding: '16px', color: '#fca5a5', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
+                      <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
                         {j.credit > 0 ? formatter.format(j.credit) : '—'}
                       </td>
                     </tr>
@@ -645,22 +661,22 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
           {/* Header Filter Section (Hidden on Print) */}
-          <div className="glass-dark hide-on-print" style={{ padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="glass-dark hide-on-print" style={{ padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-primary)' }}>
             <h3 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span>📅</span> Pilih Tahun Pembukuan
             </h3>
             <select 
               value={reportYear} 
               onChange={(e) => setReportYear(parseInt(e.target.value))}
-              style={{ padding: '12px 20px', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', border: '2px solid #60a5fa', color: '#fff', fontSize: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+              style={{ padding: '12px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
             >
               {[new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2].map(year => (
-                <option key={year} value={year} style={{ background: '#022b1c', color: '#fff' }}>Tahun {year}</option>
+                <option key={year} value={year} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Tahun {year}</option>
               ))}
             </select>
           </div>
           
-          <div className="glass-dark" style={{ padding: '40px', border: '2px solid #cca334', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
+          <div className="glass-dark" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
             
             {/* Report Header Print Layout */}
             <ReportHeader 
@@ -672,7 +688,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               
               {/* Left Side: Assets */}
               <div className="neraca-col">
-                <h4 style={{ color: '#f3c653', borderBottom: '2px solid #f3c653', paddingBottom: '8px', fontWeight: 800 }}>1. ASET (AKTIVA)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '2.5px double var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>1. ASET (AKTIVA)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <ReportLine label="Kas & Setara Kas (11)" value={formatter.format(getBal('11'))} />
                   <ReportLine label="Penempatan pada Bank (12)" value={formatter.format(getBal('12'))} />
@@ -680,7 +696,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   <ReportLine label="Pembiayaan Mudharabah (15)" value={formatter.format(getBal('15'))} />
                   <ReportLine label="Aset Tetap & Inventaris (16)" value={formatter.format(getBal('16'))} />
                   
-                  <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: '#34d399', fontSize: '16px' }}>
+                  <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: 'var(--text-primary)', fontSize: '16px' }}>
                     <span>TOTAL ASET</span>
                     <span>{formatter.format(stats.totalAssets)}</span>
                   </div>
@@ -689,7 +705,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
               {/* Right Side: Liabilities & Equity */}
               <div className="neraca-col">
-                <h4 style={{ color: '#60a5fa', borderBottom: '2px solid #60a5fa', paddingBottom: '8px', fontWeight: 800 }}>2. KEWAJIBAN (LIABILITAS)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '2.5px double var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. KEWAJIBAN (LIABILITAS)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
                   <ReportLine label="Kewajiban Segera (21)" value={formatter.format(getBal('21', true))} />
                   <ReportLine label="Simpanan Wadiah/Titipan (22)" value={formatter.format(getBal('22', true))} />
@@ -701,7 +717,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   </div>
                 </div>
 
-                <h4 style={{ color: '#34d399', borderBottom: '2px solid #34d399', paddingBottom: '8px', fontWeight: 800 }}>3. EKUITAS (MODAL)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '2.5px double var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. EKUITAS (MODAL)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(getBal('400001', true))} />
                   <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(getBal('400002', true))} />
@@ -712,7 +728,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                     <span>{formatter.format(stats.totalEquity)}</span>
                   </div>
 
-                  <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: '#34d399', fontSize: '16px' }}>
+                  <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: 'var(--text-primary)', fontSize: '16px' }}>
                     <span>TOTAL KEWAJIBAN & EKUITAS</span>
                     <span>{formatter.format(stats.totalLiabilities + stats.totalEquity)}</span>
                   </div>
@@ -725,7 +741,9 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
           {/* ======================================= */}
           {/* INCOME STATEMENT (LABA RUGI KOMPREHENSIF) */}
           {/* ======================================= */}
-          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #34d399', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+          {/* INCOME STATEMENT (LABA RUGI KOMPREHENSIF) */}
+          {/* ======================================= */}
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
             <ReportHeader 
               title="LAPORAN LABA RUGI KOMPREHENSIF" 
               subtitle={`Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
@@ -735,7 +753,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               
               {/* PENDAPATAN OPERASIONAL */}
               <div>
-                <h4 style={{ color: '#f3c653', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>PENDAPATAN OPERASIONAL (Akun 5)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>PENDAPATAN OPERASIONAL (Akun 5)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Total Pendapatan Margin & Bagi Hasil" value={formatter.format(stats.totalIncome)} />
                 </div>
@@ -743,31 +761,31 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
               {/* HAK PIHAK KETIGA / BAGI HASIL */}
               <div>
-                <h4 style={{ color: '#fb923c', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>HAK PIHAK KETIGA ATAS BAGI HASIL (Akun 6)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>HAK PIHAK KETIGA ATAS BAGI HASIL (Akun 6)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Distribusi Bagi Hasil Simpanan Mudharabah" value={formatter.format(stats.totalProfitShare)} isRed />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '15px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px', marginTop: '10px' }}>
                   <span>PENDAPATAN BERSIH OPERASIONAL</span>
-                  <span style={{ color: '#34d399' }}>{formatter.format(stats.totalIncome - stats.totalProfitShare)}</span>
+                  <span>{formatter.format(stats.totalIncome - stats.totalProfitShare)}</span>
                 </div>
               </div>
 
               {/* BEBAN OPERASIONAL */}
               <div>
-                <h4 style={{ color: '#fca5a5', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>BEBAN OPERASIONAL (Akun 7)</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>BEBAN OPERASIONAL (Akun 7)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Total Beban Kepegawaian, Administrasi & Umum" value={formatter.format(stats.totalExpense)} isRed />
                 </div>
               </div>
 
               {/* NET PROFIT */}
-              <div style={{ background: 'rgba(52, 211, 153, 0.1)', border: '2px solid #34d399', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1.5px solid var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#34d399' }}>SISA HASIL USAHA (SHU) BERSIH TAHUN BERJALAN</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>SISA HASIL USAHA (SHU) BERSIH TAHUN BERJALAN</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Net Profit / Sisa Hasil Usaha otomatis ditransfer ke Ekuitas Neraca</div>
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: stats.netProfit >= 0 ? '#34d399' : '#fca5a5' }}>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
                   {formatter.format(stats.netProfit)}
                 </div>
               </div>
@@ -777,7 +795,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
           {/* ======================================= */}
           {/* STATEMENT OF CHANGES IN EQUITY          */}
           {/* ======================================= */}
-          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #60a5fa', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
             <ReportHeader 
               title="LAPORAN PERUBAHAN EKUITAS" 
               subtitle={`Berdasarkan Standar Akuntansi Keuangan Entitas Privat (SAK EP) | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
@@ -790,9 +808,9 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               <ReportLine label="SHU Tahun Lalu (Ditahan)" value={formatter.format(getBal('400008', true))} />
               <ReportLine label="Laba Bersih (SHU Tahun Berjalan)" value={formatter.format(stats.netProfit)} />
               
-              <div style={{ background: 'rgba(96, 165, 250, 0.1)', border: '2px solid #60a5fa', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#60a5fa' }}>TOTAL EKUITAS AKHIR TAHUN BERJALAN</div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#60a5fa' }}>{formatter.format(stats.totalEquity)}</div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1.5px solid var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>TOTAL EKUITAS AKHIR TAHUN BERJALAN</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>{formatter.format(stats.totalEquity)}</div>
               </div>
             </div>
           </div>
@@ -800,7 +818,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
           {/* ======================================= */}
           {/* STATEMENT OF CASH FLOWS                 */}
           {/* ======================================= */}
-          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '2px solid #a78bfa', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
+          <div className="glass-dark print-page-break" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', marginTop: '10px' }}>
             <ReportHeader 
               title="LAPORAN ARUS KAS (CASH FLOW)" 
               subtitle={`Metode Tidak Langsung (Indirect Method) SAK EP | Untuk Tahun yang Berakhir 31 Desember ${reportYear}`} 
@@ -810,49 +828,49 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               
               {/* Aktivitas Operasi */}
               <div>
-                <h4 style={{ color: '#f3c653', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>1. ARUS KAS DARI AKTIVITAS OPERASI</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>1. ARUS KAS DARI AKTIVITAS OPERASI</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Laba Bersih (SHU) Berjalan" value={formatter.format(stats.netProfit)} />
                   <ReportLine label="Kenaikan Titipan & Dana Syirkah" value={formatter.format(stats.totalLiabilities)} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Operasi</span>
-                    <span style={{ color: '#34d399' }}>{formatter.format(stats.netProfit + stats.totalLiabilities)}</span>
+                    <span>{formatter.format(stats.netProfit + stats.totalLiabilities)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Aktivitas Investasi */}
               <div>
-                <h4 style={{ color: '#fca5a5', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. ARUS KAS DARI AKTIVITAS INVESTASI</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. ARUS KAS DARI AKTIVITAS INVESTASI</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Penyaluran Pembiayaan Keluar (Penambahan Piutang)" value={`(${formatter.format(getBal('14') + getBal('15'))})`} isRed />
                   <ReportLine label="Pembelian Aset Tetap" value={`(${formatter.format(getBal('16'))})`} isRed />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Investasi</span>
-                    <span style={{ color: '#fca5a5' }}>({formatter.format(getBal('14') + getBal('15') + getBal('16'))})</span>
+                    <span>({formatter.format(getBal('14') + getBal('15') + getBal('16'))})</span>
                   </div>
                 </div>
               </div>
 
               {/* Aktivitas Pendanaan */}
               <div>
-                <h4 style={{ color: '#60a5fa', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. ARUS KAS DARI AKTIVITAS PENDANAAN</h4>
+                <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. ARUS KAS DARI AKTIVITAS PENDANAAN</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Penerimaan Modal Pokok & Wajib" value={formatter.format(getBal('400001', true) + getBal('400002', true))} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Pendanaan</span>
-                    <span style={{ color: '#34d399' }}>{formatter.format(getBal('400001', true) + getBal('400002', true))}</span>
+                    <span>{formatter.format(getBal('400001', true) + getBal('400002', true))}</span>
                   </div>
                 </div>
               </div>
 
               {/* NET CASH BALANCE */}
-              <div style={{ background: 'rgba(167, 139, 250, 0.1)', border: '2px solid #a78bfa', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1.5px solid var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '20px', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: '#a78bfa' }}>SALDO KAS & SETARA KAS AKHIR</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>SALDO KAS & SETARA KAS AKHIR</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Operasi + Investasi + Pendanaan</div>
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#a78bfa' }}>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
                   {formatter.format(getBal('11'))}
                 </div>
               </div>
@@ -862,7 +880,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             <div style={{ marginTop: '50px', textAlign: 'center' }}>
               <button 
                 onClick={() => window.print()} 
-                style={{ padding: '16px 40px', background: 'linear-gradient(135deg, #022b1c 0%, #043121 100%)', border: '2px solid #f3c653', color: '#f3c653', borderRadius: '12px', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '1px' }}
+                style={{ padding: '16px 40px', background: 'var(--text-primary)', border: 'none', color: 'var(--bg-page)', borderRadius: '12px', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.3)', textTransform: 'uppercase', letterSpacing: '1px' }}
               >
                 🖨️ CETAK SELURUH LAPORAN KEUANGAN (SAK EP)
               </button>
@@ -878,15 +896,15 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       {activeMenu === 'provisioning' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
-          <div className="glass-dark" style={{ padding: '40px', border: '2px solid #ef4444', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
-            <h3 style={{ color: '#ef4444', margin: '0 0 10px 0', fontWeight: 900 }}>🛡️ CADANGAN KERUGIAN PENURUNAN NILAI (CKPN)</h3>
+          <div className="glass-dark" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
+            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900 }}>🛡️ CADANGAN KERUGIAN PENURUNAN NILAI (CKPN)</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
               Sesuai mandat **SAK EP**, koperasi wajib mencadangkan potensi kerugian piutang pembiayaan macet berdasarkan kolektibilitas umur angsuran untuk memitigasi risiko finansial.
             </p>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(0,0,0,0.03)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
               <thead>
-                <tr style={{ textAlign: 'left', background: 'rgba(239,68,68,0.1)', borderBottom: '2px solid #ef4444' }}>
+                <tr style={{ textAlign: 'left', background: 'var(--bg-header)', borderBottom: '2px solid var(--border-primary)' }}>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>KOLEKTIBILITAS (STATUS)</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>UMUR TUNGGAKAN</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'center' }}>BOBOT CKPN (%)</th>
@@ -895,42 +913,42 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <td style={{ padding: '20px', color: '#34d399', fontWeight: 800 }}>Lancar (Kol-1)</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Lancar (Kol-1)</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)' }}>0 Hari</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', textAlign: 'center' }}>0.5%</td>
-                  <td style={{ padding: '20px', color: '#34d399', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.8 * 0.005)}</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.8 * 0.005)}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <td style={{ padding: '20px', color: '#fcd34d', fontWeight: 800 }}>Dalam Perhatian Khusus (Kol-2)</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Dalam Perhatian Khusus (Kol-2)</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)' }}>1 - 90 Hari</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', textAlign: 'center' }}>5.0%</td>
-                  <td style={{ padding: '20px', color: '#fcd34d', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.12 * 0.05)}</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.12 * 0.05)}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <td style={{ padding: '20px', color: '#fb923c', fontWeight: 800 }}>Kurang Lancar (Kol-3)</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Kurang Lancar (Kol-3)</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)' }}>91 - 120 Hari</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', textAlign: 'center' }}>15.0%</td>
-                  <td style={{ padding: '20px', color: '#fb923c', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.05 * 0.15)}</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.05 * 0.15)}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <td style={{ padding: '20px', color: '#f87171', fontWeight: 800 }}>Diragukan (Kol-4)</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Diragukan (Kol-4)</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)' }}>121 - 180 Hari</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', textAlign: 'center' }}>50.0%</td>
-                  <td style={{ padding: '20px', color: '#f87171', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.02 * 0.5)}</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.02 * 0.5)}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-                  <td style={{ padding: '20px', color: '#ef4444', fontWeight: 900 }}>Macet (Kol-5)</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 900 }}>Macet (Kol-5)</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)' }}>&gt; 180 Hari</td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', textAlign: 'center' }}>100.0%</td>
-                  <td style={{ padding: '20px', color: '#ef4444', fontWeight: 900, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.01 * 1.0)}</td>
+                  <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 900, textAlign: 'right' }}>{formatter.format(stats.totalFinancing * 0.01 * 1.0)}</td>
                 </tr>
               </tbody>
             </table>
             
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px' }}>
-              <div style={{ background: 'rgba(239,68,68,0.1)', padding: '20px 30px', borderRadius: '12px', border: '2px solid #ef4444', display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div style={{ background: 'var(--bg-page)', padding: '20px 30px', borderRadius: '12px', border: '1.5px solid var(--border-primary)', display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>TOTAL KEBUTUHAN CADANGAN (CKPN):</span>
-                <span style={{ color: '#ef4444', fontSize: '22px', fontWeight: 900 }}>
+                <span style={{ color: 'var(--text-primary)', fontSize: '22px', fontWeight: 900 }}>
                   {formatter.format(
                     (stats.totalFinancing * 0.8 * 0.005) + 
                     (stats.totalFinancing * 0.12 * 0.05) +
@@ -969,14 +987,14 @@ const inputStyle = {
   transition: 'border 0.2s'
 };
 
-function StatCard({ label, value, icon, color, subtitle }: any) {
+function StatCard({ label, value, icon, subtitle }: any) {
   return (
     <div style={{ 
       background: 'var(--bg-card)', 
       backdropFilter: 'blur(12px)', 
       padding: '24px', 
       borderRadius: '24px', 
-      border: `2px solid ${color}44`,
+      border: '1.5px solid var(--border-primary)',
       boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
       display: 'flex',
       flexDirection: 'column',
@@ -989,7 +1007,7 @@ function StatCard({ label, value, icon, color, subtitle }: any) {
         </div>
         <div style={{ fontSize: '32px', background: 'var(--border-primary)', padding: '10px', borderRadius: '14px' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: '11px', color: color, fontWeight: 800, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>{subtitle}</div>
+      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>{subtitle}</div>
     </div>
   );
 }

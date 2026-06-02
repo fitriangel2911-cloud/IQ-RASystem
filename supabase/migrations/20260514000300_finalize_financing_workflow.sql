@@ -23,6 +23,7 @@ ADD COLUMN IF NOT EXISTS installment_amount NUMERIC;
 -- Izin Akses
 ALTER TABLE public.prospects ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "AO can manage their prospects" ON public.prospects;
 CREATE POLICY "AO can manage their prospects" 
 ON public.prospects 
 FOR ALL 

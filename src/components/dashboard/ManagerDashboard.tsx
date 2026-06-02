@@ -262,16 +262,16 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
         <div>
           {/* 🚀 Command Center KPI Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '40px' }}>
-            <ExecCard label="Likuiditas Koperasi (FDR)" value={`${metrics.liquidityRatio}%`} icon="🌊" color="#34d399" comment="STATUS: AMAN & LIKUID" />
-            <ExecCard label="Dalam Antrian Otorisasi" value={`${metrics.pendingApprovals} Berkas`} icon="⚖️" color="#f3c653" comment="BUTUH KEPUTUSAN SEGERA" />
-            <ExecCard label="Plafon Tersalurkan (Aktif)" value={formatIDR.format(metrics.totalDisbursed)} icon="💰" color="#60a5fa" comment="TOTAL ASET PRODUKTIF" />
-            <ExecCard label="Non-Performing Loans (NPL)" value={`${metrics.nplRatio}%`} icon="🛡️" color="#ef4444" comment="RISIKO MACET RENDAH" />
+            <ExecCard label="Likuiditas Koperasi (FDR)" value={`${metrics.liquidityRatio}%`} icon="🌊" comment="STATUS: AMAN & LIKUID" />
+            <ExecCard label="Dalam Antrian Otorisasi" value={`${metrics.pendingApprovals} Berkas`} icon="⚖️" comment="BUTUH KEPUTUSAN SEGERA" />
+            <ExecCard label="Plafon Tersalurkan (Aktif)" value={formatIDR.format(metrics.totalDisbursed)} icon="💰" comment="TOTAL ASET PRODUKTIF" />
+            <ExecCard label="Non-Performing Loans (NPL)" value={`${metrics.nplRatio}%`} icon="🛡️" comment="RISIKO MACET RENDAH" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '30px' }}>
             {/* Liquidity Health Chart Simulation */}
-            <div className="glass-dark" style={{ padding: '36px', border: '2px solid var(--gold-bright)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', boxShadow: '0 20px 40px var(--shadow-color)' }}>
-              <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 10px 0', fontWeight: 900 }}>📈 POSISI KESEHATAN KEUANGAN KOPERASI</h3>
+            <div className="glass-dark" style={{ padding: '36px', border: '1.5px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', boxShadow: '0 20px 40px var(--shadow-color)' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900 }}> Posisi Kesehatan Keuangan Koperasi</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '30px' }}>Parameter Likuiditas, Risiko, dan Kecukupan Modal secara Real-Time.</p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -280,23 +280,23 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                 <HealthIndicator label="Rasio Cadangan Risiko (CKPN)" value={145} target={100} color="#60a5fa" unit="%" />
               </div>
 
-              <div style={{ marginTop: '32px', padding: '18px', background: 'rgba(52, 211, 153, 0.1)', border: '1.5px solid #34d399', borderRadius: '16px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
+              <div style={{ marginTop: '32px', padding: '18px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '16px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
                 💡 <strong>Rekomendasi Sistem AI:</strong> Performa keuangan koperasi saat ini berada dalam zona sangat prima. Kapasitas ekspansi pembiayaan baru aman untuk disetujui demi memacu produktivitas likuiditas kas.
               </div>
             </div>
 
             {/* Top Pending Approval Quick Peek */}
             <div className="glass-dark" style={{ padding: '36px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', boxShadow: '0 20px 40px var(--shadow-color)' }}>
-              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontWeight: 900 }}>📢 Memo Antrian Terkini</h3>
+              <h3 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontWeight: 900 }}> Memo Antrian Terkini</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {contracts.filter(c => c.status === 'pending').slice(0, 3).map((c) => (
-                  <div key={c.id} style={{ background: 'var(--shadow-color)', padding: '16px', borderRadius: '16px', borderLeft: '4px solid var(--gold-intense)' }}>
+                  <div key={c.id} style={{ background: 'var(--shadow-color)', padding: '16px', borderRadius: '16px', borderLeft: '4px solid var(--border-primary)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <span style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '15px' }}>{c.member_name || c.users?.full_name || 'Pemohon'}</span>
-                      <span style={{ color: 'var(--gold-intense)', fontWeight: 900, fontSize: '13px' }}>AI COMPLIANT</span>
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 900, fontSize: '13px' }}>AI COMPLIANT</span>
                     </div>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Akad: {getFriendlyContractType(c.type)}</div>
-                    <div style={{ color: '#34d399', fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
+                    <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px', marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
                   </div>
                 ))}
                 {contracts.filter(c => c.status === 'pending').length === 0 && (
@@ -313,10 +313,10 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
       {/* =========================================== */}
       {activeMenu === 'approvals' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '3px solid var(--gold-bright)', boxShadow: '0 30px 60px var(--shadow-color)' }}>
-            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '2.5px solid var(--gold-bright)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1.5px solid var(--border-primary)', boxShadow: '0 30px 60px var(--shadow-color)' }}>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '22px', fontWeight: 900 }}>⚖️ OTORISASI PENGAJUAN PEMBIAYAAN (PIPELINE)</h2>
-              <button onClick={fetchFinancingPipeline} style={{ background: 'transparent', border: 'none', color: 'var(--gold-intense)', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>🔄 Refresh Pipeline</button>
+              <button onClick={fetchFinancingPipeline} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>🔄 Refresh Pipeline</button>
             </div>
 
             <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -332,7 +332,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                       <div>
                         <div style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 900 }}>{c.member_name || c.users?.full_name || 'Calon Penerima'}</div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '2px' }}>{c.users?.email || 'email@tertaut.com'}</div>
-                        <div style={{ background: 'var(--border-primary)', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', color: 'var(--gold-bright)', fontWeight: 800, fontSize: '12px', marginTop: '12px', border: '1px solid var(--gold-bright)' }}>
+                        <div style={{ background: 'var(--border-primary)', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', color: 'var(--text-primary)', fontWeight: 800, fontSize: '12px', marginTop: '12px', border: '1px solid var(--border-primary)' }}>
                           📋 {getFriendlyContractType(c.type)}
                         </div>
                       </div>
@@ -340,14 +340,14 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                       {/* 2. Amount Plafond */}
                       <div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>Plafon Diajukan</div>
-                        <div style={{ color: '#34d399', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
                       </div>
 
                       {/* 3. AI Assessment RAG Result */}
                       <div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Rekomendasi AI RAG</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ background: score >= 85 ? 'rgba(52, 211, 153, 0.15)' : 'rgba(251, 191, 36, 0.15)', color: score >= 85 ? '#34d399' : '#fcd34d', padding: '8px 12px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', border: `1.5px solid ${score >= 85 ? '#34d399' : '#fcd34d'}` }}>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', border: '1.5px solid var(--border-primary)' }}>
                             🛡️ {score}%
                           </div>
                           <span style={{ color: 'var(--text-primary)', fontSize: '11px', fontWeight: 700 }}>PRIMA (PATUH)</span>
@@ -397,12 +397,12 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
           <div style={{ padding: '20px 36px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--gold-bright)' }}>
-                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>TANGGAL PROSES</th>
-                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>NAMA ANGGOTA</th>
-                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px' }}>AKAD</th>
-                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>PLAFON</th>
-                  <th style={{ padding: '16px', color: 'var(--gold-intense)', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>KEPUTUSAN FINAL</th>
+                <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border-primary)' }}>
+                  <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>TANGGAL PROSES</th>
+                  <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>NAMA ANGGOTA</th>
+                  <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>AKAD</th>
+                  <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>PLAFON</th>
+                  <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>KEPUTUSAN FINAL</th>
                 </tr>
               </thead>
               <tbody>
@@ -414,7 +414,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                       </td>
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>{c.member_name || c.users?.full_name || 'Anggota Terdaftar'}</td>
                       <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px' }}>{getFriendlyContractType(c.type)}</td>
-                      <td style={{ padding: '16px', color: '#34d399', fontWeight: 900, textAlign: 'right', fontSize: '14px' }}>{formatIDR.format(c.amount)}</td>
+                      <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 900, textAlign: 'right', fontSize: '14px' }}>{formatIDR.format(c.amount)}</td>
                       <td style={{ padding: '16px', textAlign: 'center' }}>
                         <span style={{ 
                           padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 900, 
@@ -455,14 +455,14 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
   );
 }
 
-function ExecCard({ label, value, icon, color, comment }: any) {
+function ExecCard({ label, value, icon, comment }: any) {
   return (
     <div style={{ 
       background: 'var(--bg-card)', 
       backdropFilter: 'blur(12px)', 
       padding: '26px', 
       borderRadius: '28px', 
-      border: `2px solid ${color}55`,
+      border: '1.5px solid var(--border-primary)',
       boxShadow: '0 20px 45px var(--shadow-color)',
       display: 'flex',
       flexDirection: 'column',
@@ -475,7 +475,7 @@ function ExecCard({ label, value, icon, color, comment }: any) {
         </div>
         <div style={{ fontSize: '34px', background: 'var(--border-primary)', padding: '10px', borderRadius: '16px' }}>{icon}</div>
       </div>
-      <div style={{ fontSize: '11px', color: color, fontWeight: 900, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 900, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', letterSpacing: '0.5px' }}>
         {comment}
       </div>
     </div>

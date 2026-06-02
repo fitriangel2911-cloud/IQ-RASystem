@@ -30,40 +30,40 @@ export default function AIChatbot({ role = 'guest' }: AIChatbotProps) {
     switch (activeRole) {
       case 'dps':
         return [
-          { text: "Cara pembersihan dana non-halal", icon: "🕌" },
-          { text: "Beda rukun Murabahah vs Ijarah", icon: "⚖️" },
-          { text: "Fatwa DSN-MUI tentang Musyarakah", icon: "📜" }
+          { text: "Cara pembersihan dana non-halal", icon: "" },
+          { text: "Beda rukun Murabahah vs Ijarah", icon: "" },
+          { text: "Fatwa DSN-MUI tentang Musyarakah", icon: "" }
         ];
       case 'ao':
       case 'account_officer':
         return [
-          { text: "Rekomendasi akad modal usaha mikro", icon: "🎯" },
-          { text: "Mitigasi risiko pembiayaan Murabahah", icon: "🛡️" },
-          { text: "Kriteria objek barang sah dalam Ijarah", icon: "📦" }
+          { text: "Rekomendasi akad modal usaha mikro", icon: "" },
+          { text: "Mitigasi risiko pembiayaan Murabahah", icon: "" },
+          { text: "Kriteria objek barang sah dalam Ijarah", icon: "" }
         ];
       case 'accounting':
         return [
-          { text: "Klasifikasi PSAK 101 Neraca Syariah", icon: "📊" },
-          { text: "Jurnal double-entry setoran Wadiah", icon: "✒️" },
-          { text: "Cara hitung nisbah bagi hasil bersih", icon: "📈" }
+          { text: "Klasifikasi PSAK 101 Neraca Syariah", icon: "" },
+          { text: "Jurnal double-entry setoran Wadiah", icon: "" },
+          { text: "Cara hitung nisbah bagi hasil bersih", icon: "" }
         ];
       case 'teller':
         return [
-          { text: "Berapa batas cash-on-hand harian?", icon: "🏪" },
-          { text: "Langkah input setoran tunai Wadiah", icon: "💵" },
-          { text: "Cara rekonsiliasi kas akhir shift", icon: "🔑" }
+          { text: "Berapa batas cash-on-hand harian?", icon: "" },
+          { text: "Langkah input setoran tunai Wadiah", icon: "" },
+          { text: "Cara rekonsiliasi kas akhir shift", icon: "" }
         ];
       case 'member':
         return [
-          { text: "Mekanisme Simpanan Wadiah", icon: "💚" },
-          { text: "Bagaimana cara kerja Bagi Hasil?", icon: "📈" },
-          { text: "Apakah ada bunga riba di Koperasi?", icon: "🚫" }
+          { text: "Mekanisme Simpanan Wadiah", icon: "" },
+          { text: "Bagaimana cara kerja Bagi Hasil?", icon: "" },
+          { text: "Apakah ada bunga riba di Koperasi?", icon: "" }
         ];
       default:
         return [
-          { text: "Prinsip dasar Koperasi Syariah", icon: "🕌" },
-          { text: "Penjelasan Akad Murabahah ringkas", icon: "🤝" },
-          { text: "Apa itu RAG AI Syariah?", icon: "🤖" }
+          { text: "Prinsip dasar Koperasi Syariah", icon: "" },
+          { text: "Penjelasan Akad Murabahah ringkas", icon: "" },
+          { text: "Apa itu RAG AI Syariah?", icon: "" }
         ];
     }
   };
@@ -181,12 +181,9 @@ export default function AIChatbot({ role = 'guest' }: AIChatbotProps) {
     }
   };
 
-  // Full markdown renderer — handles headers, bold, lists, paragraphs correctly
+  // Full markdown renderer — handles headers, bold, lists, paragraphs correctly in original order
   const renderMessageText = (text: string) => {
     if (!text) return null;
-
-    // Split into blocks by double newline (paragraphs)
-    const blocks = text.split(/\n{2,}/);
 
     const renderInline = (line: string) => {
       // Bold+Italic
@@ -198,59 +195,73 @@ export default function AIChatbot({ role = 'guest' }: AIChatbotProps) {
       return result;
     };
 
+    const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
+    let currentList: React.ReactNode[] = [];
+    let listKey = 0;
 
-    blocks.forEach((block, blockIdx) => {
-      const lines = block.split('\n');
-      const listItems: string[] = [];
-      const regularLines: string[] = [];
-
-      // Check if this block is a heading
-      const firstLine = lines[0]?.trim();
-      if (firstLine?.startsWith('# ')) {
-        elements.push(<h3 key={blockIdx} style={{color:'#f3c653',fontWeight:900,margin:'14px 0 6px',fontSize:'16px',borderBottom:'1px solid rgba(204,163,52,0.3)',paddingBottom:'4px'}} dangerouslySetInnerHTML={{__html: renderInline(firstLine.slice(2))}} />);
-        return;
-      }
-      if (firstLine?.startsWith('## ')) {
-        elements.push(<h4 key={blockIdx} style={{color:'#f3c653',fontWeight:800,margin:'12px 0 5px',fontSize:'14px'}} dangerouslySetInnerHTML={{__html: renderInline(firstLine.slice(3))}} />);
-        return;
-      }
-      if (firstLine?.startsWith('### ')) {
-        elements.push(<h5 key={blockIdx} style={{color:'#cca334',fontWeight:700,margin:'10px 0 4px',fontSize:'13px',textTransform:'uppercase',letterSpacing:'0.4px'}} dangerouslySetInnerHTML={{__html: renderInline(firstLine.slice(4))}} />);
-        return;
-      }
-
-      // Separate list items from regular lines
-      lines.forEach(line => {
-        if (/^\s*[\*\-\•]\s+/.test(line)) {
-          listItems.push(line.replace(/^\s*[\*\-\•]\s+/, ''));
-        } else if (/^\s*\d+\.\s+/.test(line)) {
-          listItems.push(line.replace(/^\s*\d+\.\s+/, ''));
-        } else {
-          if (line.trim()) regularLines.push(line);
-        }
-      });
-
-      // Render list items as <ul>
-      if (listItems.length > 0) {
+    const flushList = () => {
+      if (currentList.length > 0) {
         elements.push(
-          <ul key={`ul-${blockIdx}`} style={{margin:'6px 0',paddingLeft:'18px',listStyleType:'disc'}}>
-            {listItems.map((item, i) => (
-              <li key={i} style={{color:'#e2e8f0',fontSize:'13.5px',marginBottom:'4px',lineHeight:1.6}} dangerouslySetInnerHTML={{__html: renderInline(item)}} />
-            ))}
+          <ul key={`list-${listKey++}`} style={{ margin: '6px 0', paddingLeft: '20px', listStyleType: 'disc' }}>
+            {currentList}
           </ul>
         );
+        currentList = [];
+      }
+    };
+
+    lines.forEach((line, index) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flushList();
+        // Add a small spacer for double newlines
+        elements.push(<div key={`space-${index}`} style={{ height: '8px' }} />);
+        return;
       }
 
-      // Render regular lines as paragraph
-      if (regularLines.length > 0) {
+      // Check for headings
+      if (trimmed.startsWith('# ')) {
+        flushList();
         elements.push(
-          <p key={`p-${blockIdx}`} style={{margin:'5px 0',color:'#e2e8f0',fontSize:'13.5px',lineHeight:1.65}} dangerouslySetInnerHTML={{__html: renderInline(regularLines.join('<br/>'))}} />
+          <h3 key={`h3-${index}`} style={{ color: '#f3c653', fontWeight: 900, margin: '14px 0 6px', fontSize: '16px', borderBottom: '1px solid rgba(204,163,52,0.3)', paddingBottom: '4px' }} dangerouslySetInnerHTML={{ __html: renderInline(trimmed.slice(2)) }} />
+        );
+      } else if (trimmed.startsWith('## ')) {
+        flushList();
+        elements.push(
+          <h4 key={`h4-${index}`} style={{ color: '#f3c653', fontWeight: 800, margin: '12px 0 5px', fontSize: '14px' }} dangerouslySetInnerHTML={{ __html: renderInline(trimmed.slice(3)) }} />
+        );
+      } else if (trimmed.startsWith('### ')) {
+        flushList();
+        elements.push(
+          <h5 key={`h5-${index}`} style={{ color: '#cca334', fontWeight: 700, margin: '10px 0 4px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }} dangerouslySetInnerHTML={{ __html: renderInline(trimmed.slice(4)) }} />
+        );
+      }
+      // Check for bullet list items
+      else if (/^[\*\-\•]\s+/.test(trimmed)) {
+        const content = trimmed.replace(/^[\*\-\•]\s+/, '');
+        currentList.push(
+          <li key={`li-${index}`} style={{ color: '#e2e8f0', fontSize: '13.5px', marginBottom: '4px', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: renderInline(content) }} />
+        );
+      }
+      // Check for numbered list items
+      else if (/^\d+\.\s+/.test(trimmed)) {
+        const content = trimmed.replace(/^\d+\.\s+/, '');
+        currentList.push(
+          <li key={`li-${index}`} style={{ color: '#e2e8f0', fontSize: '13.5px', marginBottom: '4px', lineHeight: 1.6, listStyleType: 'decimal' }} dangerouslySetInnerHTML={{ __html: renderInline(content) }} />
+        );
+      }
+      // Regular paragraph line
+      else {
+        flushList();
+        elements.push(
+          <p key={`p-${index}`} style={{ margin: '4px 0', color: '#e2e8f0', fontSize: '13.5px', lineHeight: 1.65 }} dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
         );
       }
     });
 
-    return <div style={{lineHeight:1.65}}>{elements}</div>;
+    flushList();
+    return <div style={{ lineHeight: 1.65 }}>{elements}</div>;
   };
 
   const headerInfo = getRoleHeader();
@@ -413,7 +424,7 @@ export default function AIChatbot({ role = 'guest' }: AIChatbotProps) {
                       fontSize: '10px',
                       color: '#94a3b8'
                     }}>
-                      <div style={{ fontWeight: 800, color: '#f3c653', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📚 Referensi Fatwa/Aturan:</div>
+                      <div style={{ fontWeight: 800, color: '#f3c653', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Referensi Fatwa/Aturan:</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                         {msg.sources.map((src, sIdx) => (
                           <div key={sIdx} style={{
@@ -426,10 +437,8 @@ export default function AIChatbot({ role = 'guest' }: AIChatbotProps) {
                             border: '1px solid rgba(204, 163, 52, 0.2)',
                             color: '#e2e8f0',
                             whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
                             overflow: 'hidden'
                           }}>
-                            <span>📌</span>
                             <span style={{ fontWeight: 700 }}>{src.title}</span>
                           </div>
                         ))}

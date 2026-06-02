@@ -42,6 +42,7 @@ npm run lint     # Cek linting TypeScript
   - Dark Emerald: `#043121` / `#084b35`
   - Metallic Gold: `#cca334` / `#f3c653` / `#a67e26`
   - Slate Arang: `#334155` / `#1e293b`
+- **Aturan Emas Pembersihan Emoji ("Sistem, Bukan Mainan")**: Dilarang keras menggunakan emoji dekoratif atau ikon informal pada antarmuka sistem (terutama di bagian pengawasan syariah DPS, asisten AI, dan laporan resmi). Gunakan tipografi yang bersih, variabel border semantik CSS, atau SVG formal jika penanda visual diperlukan.
 
 ---
 

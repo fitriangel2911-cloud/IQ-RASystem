@@ -1,7 +1,7 @@
 Product Requirements Document (PRD)
 Nama Produk: IQ-RA System (Platform Keuangan Mikro Syariah Terintegrasi AI)
-Versi: 1.2
-Tanggal Dokumen: 31 Mei 2026
+Versi: 1.3
+Tanggal Dokumen: 2 Juni 2026
 1. Ringkasan Eksekutif (Executive Summary)
 IQ-RA System adalah platform perangkat lunak komprehensif berbasis web dan mobile yang dirancang khusus untuk Koperasi Simpan Pinjam Syariah (KSPS). Sistem ini bertujuan untuk mentransformasi operasional koperasi dari sistem legacy (pihak ketiga) menuju ekosistem digital mandiri yang adaptif, stabil, transparan, dan sesuai syariah.
 Nilai jual utama (USPs) dari IQ-RA System adalah integrasi Retrieval-Augmented Generation (RAG) sebagai Smart Decision Support System untuk merekomendasikan kesesuaian akad pembiayaan, serta arsitektur akuntansi bawaan yang secara native mematuhi SAK EP dan regulasi PSAK Syariah terbaru (401-407).
@@ -89,7 +89,7 @@ IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dira
 | **Account Officer (AO)** | Analisis kapasitas anggota, verifikasi lapangan | Modul pembiayaan & AI |
 | **Manajer / Komite** | Approval pencairan pembiayaan | Dashboard analitik, approval |
 | **Accounting** | Pembukuan, jurnal, koreksi, cetak laporan | Verifikasi; tidak transaksi fisik |
-| **Super Admin (IT)** | Kontrol penuh infrastruktur & operasional | Akses mutlak seluruh fitur |
+| **Super Admin (IT)** | Kontrol penuh infrastruktur, audit keamanan, backup, manajemen COA, dan delegasi tugas | Akses mutlak seluruh fitur |
 | **Anggota (Mobile)** | Cek saldo, transfer, bayar tagihan | Hanya data milik sendiri |
 
 ---
@@ -97,9 +97,10 @@ IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dira
 ## 4. Fitur Utama & Kebutuhan Fungsional
 
 ### 4.1. Modul IQ-RA RAG Engine
-- Form input parameter pembiayaan (tujuan, profil anggota, jaminan).
-- Similarity search ke database vektor fatwa DSN-MUI.
-- Output: Skor kecocokan akad, mitigasi risiko, syarat administrasi.
+- Form input parameter pembiayaan (tujuan, profil anggota, jaminan) dan antarmuka tanya-jawab syariah interaktif.
+- Similarity search ke database vektor fatwa DSN-MUI menggunakan model `gemini-embedding-001`.
+- Output: Skor kecocokan akad, mitigasi risiko, syarat administrasi, serta respons penjelasan syariah yang lengkap (kapasitas output s/d 4096 token) dan runut.
+- Optimasi Latensi & Keandalan: Pembatasan Unified Context RAG ke 120.000 karakter untuk mengeliminasi downtime akibat timeout koneksi Next.js, dipadukan dengan parser line-by-line pada UI Chatbot untuk mencegah teracaknya pesan.
 
 ### 4.2. Modul Core Banking Syariah
 
@@ -127,6 +128,17 @@ Formulir pendaftaran premium 4 bagian:
 - Double-entry bookkeeping otomatis dari setiap transaksi Teller.
 - Sistem Open-Close harian untuk validasi kas.
 - Auto-generate Laporan: Neraca, Laba Rugi, Arus Kas, Dana Kebajikan/Zakat.
+- Menggunakan data *Chart of Accounts* (COA) dinamis yang bersumber dari tabel `coa_accounts` (Telah di-seed 200+ akun SAK EP resmi).
+
+### 4.4. Infrastruktur IT (Super Admin)
+Pusat kendali tata kelola TI untuk memastikan stabilitas dan keamanan platform:
+- **Manajemen Akses & Auth**: Otorisasi pembuatan akun staf dengan enkripsi *role-based*.
+- **Log Audit Keamanan**: Rekam jejak *immutable* (`audit_logs`) dari setiap perubahan sistem, konfigurasi, dan penugasan role.
+- **Diagnostik Real-time**: Monitoring status koneksi Supabase, PING latensi, dan model AI.
+- **Manajemen Konfigurasi Sistem**: UI CRUD untuk mengubah parameter AI (Context, Token) dan batas nominal otorisasi keuangan secara *live*.
+- **Pencadangan Sistem (Backup)**: Fungsionalitas ekspor parameter dan COA ke dalam fail JSON ber-timestamp.
+- **Manajemen COA Dinamis**: Antarmuka CRUD untuk memanipulasi pos-pos akuntansi tanpa harus intervensi database manual.
+- **Penugasan Staf (Ticketing)**: Kanban-style task delegation untuk instruksi operasional internal antar staf.
 
 ### 4.4. Integrasi Third-Party & Mobile
 - API Payment Gateway (Flip API) untuk transfer antar bank.
@@ -160,9 +172,9 @@ Formulir pendaftaran premium 4 bagian:
 | **Fase 1** — Fondasi & Migrasi | Setup Next.js, Supabase, RLS, SonarCloud, migrasi data awal | ✅ Selesai |
 | **Fase 2** — Core Banking & Akuntansi | Modul Teller (6 UI), CS, Accounting, COA SAK EP | ✅ Selesai |
 | **Fase 3** — RAG AI, DPS & Standarisasi | Ingesti fatwa DSN-MUI ke pgvector, LangChain, 6 Panel DPS, Standarisasi UI/UX Tema | ✅ Selesai |
-| **Fase 4** — Testing, UAT & Go-Live | Blackbox testing, simulasi harian, training, Deploy ke Vercel | 🟡 Aktif |
+| **Fase 4** — Testing, UAT & Go-Live | UAT, Blackbox testing (menggunakan COA seeded), RLS Audit, Deploy ke Vercel | 🟡 Aktif |
 | **Fase 5** — Integrasi & Mobile | Payment Gateway (Flip API), PPOB, IQ-RA Mobile Gateway, Push Notification | ⏳ Menunggu |
 
-**Sprint Aktif:** Persiapan UAT, Final RLS Audit, dan Deployment Produksi ke Vercel (Fase 4).
+**Sprint Aktif:** Pelaksanaan User Acceptance Testing (UAT), Blackbox Testing, dan Persiapan Deployment Produksi (Fase 4).
 
 > File utama yang harus diperhatikan: `src/components/dashboard/DPSDashboard.tsx`, `src/app/globals.css`, `src/app/api/ai/audit-contract/route.ts`

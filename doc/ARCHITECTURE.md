@@ -2,7 +2,7 @@
 
 Dokumen ini menguraikan arsitektur tingkat tinggi dari IQ-RA System.
 
-**Versi:** 1.3 | **Diperbarui:** 31 Mei 2026
+**Versi:** 1.4 | **Diperbarui:** 2 Juni 2026
 
 ---
 
@@ -104,19 +104,26 @@ src/
 
 ### 4.2. Backend & Database (Supabase)
 
-| Tabel | Fungsi |
-|---|---|
-| `users` | Kredensial & RBAC (7 peran) dengan RLS |
-| `members` | Data CIF anggota (KYC & APU-PPT) |
-| `savings_accounts` | Rekening simpanan (pokok/wajib/wadiah) |
-| `savings_transactions` | Mutasi setoran & penarikan harian |
-| `journal_entries` | Buku besar double-entry SAK EP |
-| `financing_contracts` | Akad pembiayaan, amortisasi, nisbah, `audit_metadata` (JSONB) |
-| `prospects` | Pipeline pengajuan calon debitur (AO workflow) |
-| `purifications` | Riwayat alokasi dana non-halal ke sektor sosial (ZISWAF) |
-| `teller_shifts` | Log buka/tutup shift kasir harian |
-| `system_parameters` | Parameter dinamis operasional koperasi |
-| `sharia_knowledge` | Vector embeddings fatwa DSN-MUI (pgvector, 1536-dim) |
+| Tabel | Fungsi | Migration |
+|---|---|---|
+| `users` | Kredensial & RBAC (8 peran) dengan RLS | `20260512000000_initial_schema.sql` |
+| `members` | Data CIF anggota (KYC & APU-PPT) | `20260602000100_missing_tables_and_coa_patch.sql` |
+| `savings_accounts` | Rekening simpanan (pokok/wajib/wadiah) | `20260520000000_setup_cooperative_savings.sql` |
+| `savings_transactions` | Mutasi setoran & penarikan harian | `20260520000000_setup_cooperative_savings.sql` |
+| `journal_entries` | Buku besar double-entry SAK EP | `20260512000000_initial_schema.sql` |
+| `financing_contracts` | Akad pembiayaan, amortisasi, nisbah, `audit_metadata` (JSONB) | `20260512000000_initial_schema.sql` |
+| `prospects` | Pipeline pengajuan calon debitur (AO workflow) | `20260514000300_finalize_financing_workflow.sql` |
+| `teller_shifts` | Log buka/tutup shift kasir harian | `20260529000000_setup_teller_shifts.sql` |
+| `system_parameters` | Parameter dinamis operasional koperasi | `20260523000000_setup_system_parameters.sql` |
+| `sharia_knowledge` | Vector embeddings fatwa DSN-MUI (pgvector, 1536-dim) | `20260514000200_setup_rag_vector_db.sql` |
+| `audit_logs` | Log seluruh aksi Super Admin (keamanan & tata kelola) | `20260602000000_superadmin_extensions.sql` |
+| `user_activities` | Riwayat aktivitas login & aksi pengguna | `20260602000000_superadmin_extensions.sql` |
+| `coa_accounts` | Chart of Accounts SAK EP (202+ akun dinamis) | `20260602000000_superadmin_extensions.sql` |
+| `system_tasks` | Tiket penugasan & tugas operasional staf | `20260602000000_superadmin_extensions.sql` |
+| `access_rules` | Aturan otorisasi per-role (wewenang & batasan) | `20260602000100_missing_tables_and_coa_patch.sql` |
+| `notifications` | Notifikasi sistem untuk pengguna (alert UI) | `20260603000000_add_notifications_table.sql` |
+
+> **Referensi lengkap:** Lihat `supabase/tables_map.json` untuk pemetaan tabel → lokasi kode, dan `supabase/MASTER_PATCH.sql` untuk SQL patch aman yang dapat dijalankan langsung di Supabase Studio.
 
 ### 4.3. Modul RAG (AI Engine)
 - **LangChain.js:** Orkestrator prompt & pipeline RAG.

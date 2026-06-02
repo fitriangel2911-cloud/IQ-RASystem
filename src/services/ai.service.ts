@@ -459,10 +459,29 @@ Berikan analisis Anda dalam format JSON persis seperti berikut (tanpa tambahan t
 
     if (!apiKey) {
       return {
-        text: "⚠️ Asisten AI belum aktif. Pastikan `GEMINI_API_KEY` sudah dikonfigurasi dengan benar di file `.env.local`.",
+        text: "Asisten AI belum aktif. Pastikan `GEMINI_API_KEY` sudah dikonfigurasi dengan benar di file `.env.local`.",
         sources: []
       };
     }
+
+    // Fetch dynamic parameters from database if available
+    let maxOutputTokens = 4096;
+    let unifiedThreshold = 120000;
+    try {
+      const { data: dbParams } = await supabase
+        .from('system_parameters')
+        .select('key, value');
+      if (dbParams) {
+        const tokenParam = dbParams.find((p: any) => p.key === 'max_output_tokens');
+        if (tokenParam) maxOutputTokens = parseInt(tokenParam.value, 10) || 4096;
+        
+        const threshParam = dbParams.find((p: any) => p.key === 'unified_context_threshold');
+        if (threshParam) unifiedThreshold = parseInt(threshParam.value, 10) || 120000;
+      }
+    } catch (e) {
+      console.warn("Failed to load RAG parameters from DB:", e);
+    }
+
 
     // 1. Select role-specific persona
     let persona = "";
@@ -505,9 +524,9 @@ Berikan analisis Anda dalam format JSON persis seperti berikut (tanpa tambahan t
       if (allDocs && allDocs.length > 0) {
         const totalLength = allDocs.reduce((acc: number, doc: any) => acc + (doc.content?.length || 0), 0);
         
-        // If entire DB <= 600,000 characters (~150,000 tokens), load EVERYTHING!
-        // This delivers 100% "study all documents" zero-loss context.
-        if (totalLength <= 600000) {
+        // If entire DB <= unifiedThreshold characters (~30,000 tokens), load EVERYTHING!
+        // This delivers 100% "study all documents" zero-loss context for small databases.
+        if (totalLength <= unifiedThreshold) {
           contextDocs = allDocs;
           isUnifiedFullContext = true;
           console.log(`Using Unified Full Context: Loaded all ${allDocs.length} chunks (${totalLength} chars) into Gemini's context window.`);
@@ -654,7 +673,7 @@ Berikan jawaban yang utuh, mendalam, dan selesai dengan sempurna (tidak terputus
           apiKey,
           model: modelName,
           temperature: 0.6,
-          maxOutputTokens: 3072,
+          maxOutputTokens: maxOutputTokens,
           safetySettings
         })
       );

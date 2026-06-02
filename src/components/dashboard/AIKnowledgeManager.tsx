@@ -47,7 +47,7 @@ export default function AIKnowledgeManager() {
     if (!file) return;
 
     setLoading(true);
-    setMessage({ type: 'success', text: `⏳ Sedang memuat modul extractor untuk berkas '${file.name}'...` });
+    setMessage({ type: 'success', text: `Sedang memuat modul extractor untuk berkas '${file.name}'...` });
 
     // Bersihkan nama file untuk dijadikan judul sumber
     const cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, ' ').replace(/-/g, ' ');
@@ -90,7 +90,7 @@ export default function AIKnowledgeManager() {
             }));
             setIsFileUploaded(true);
             setUploadedFileName(file.name);
-            setMessage({ type: 'success', text: `✅ Berkas PDF '${file.name}' (${pdf.numPages} halaman) berhasil diekstrak! Tinjau data di bawah dan klik ingest.` });
+            setMessage({ type: 'success', text: `Berkas PDF '${file.name}' (${pdf.numPages} halaman) berhasil diekstrak! Tinjau data di bawah dan klik ingest.` });
             setLoading(false);
           } catch (err: any) {
             setMessage({ type: 'error', text: 'Gagal mengekstrak berkas PDF: ' + err.message });
@@ -124,7 +124,7 @@ export default function AIKnowledgeManager() {
             }));
             setIsFileUploaded(true);
             setUploadedFileName(file.name);
-            setMessage({ type: 'success', text: `✅ Berkas Word (.docx) '${file.name}' berhasil diekstrak! Tinjau data di bawah dan klik ingest.` });
+            setMessage({ type: 'success', text: `Berkas Word (.docx) '${file.name}' berhasil diekstrak! Tinjau data di bawah dan klik ingest.` });
             setLoading(false);
           } catch (err: any) {
             setMessage({ type: 'error', text: 'Gagal mengekstrak berkas Word: ' + err.message });
@@ -155,7 +155,7 @@ export default function AIKnowledgeManager() {
             }
             setIsFileUploaded(true);
             setUploadedFileName(file.name);
-            setMessage({ type: 'success', text: `✅ Berkas '${file.name}' berhasil dibaca secara instan! Tinjau data di bawah dan klik ingest.` });
+            setMessage({ type: 'success', text: `Berkas '${file.name}' berhasil dibaca secara instan! Tinjau data di bawah dan klik ingest.` });
           } catch (err: any) {
             setMessage({ type: 'error', text: 'Gagal membaca isi berkas teks: ' + err.message });
           }
@@ -190,7 +190,7 @@ export default function AIKnowledgeManager() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal melakukan ingesti');
 
-      setMessage({ type: 'success', text: `✅ ${data.message || 'Dokumen berhasil di-ingest ke Basis Pengetahuan AI!'}` });
+      setMessage({ type: 'success', text: `${data.message || 'Dokumen berhasil di-ingest ke Basis Pengetahuan AI!'}` });
       setFormData({ title: '', category: 'FATWA', content: '' });
       setIsFileUploaded(false);
       setUploadedFileName('');
@@ -215,7 +215,7 @@ export default function AIKnowledgeManager() {
         
       if (error) throw error;
       
-      setMessage({ type: 'success', text: '✅ Dokumen berhasil dihapus dari basis pengetahuan AI!' });
+      setMessage({ type: 'success', text: 'Dokumen berhasil dihapus dari basis pengetahuan AI!' });
       fetchKnowledge();
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Gagal menghapus dokumen: ' + err.message });
@@ -229,7 +229,7 @@ export default function AIKnowledgeManager() {
       
       {/* 1. INPUT FORM */}
       <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(10px)', padding: '40px', borderRadius: '24px', border: '1px solid var(--border-primary)', boxShadow: '0 20px 50px var(--shadow-color)' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '24px' }}>📥 INGESTI PENGETAHUAN SYARIAH</h3>
+        <h3 style={{ margin: '0 0 10px 0', color: 'var(--gold-intense)', fontWeight: 900, fontSize: '24px' }}>INGESTI PENGETAHUAN SYARIAH</h3>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', fontSize: '14px' }}>Masukkan teks regulasi atau fatwa terbaru untuk memperluas cakrawala berpikir AI iQ-RA.</p>
  
         <form onSubmit={handleIngest} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -249,7 +249,6 @@ export default function AIKnowledgeManager() {
             position: 'relative',
             transition: 'all 0.3s ease'
           }}>
-            <span style={{ fontSize: '32px' }}>📂</span>
             <strong style={{ color: 'var(--gold-intense)', fontSize: '14px', letterSpacing: '0.5px' }}>PILIH BERKAS DOKUMEN (.pdf, .docx, .txt, .md, .json)</strong>
             <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Sistem akan otomatis mengekstrak & mengisi naskah secara instan tanpa mengetik manual!</span>
             <input 
@@ -314,7 +313,6 @@ export default function AIKnowledgeManager() {
               animation: 'fadeIn 0.3s ease'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '36px' }}>📄</span>
                 <div>
                   <strong style={{ color: 'var(--text-primary)', display: 'block', fontSize: '15px' }}>{uploadedFileName}</strong>
                   <span style={{ color: 'var(--gold-bright)', fontSize: '12px', fontWeight: 700 }}>
@@ -337,7 +335,7 @@ export default function AIKnowledgeManager() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                ❌ Batal & Hapus Berkas
+                Batal & Hapus Berkas
               </button>
             </div>
           )}
@@ -352,14 +350,14 @@ export default function AIKnowledgeManager() {
             type="submit" disabled={loading}
             style={{ padding: '20px', background: 'var(--gold-intense)', color: '#043121', border: 'none', borderRadius: '14px', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: '0 10px 30px var(--shadow-color)' }}
           >
-            {loading ? '⏳ SEDANG MENGOLAH DATA...' : '🚀 INGEST KE KNOWLEDGE BASE AI'}
+            {loading ? 'SEDANG MENGOLAH DATA...' : 'INGEST KE KNOWLEDGE BASE AI'}
           </button>
         </form>
       </div>
  
       {/* 2. KNOWLEDGE LIST TABLE */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 50px var(--shadow-color)' }}>
-        <h3 style={{ margin: '0 0 25px 0', color: 'var(--text-primary)', fontWeight: 900, fontSize: '22px' }}>📚 BASIS PENGETAHUAN SAAT INI</h3>
+        <h3 style={{ margin: '0 0 25px 0', color: 'var(--text-primary)', fontWeight: 900, fontSize: '22px' }}>BASIS PENGETAHUAN SAAT INI</h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
@@ -397,7 +395,7 @@ export default function AIKnowledgeManager() {
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      ❌ Hapus
+                      Hapus
                     </button>
                   </td>
                 </tr>

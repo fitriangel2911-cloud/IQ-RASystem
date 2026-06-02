@@ -29,7 +29,7 @@ Sistem menerapkan prinsip Hak Istimewa Terkecil (*Principle of Least Privilege*)
 
 - **Sistem Audit Statis Berkelanjutan:** Pipeline integrasi kontinu (GitHub Actions) disyaratkan untuk mem-parsing kode ke **SonarCloud**. Setiap *Pull Request* yang kedapatan menyimpan kerentanan (*Security Vulnerability*, injeksi SQL, ancaman XSS) wajib ditolak sistem (*Failed Quality Gate*).
 - **Proteksi Kredensial Sensitif (*Secrets*):**
-  - Kunci akses (*keys*) krusial seperti `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, serta kredensial Payment Gateway dilarang keras dipanggil di area *client-side* (Browser/Aplikasi Mobile). Pemanggilannya eksklusif di wilayah SSR/Backend.
+  - Kunci akses (*keys*) krusial seperti `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, serta kredensial Payment Gateway dilarang keras dipanggil di area *client-side* (Browser/Aplikasi Mobile). Pemanggilannya eksklusif di wilayah SSR/Backend.
   - Aturan *repository* mengharamkan fail `.env` terunggah. Pelanggaran terhadap poin ini mewajibkan pengembang untuk merotasi ulang (*revoke and re-issue*) kunci-kunci API secara instan.
 
 ## 5. Prosedur Pelaporan Insiden (Incident Response)

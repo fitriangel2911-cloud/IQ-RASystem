@@ -20,7 +20,7 @@ interface Panel4Props {
 }
 
 const MIN_BALANCE = 50000; // Saldo mengendap minimum
-const SUPERVISOR_LIMIT = 5000000;
+const DEFAULT_SUPERVISOR_LIMIT = 5000000;
 const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
 
 function printReceipt(data: {
@@ -67,7 +67,31 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showSupervisorModal, setShowSupervisorModal] = useState(false);
   const [supervisorCode, setSupervisorCode] = useState('');
+  const [supervisorLimit, setSupervisorLimit] = useState(DEFAULT_SUPERVISOR_LIMIT);
   const [printSlip, setPrintSlip] = useState(true);
+
+  // Load dynamic supervisor limit from system parameters on mount
+  React.useEffect(() => {
+    async function loadSupervisorLimit() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('system_parameters')
+          .select('value')
+          .eq('key', 'supervisor_approval_limit')
+          .single();
+        if (!error && data) {
+          const val = parseInt(data.value, 10);
+          if (!isNaN(val)) {
+            setSupervisorLimit(val);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load supervisor limit parameter:", err);
+      }
+    }
+    loadSupervisorLimit();
+  }, []);
 
   // Automatically select the account that matches the selected category
   React.useEffect(() => {
@@ -172,7 +196,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
     if (amount > availableBalance) { setMessage({ type: 'error', text: `Saldo tersedia tidak mencukupi. Penarikan maks: ${fmt(availableBalance)}` }); return; }
     if (!cardNo) { setMessage({ type: 'error', text: 'Masukkan Nomor Kartu Anggota untuk verifikasi kepemilikan fisik.' }); return; }
 
-    if (amount > SUPERVISOR_LIMIT) {
+    if (amount > supervisorLimit) {
       setShowSupervisorModal(true);
     } else {
       processWithdrawal();
@@ -203,7 +227,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
           }}>
             <h3 style={{ margin: '0 0 10px', fontSize: '24px', fontWeight: 900, color: '#fca5a5', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px' }}>Otorisasi Supervisor</h3>
             <p style={{ margin: '0 0 20px', fontSize: '16px', color: 'var(--text-secondary)', textAlign: 'center', lineHeight: '1.5' }}>
-              Penarikan tunai di atas Rp 5.000.000 wajib divalidasi oleh Supervisor dengan PIN otorisasi khusus.
+              Penarikan tunai di atas {fmt(supervisorLimit)} wajib divalidasi oleh Supervisor dengan PIN otorisasi khusus.
             </p>
             <input
               type="password" value={supervisorCode} onChange={e => setSupervisorCode(e.target.value)}
@@ -352,9 +376,9 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
               onBlur={e => { e.target.style.borderColor = 'var(--border-primary)'; }}
             />
           </div>
-          {amount > SUPERVISOR_LIMIT && (
+          {amount > supervisorLimit && (
             <div style={{ marginTop: '10px', padding: '14px 18px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', fontSize: '15px', color: '#fca5a5', fontWeight: 700 }}>
-              Penarikan melebihi Rp 5.000.000 — memerlukan otorisasi supervisor.
+              Penarikan melebihi {fmt(supervisorLimit)} — memerlukan otorisasi supervisor.
             </div>
           )}
         </div>

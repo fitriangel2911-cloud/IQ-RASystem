@@ -458,9 +458,9 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       {message && (
         <div style={{ 
           padding: '20px', borderRadius: '16px', marginBottom: '30px',
-          background: message.type === 'success' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-          color: message.type === 'success' ? '#10b981' : '#fca5a5',
-          border: `1px solid ${message.type === 'success' ? '#10b981' : '#fca5a5'}`,
+          background: 'var(--border-primary)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-primary)',
           fontWeight: 700, textAlign: 'center'
         }}>
           {message.text}
@@ -469,9 +469,9 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       {/* Shared Stats Header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px', marginBottom: '40px' }}>
-        <StatCard label="Total Anggota" value={stats.totalMembers} icon="👥" color="var(--text-primary)" />
-        <StatCard label="Antrian KYC" value={stats.pendingKYC} icon="📂" color="#4ade80" />
-        <StatCard label="Bantuan Aktif" value={stats.activeHelp} icon="💬" color="#60a5fa" />
+        <StatCard label="Total Anggota" value={stats.totalMembers} />
+        <StatCard label="Antrian KYC" value={stats.pendingKYC} />
+        <StatCard label="Bantuan Aktif" value={stats.activeHelp} />
       </div>
 
       {/* 2. ONBOARDING TAB: COMPREHENSIVE CIF FORM */}
@@ -486,7 +486,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         }}>
           <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>📝 PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
+              <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
               <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
             </div>
             <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid var(--border-primary)' }}>TAHAP: DATA DEMOGRAFI</span>
@@ -609,7 +609,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              />
              
              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Jenis Kelamin</label>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Jenis Kelamin</label>
                <select 
                  value={formData.gender} 
                  onChange={(e) => setFormData({...formData, gender: e.target.value})}
@@ -621,7 +621,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              </div>
 
              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Status Pernikahan</label>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Status Pernikahan</label>
                <select 
                  value={formData.maritalStatus} 
                  onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})}
@@ -642,7 +642,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              />
 
              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Agama</label>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Agama</label>
                <select 
                  value={formData.religion} 
                  onChange={(e) => setFormData({...formData, religion: e.target.value})}
@@ -659,7 +659,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              </div>
 
              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Kewarganegaraan</label>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Kewarganegaraan</label>
                <select 
                  value={formData.citizenship} 
                  onChange={(e) => setFormData({...formData, citizenship: e.target.value})}
@@ -758,7 +758,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              />
              
              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Sumber Dana (APU-PPT Compliance)</label>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Sumber Dana (APU-PPT Compliance)</label>
                <select 
                  value={formData.fundingSource} 
                  onChange={(e) => setFormData({...formData, fundingSource: e.target.value})}
@@ -854,7 +854,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             overflowY: 'auto'
           }}>
             <div>
-              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>📂 Antrean Berkas</h3>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>Antrean Berkas</h3>
               <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700 }}>{kycList.length} berkas pending verifikasi</span>
             </div>
             
@@ -877,7 +877,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>NIK: {item.nik}</div>
                   <div style={{ 
                     display: 'inline-block', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900,
-                    background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', marginTop: '10px', textTransform: 'uppercase'
+                    background: 'var(--border-primary)', color: 'var(--text-primary)', marginTop: '10px', textTransform: 'uppercase'
                   }}>
                     PENDING KYC
                   </div>
@@ -906,13 +906,13 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--border-primary)', paddingBottom: '20px' }}>
                   <div>
-                    <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>📂 AUDIT DOSSIER KYC FISIK</h2>
+                    <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>AUDIT DOSSIER KYC FISIK</h2>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, marginTop: '4px' }}>ID Nasabah: {selectedKyc.id}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span style={{ 
                       padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: 900,
-                      background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', border: '1px solid #eab308'
+                      background: 'var(--border-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)'
                     }}>
                       STATUS: PENDING AUDIT
                     </span>
@@ -973,7 +973,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Sumber Dana (APU)</span>
-                        <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.funding_source || 'Gaji'}</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.funding_source || 'Gaji'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / HP</span>
@@ -1022,19 +1022,17 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
                   {/* Digital Biometrics & Akad Approval (Simulated UI Wow Factor) */}
                   <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '20px' }}>
-                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(74, 222, 128, 0.03)' }}>
-                      <div style={{ fontSize: '32px' }}>📸</div>
+                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255, 255, 255, 0.02)' }}>
                       <div>
                         <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>BIOMETRIK KTP & LIVENESS SELFIE</div>
-                        <div style={{ color: '#10b981', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>✓ Foto KTP & Wajah Terverifikasi 98% Akurat</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>Foto KTP & Wajah Terverifikasi 98% Akurat</div>
                       </div>
                     </div>
 
-                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(218, 165, 32, 0.05)' }}>
-                      <div style={{ fontSize: '32px' }}>📜</div>
+                    <div style={{ border: '1px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(255, 255, 255, 0.02)' }}>
                       <div>
                         <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>AKAD SYARIAH WADIAH & MUDHARABAH</div>
-                        <div style={{ color: 'var(--gold-intense)', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>✓ Menyetujui Ketentuan Akad Digital iQ-RA</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 700, marginTop: '2px' }}>Menyetujui Ketentuan Akad Digital iQ-RA</div>
                       </div>
                     </div>
                   </div>
@@ -1049,18 +1047,18 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     }}
                     style={{
                       padding: '16px 24px',
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      color: '#f87171',
-                      border: '1.5px solid #ef4444',
+                      background: 'var(--border-primary)',
+                      color: 'var(--text-primary)',
+                      border: '1.5px solid var(--border-primary)',
                       borderRadius: '14px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'var(--border-primary)'}
                   >
-                    ❌ Tolak Berkas
+                    Tolak Berkas
                   </button>
 
                   <button
@@ -1079,13 +1077,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       boxShadow: '0 8px 24px var(--shadow-color)'
                     }}
                   >
-                    {loading ? '⏳ Menyetujui...' : '✓ Setujui & Aktifkan Anggota (Aktifkan Simpanan)'}
+                    {loading ? 'Menyetujui...' : 'Setujui & Aktifkan Anggota (Aktifkan Simpanan)'}
                   </button>
                 </div>
               </>
             ) : (
               <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'var(--text-secondary)', opacity: 0.5 }}>
-                <div style={{ fontSize: '64px' }}>📂</div>
                 <div style={{ fontWeight: 900, fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>Antrean KYC Kosong</div>
                 <div style={{ fontSize: '14px', fontWeight: 700 }}>Semua dokumen nasabah telah aktif dan terverifikasi secara hukum syariah.</div>
               </div>
@@ -1106,7 +1103,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         }}>
           <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>📊 DATABASE ANGGOTA TERVERIFIKASI</h3>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>DATABASE ANGGOTA TERVERIFIKASI</h3>
               <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
             </div>
             <div style={{ color: 'var(--text-primary)', opacity: 0.8, fontSize: '14px', fontWeight: 700 }}>Total: {membersList.length} Anggota</div>
@@ -1134,13 +1131,13 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       <div style={{ color: 'var(--text-secondary)', opacity: 0.6, fontSize: '12px' }}>KK: {item.kk_number}</div>
                     </td>
                     <td style={{ padding: '20px' }}>
-                      <div style={{ color: '#10b981', fontWeight: 800 }}>{item.occupation}</div>
+                      <div style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{item.occupation}</div>
                       <div style={{ color: 'var(--text-primary)', fontSize: '13px' }}>Rp {item.monthly_income?.toLocaleString('id-ID')}</div>
                     </td>
                     <td style={{ padding: '20px', textAlign: 'center' }}>
                       <span style={{ 
                         padding: '6px 16px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
-                        background: item.status === 'active' ? '#10b981' : 'var(--text-primary)',
+                        background: 'var(--text-primary)',
                         color: 'var(--bg-page)'
                       }}>
                         {item.status.toUpperCase()}
@@ -1162,7 +1159,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                           boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                         }}
                       >
-                        🔍 Lihat Profil
+                        Lihat Profil
                       </button>
                     </td>
                   </tr>
@@ -1260,7 +1257,6 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
             {/* Modal Header */}
             <div style={{ borderBottom: '2px solid var(--border-primary)', paddingBottom: '20px' }}>
-              <span style={{ fontSize: '40px' }}>👥</span>
               <h2 style={{ color: 'var(--gold-intense)', margin: '10px 0 0 0', fontWeight: 900, fontSize: '24px', textTransform: 'uppercase', letterSpacing: '1px' }}>PROFIL LENGKAP ANGGOTA</h2>
               <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700, marginTop: '4px' }}>Nomor CIF Anggota: {selectedMemberProfile.id}</div>
             </div>
@@ -1269,7 +1265,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
               {/* Personal details */}
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>📍 Identitas Demografi</h3>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Identitas Demografi</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Lengkap</span>
@@ -1304,7 +1300,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
               {/* Financial & Job */}
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>💼 Pekerjaan & Keuangan</h3>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Pekerjaan & Keuangan</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pekerjaan</span>
@@ -1320,7 +1316,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Sumber Dana (APU)</span>
-                    <span style={{ color: '#10b981', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.funding_source || 'Gaji'}</span>
+                    <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.funding_source || 'Gaji'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>WhatsApp / Phone</span>
@@ -1335,7 +1331,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
               {/* Ahli Waris Info */}
               <div style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>👪 Informasi Ahli Waris (Khas Koperasi)</h3>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Informasi Ahli Waris (Khas Koperasi)</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                   <div>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NAMA AHLI WARIS</div>
@@ -1354,7 +1350,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
               {/* Address details */}
               <div style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>🏠 Alamat Tempat Tinggal</h3>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Alamat Tempat Tinggal</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat KTP</span>
@@ -1369,7 +1365,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
               {/* Registered Savings Accounts */}
               <div style={{ gridColumn: 'span 2', background: 'rgba(218,165,32,0.02)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>💵 Rekening Simpanan Koperasi (SAK EP)</h3>
+                <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Rekening Simpanan Koperasi (SAK EP)</h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '10px' }}>
                   {memberAccounts.length > 0 ? memberAccounts.map((acc: any) => (
@@ -1386,7 +1382,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     </div>
                   )) : (
                     <div style={{ gridColumn: 'span 3', color: 'var(--text-secondary)', opacity: 0.6, fontSize: '13px', fontWeight: 700, textAlign: 'center', padding: '10px 0' }}>
-                      ⏳ Sedang mengambil data rekening simpanan...
+                      Sedang mengambil data rekening simpanan...
                     </div>
                   )}
                 </div>
@@ -1466,7 +1462,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   );
 }
 
-function StatCard({ label, value, icon, color }: any) {
+function StatCard({ label, value }: any) {
   return (
     <div style={{ 
       background: 'var(--bg-card)', 
@@ -1478,7 +1474,6 @@ function StatCard({ label, value, icon, color }: any) {
       alignItems: 'center',
       gap: '20px'
     }}>
-      <div style={{ fontSize: '40px' }}>{icon}</div>
       <div>
         <div style={{ color: 'var(--text-primary)', opacity: 0.7, fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
         <div style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 900 }}>{value}</div>
@@ -1490,7 +1485,7 @@ function StatCard({ label, value, icon, color }: any) {
 function CSInputField({ label, placeholder, value, onChange }: any) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <label style={{ color: '#cca334', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>{label}</label>
+      <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>{label}</label>
       <input 
         type="text" 
         placeholder={placeholder} 

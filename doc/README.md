@@ -4,19 +4,19 @@ IQ-RA System adalah platform perangkat lunak komprehensif berbasis web yang dira
 
 ---
 
-## Status Pengembangan (Per 31 Mei 2026)
+## Status Pengembangan (Per 2 Juni 2026)
 
 | Modul | Status | Keterangan |
 |---|---|---|
 | **Homepage Publik** | ✅ SELESAI & DIKUNCI | Navbar, Hero, Profil, Produk, Laporan, AI Section, Footer |
 | **Halaman Login** | ✅ SELESAI & DIKUNCI | Glassmorphism emerald, autentikasi Supabase |
 | **Halaman Register** | ✅ SELESAI & DIKUNCI | Form pendaftaran awal |
-| **Super Admin Dashboard** | ✅ Selesai | Flat sidebar, parameter engine, CIF registration |
+| **Super Admin Dashboard** | ✅ Selesai | Flat sidebar, parameter engine, CIF registration, Log Audit, Diagnostik, Backup, COA Management, Penugasan Staf |
 | **Customer Service (CS)** | ✅ Selesai | Pendaftaran anggota 4-bagian KYC/APU-PPT, auto-journaling |
 | **Account Officer (AO)** | ✅ Selesai | Pipeline pembiayaan, rekomendasi AI |
 | **Accounting** | ✅ Selesai | Jurnal double-entry, laporan SAK EP |
 | **Manager Dashboard** | ✅ Selesai | Approval, analitik |
-| **DPS Dashboard** | ✅ SELESAI | 6 Panel Pengawasan Syariah AI-RAG, audit split-screen, ZISWAF, LHPS PDF, UI/UX terstandarisasi (theme-aware) |
+| **DPS Dashboard** | ✅ SELESAI | 6 Panel Pengawasan Syariah AI-RAG terpurifikasi penuh bebas emoji, audit split-screen, ZISWAF, LHPS PDF, UI/UX terstandarisasi (theme-aware) |
 | **Layanan Kasir / Teller** | ✅ SELESAI | 100% fungsional, 6 UI Utama, Denominasi Calc, Otorisasi Supervisor, Verifikasi Fisik KTP & Kartu Anggota, Cetak Laporan Konsolidasi Normatif |
 
 ---
@@ -74,7 +74,8 @@ Sistem menerapkan Row-Level Security (RLS) di level *database*:
 
 ### Pekerjaan Aktif Saat Ini (Fase 4)
 - **User Acceptance Testing (UAT)** — Simulasi transaksi harian bersama user asli per role.
-- **Audit RLS Supabase** — Verifikasi kebijakan Row-Level Security di semua tabel.
+- **Blackbox Testing Terpadu** — Pengujian alur lengkap menggunakan COA dinamis yang baru saja di-seed dari CSV ke database.
+- **Audit RLS Supabase** — Verifikasi kebijakan Row-Level Security di semua tabel paska penambahan fitur Infrastruktur IT Super Admin.
 - **Deployment ke Vercel** — Build produksi dengan environment secrets & optimasi.
 
 ### Pekerjaan Berikutnya (Fase 5)

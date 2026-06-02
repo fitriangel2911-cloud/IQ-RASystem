@@ -1,0 +1,158 @@
+{
+  "users": [
+    "D:\\IQ-RASystem\\src\\app\\accounting\\page.tsx:36",
+    "D:\\IQ-RASystem\\src\\app\\ao\\page.tsx:36",
+    "D:\\IQ-RASystem\\src\\app\\api\\admin\\parameters\\route.ts:21",
+    "D:\\IQ-RASystem\\src\\app\\api\\admin\\parameters\\route.ts:64",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\create-admin\\route.ts:40",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\create-admin\\route.ts:47",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\create-admin\\route.ts:70",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\create-ao\\route.ts:53",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\create-dps\\route.ts:52",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\fix-dps-role\\route.ts:22",
+    "D:\\IQ-RASystem\\src\\app\\api\\dev\\list-users\\route.ts:22",
+    "D:\\IQ-RASystem\\src\\app\\api\\users\\create\\route.ts:17",
+    "D:\\IQ-RASystem\\src\\app\\api\\users\\create\\route.ts:52",
+    "D:\\IQ-RASystem\\src\\app\\api\\users\\create\\route.ts:87",
+    "D:\\IQ-RASystem\\src\\app\\customer-service\\page.tsx:34",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:309",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:371",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:445",
+    "D:\\IQ-RASystem\\src\\app\\dps\\page.tsx:36",
+    "D:\\IQ-RASystem\\src\\app\\login\\page.tsx:48",
+    "D:\\IQ-RASystem\\src\\app\\manager\\page.tsx:35",
+    "D:\\IQ-RASystem\\src\\app\\teller\\page.tsx:27",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\TellerTerminal.tsx:53"
+  ],
+  "system_parameters": [
+    "D:\\IQ-RASystem\\src\\app\\api\\admin\\parameters\\route.ts:37",
+    "D:\\IQ-RASystem\\src\\app\\api\\admin\\parameters\\route.ts:90",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:173",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:184",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:402",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel4Withdrawal.tsx:79",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:472"
+  ],
+  "financing_contracts": [
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\audit-contract\\route.ts:21",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\approve\\route.ts:17",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\disburse\\route.ts:17",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\disburse\\route.ts:32",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\propose\\route.ts:17",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\propose\\route.ts:31",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:39",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:81",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:421",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:434",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:118",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:351",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:396",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\FinancingPanel.tsx:41",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ManagerDashboard.tsx:36",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ManagerDashboard.tsx:147",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel2Member.tsx:116",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel5Payment.tsx:75",
+    "D:\\IQ-RASystem\\src\\hooks\\useMemberDashboardData.ts:71"
+  ],
+  "prospects": [
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\audit-contract\\route.ts:34",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\audit-contract\\route.ts:44",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\approve\\route.ts:26",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\disburse\\route.ts:49",
+    "D:\\IQ-RASystem\\src\\app\\api\\financing\\propose\\route.ts:48",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:47",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:59",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:157",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:162",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:326",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:344",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AODashboard.tsx:415",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ManagerDashboard.tsx:47",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ManagerDashboard.tsx:156"
+  ],
+  "sharia_knowledge": [
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\audit-contract\\route.ts:76",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\debug-knowledge\\route.ts:11",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\reindex\\route.ts:21",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\reindex\\route.ts:51",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\reindex-all\\route.ts:21",
+    "D:\\IQ-RASystem\\src\\app\\api\\ai\\reindex-all\\route.ts:39",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AIKnowledgeManager.tsx:24",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AIKnowledgeManager.tsx:212",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:278",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:235",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:391",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:420",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:519",
+    "D:\\IQ-RASystem\\src\\services\\ai.service.ts:580"
+  ],
+  "audit_logs": [
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:132",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:148"
+  ],
+  "coa_accounts": [
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:156",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:185",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:220",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:225",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:245",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AccountingDashboard.tsx:71"
+  ],
+  "system_tasks": [
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:164",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:271"
+  ],
+  "access_rules": [
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:186",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:415",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:2211",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:2212"
+  ],
+  "members": [
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:381",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:387",
+    "D:\\IQ-RASystem\\src\\app\\dashboard\\page.tsx:528",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:69",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:70",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:80",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:99",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:176",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:363",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ProfileForm.tsx:97",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\ProfileForm.tsx:104",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel2Member.tsx:133",
+    "D:\\IQ-RASystem\\src\\hooks\\useMemberDashboardData.ts:32"
+  ],
+  "journal_entries": [
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\AccountingDashboard.tsx:89",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:156",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\DPSDashboard.tsx:447",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\TellerTerminal.tsx:86",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\TellerTerminal.tsx:96",
+    "D:\\IQ-RASystem\\src\\services\\accounting.service.ts:42",
+    "D:\\IQ-RASystem\\src\\services\\accounting.service.ts:58"
+  ],
+  "savings_accounts": [
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:28",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:225",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel2Member.tsx:154",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel3Deposit.tsx:201",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel3Deposit.tsx:254",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel4Withdrawal.tsx:154",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\TellerTerminal.tsx:136",
+    "D:\\IQ-RASystem\\src\\hooks\\useMemberDashboardData.ts:52"
+  ],
+  "savings_transactions": [
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\CSDashboard.tsx:308",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel2Member.tsx:94",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel3Deposit.tsx:261",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel4Withdrawal.tsx:161",
+    "D:\\IQ-RASystem\\src\\hooks\\useMemberDashboardData.ts:65"
+  ],
+  "teller_shifts": [
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel6Shift.tsx:54",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel6Shift.tsx:69",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\teller\\Panel6Shift.tsx:94",
+    "D:\\IQ-RASystem\\src\\components\\dashboard\\TellerTerminal.tsx:58"
+  ]
+}

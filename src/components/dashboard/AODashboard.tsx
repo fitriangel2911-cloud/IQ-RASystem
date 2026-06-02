@@ -165,7 +165,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: '🎯 Prospek baru berhasil disimpan ke Database Pipeline AO!' });
+      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
       setFormData({ name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
       fetchAOData();
     } catch (err: any) {
@@ -187,7 +187,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         created_at: new Date().toISOString()
       };
       setProspects([newMockProspect, ...prospects]);
-      setMessage({ type: 'success', text: '🎯 Prospek baru berhasil disimpan ke Database Pipeline AO!' });
+      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
       setFormData({ name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
     } finally {
       setLoading(false);
@@ -326,7 +326,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       await supabase.from('prospects').update({ status: 'Menunggu Survei' }).eq('id', selectedProspect.id);
     }
     setTimeout(() => {
-      setMessage({ type: 'success', text: `✅ Analisis AI Selesai! Prospek ${selectedProspect?.name} diteruskan ke tahap Survei Lapangan.` });
+      setMessage({ type: 'success', text: `Analisis AI Selesai! Prospek ${selectedProspect?.name} diteruskan ke tahap Survei Lapangan.` });
       const updatedProspects = prospects.map(p => 
         p.id === selectedProspect.id ? { ...p, status: 'Menunggu Survei', ai_contract_type: aiResult?.contract || 'Mudharabah' } : p
       );
@@ -344,7 +344,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       await supabase.from('prospects').update({ status: 'Ditolak' }).eq('id', selectedSurveyProspect.id);
     }
     setTimeout(() => {
-      setMessage({ type: 'error', text: `❌ Pengajuan ${selectedSurveyProspect?.name} telah DITOLAK.` });
+      setMessage({ type: 'error', text: `Pengajuan ${selectedSurveyProspect?.name} telah DITOLAK.` });
       setProspects(prospects.filter(p => p.id !== selectedSurveyProspect.id));
       setSurveyLoading(false);
       setSelectedSurveyProspect(null);
@@ -387,10 +387,10 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 
   const renderOverview = () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '25px', animation: 'fadeInUp 0.6s ease-out' }}>
-      <StatCard title="Portfolio Aktif" value={stats.activePortfolio} icon="📈" color="#10b981" />
-      <StatCard title="Pengajuan Pending" value={stats.pendingApps} icon="⏳" color="#f59e0b" />
-      <StatCard title="Total Pencairan" value={stats.totalDisbursement} icon="💰" color="#059669" />
-      <StatCard title="Tugas Jatuh Tempo" value={stats.overdueTasks} icon="🚩" color="#ef4444" />
+      <StatCard title="Portfolio Aktif" value={stats.activePortfolio} />
+      <StatCard title="Pengajuan Pending" value={stats.pendingApps} />
+      <StatCard title="Total Pencairan" value={stats.totalDisbursement} />
+      <StatCard title="Tugas Jatuh Tempo" value={stats.overdueTasks} />
     </div>
   );
 
@@ -441,7 +441,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         }
       }
 
-      setMessage({ type: 'success', text: `✅ BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });
+      setMessage({ type: 'success', text: `BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });
       
       const updatedProspects = prospects.map(p => 
         p.id === selectedSurveyProspect.id ? { ...p, status: 'Menunggu Approval Manajer' } : p
@@ -456,7 +456,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         p.id === selectedSurveyProspect.id ? { ...p, status: 'Menunggu Approval Manajer' } : p
       );
       setProspects(updatedProspects);
-      setMessage({ type: 'success', text: `✅ BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });
+      setMessage({ type: 'success', text: `BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });
       setSelectedSurveyProspect(null);
       setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
     } finally {
@@ -468,7 +468,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
       <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
         <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          🤖 Analisis Akad Berbasis AI (RAG)
+          Analisis Akad Berbasis AI (RAG)
         </h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
           Pilih prospek dari pipeline untuk menjalankan analisis kesesuaian syariah menggunakan iQ-RA AI Engine.
@@ -482,13 +482,13 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 key={p.id} 
                 onClick={() => { setSelectedProspect(p); setAiResult(null); }}
                 style={{ 
-                  padding: '20px', borderRadius: '16px', border: selectedProspect?.id === p.id ? '2px solid #10b981' : '1px solid var(--border-primary)',
-                  cursor: 'pointer', background: selectedProspect?.id === p.id ? 'rgba(16, 185, 129, 0.1)' : 'var(--border-primary)', transition: 'all 0.2s'
+                  padding: '20px', borderRadius: '16px', border: selectedProspect?.id === p.id ? '2px solid var(--text-primary)' : '1px solid var(--border-primary)',
+                  cursor: 'pointer', background: selectedProspect?.id === p.id ? 'rgba(255, 255, 255, 0.05)' : 'var(--border-primary)', transition: 'all 0.2s'
                 }}
               >
                 <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Tujuan: {p.purpose}</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
               </div>
             ))}
           </div>
@@ -497,26 +497,25 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
           <div style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '20px', padding: '30px', border: '1px dashed var(--border-primary)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
             {!selectedProspect ? (
               <div style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>
-                <div style={{ fontSize: '40px', marginBottom: '15px' }}>👈</div>
                 Pilih nasabah di samping untuk mulai analisis
               </div>
             ) : analyzing ? (
               <div>
-                <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid var(--border-primary)', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
+                <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid var(--border-primary)', borderTopColor: 'var(--text-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
                 <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>AI sedang meninjau Fatwa DSN-MUI...</div>
               </div>
             ) : aiResult ? (
               <div style={{ textAlign: 'left', width: '100%', animation: 'fadeIn 0.5s ease' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900 }}>REKOMENDASI AKAD</span>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#10b981' }}>{aiResult.score}% Match</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>{aiResult.score}% Match</div>
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '15px' }}>{aiResult.contract}</div>
                 <div style={{ background: 'var(--border-primary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', opacity: 0.9, fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
                   <strong>Justifikasi Syariah:</strong><br/>{aiResult.justification}
                 </div>
-                <div style={{ background: '#fef2f2', padding: '15px', borderRadius: '12px', border: '1px solid #fecaca', color: '#991b1b', fontSize: '12px', fontWeight: 700, marginBottom: '25px' }}>
-                  ⚠️ MITIGASI RISIKO: {aiResult.risk_note}
+                <div style={{ background: 'var(--bg-page)', padding: '15px', borderRadius: '12px', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 700, marginBottom: '25px' }}>
+                  MITIGASI RISIKO: {aiResult.risk_note}
                 </div>
 
                 <button 
@@ -524,7 +523,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                   disabled={loading}
                   style={{ width: '100%', background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '20px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 30px var(--shadow-color)' }}
                 >
-                  {loading ? '⏳ PROSES MENYIMPAN...' : '✅ LANJUTKAN KE TAHAP SURVEI LAPANGAN'}
+                  {loading ? 'PROSES MENYIMPAN...' : 'LANJUTKAN KE TAHAP SURVEI LAPANGAN'}
                 </button>
               </div>
             ) : (
@@ -532,7 +531,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 onClick={() => runAIAnalysis(selectedProspect)}
                 style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px var(--shadow-color)' }}
               >
-                🚀 JALANKAN ANALISIS AI SEKARANG
+                JALANKAN ANALISIS AI SEKARANG
               </button>
             )}
           </div>
@@ -545,7 +544,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeInUp 0.5s ease-out' }}>
       <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
         <h3 style={{ margin: '0 0 30px 0', fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          📝 Input Prospek Pembiayaan Baru
+          Input Prospek Pembiayaan Baru
         </h3>
         
         <form onSubmit={handleAddProspect} style={{ display: 'grid', gap: '20px' }}>
@@ -581,7 +580,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 placeholder="10.000.000"
                 value={formatNumber(formData.amount)}
                 onChange={handleAmountChange}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', fontSize: '16px', fontWeight: 700, color: '#10b981', outline: 'none' }}
+                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', outline: 'none' }}
               />
             </div>
           </div>
@@ -610,7 +609,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
               boxShadow: '0 10px 20px var(--shadow-color)', opacity: loading ? 0.7 : 1
             }}
           >
-            {loading ? '⏳ MENYIMPAN DATA...' : '🚀 DAFTARKAN PROSPEK KE PIPELINE'}
+            {loading ? 'MENYIMPAN DATA...' : 'DAFTARKAN PROSPEK KE PIPELINE'}
           </button>
         </form>
       </div>
@@ -621,7 +620,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
       <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
         <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          🗺️ Modul Verifikasi Lapangan (KYC)
+          Modul Verifikasi Lapangan (KYC)
         </h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
           Pilih prospek untuk melakukan verifikasi lokasi usaha dan mengunggah dokumen survei lapangan.
@@ -635,13 +634,13 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 key={p.id} 
                 onClick={() => { setSelectedSurveyProspect(p); setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' }); setMessage(null); }}
                 style={{ 
-                  padding: '20px', borderRadius: '16px', border: selectedSurveyProspect?.id === p.id ? '2px solid #3b82f6' : '1px solid var(--border-primary)',
-                  cursor: 'pointer', background: selectedSurveyProspect?.id === p.id ? 'rgba(59, 130, 246, 0.1)' : 'var(--border-primary)', transition: 'all 0.2s'
+                  padding: '20px', borderRadius: '16px', border: selectedSurveyProspect?.id === p.id ? '2px solid var(--text-primary)' : '1px solid var(--border-primary)',
+                  cursor: 'pointer', background: selectedSurveyProspect?.id === p.id ? 'rgba(255, 255, 255, 0.05)' : 'var(--border-primary)', transition: 'all 0.2s'
                 }}
               >
                 <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Status: {p.status || 'Menunggu Survei'}</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#3b82f6', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>Rp {p.amount.toLocaleString('id-ID')}</div>
               </div>
             ))}
           </div>
@@ -650,14 +649,13 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
           <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: '20px', padding: '30px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column' }}>
             {!selectedSurveyProspect ? (
               <div style={{ color: 'var(--text-secondary)', opacity: 0.5, textAlign: 'center', margin: 'auto' }}>
-                <div style={{ fontSize: '40px', marginBottom: '15px' }}>📍</div>
                 Pilih nasabah di sebelah kiri untuk mulai verifikasi lapangan
               </div>
             ) : (
               <div style={{ animation: 'fadeIn 0.5s ease', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)' }}>Form Survei: {selectedSurveyProspect.name}</h4>
-                  <span style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800 }}>Tugas AO</span>
+                  <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800 }}>Tugas AO</span>
                 </div>
 
                   <div style={{ display: 'grid', gap: '8px' }}>
@@ -687,7 +685,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div 
                     onClick={() => fileInputRef.current?.click()}
-                    style={{ border: surveyData.photoUrl ? '2px solid #10b981' : '2px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', background: surveyData.photoUrl ? 'rgba(16, 185, 129, 0.1)' : 'transparent', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ border: surveyData.photoUrl ? '2px solid var(--border-primary)' : '2px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', background: surveyData.photoUrl ? 'rgba(255, 255, 255, 0.02)' : 'transparent', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <input 
                       type="file" 
@@ -696,26 +694,22 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                       onChange={handlePhotoUpload} 
                       style={{ display: 'none' }} 
                     />
-                    {surveyData.photoUrl ? (
+                    {surveyData.photoUrl && (
                       <div style={{ width: '100%', height: '80px', backgroundImage: `url(${surveyData.photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '8px', marginBottom: '8px' }} />
-                    ) : (
-                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>📸</div>
                     )}
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: surveyData.photoUrl ? '#10b981' : 'var(--text-primary)' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {surveyData.photoUrl ? 'Foto Terlampir' : 'Upload Foto Tempat Usaha'}
                     </div>
                   </div>
                   <div 
                     onClick={handleGetLocation}
-                    style={{ border: surveyData.coordinates ? '2px solid #3b82f6' : '2px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', textAlign: 'center', cursor: surveyData.isGettingLocation ? 'wait' : 'pointer', background: surveyData.coordinates ? 'rgba(59, 130, 246, 0.1)' : 'transparent', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ border: surveyData.coordinates ? '2px solid var(--border-primary)' : '2px dashed var(--border-primary)', padding: '20px', borderRadius: '16px', textAlign: 'center', cursor: surveyData.isGettingLocation ? 'wait' : 'pointer', background: surveyData.coordinates ? 'rgba(255, 255, 255, 0.02)' : 'transparent', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    {surveyData.isGettingLocation ? (
-                      <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid var(--border-primary)', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
-                    ) : (
-                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>{surveyData.coordinates ? '✅' : '🗺️'}</div>
+                    {surveyData.isGettingLocation && (
+                       <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid var(--border-primary)', borderTopColor: 'var(--text-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
                     )}
                     
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: surveyData.coordinates ? '#3b82f6' : 'var(--text-primary)' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {surveyData.coordinates ? 'Lokasi Tersimpan' : 'Ambil Titik Koordinat GPS'}
                     </div>
                     <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px', wordBreak: 'break-all' }}>
@@ -729,7 +723,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                     <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Catatan Penilaian Kelayakan</label>
                     <button 
                       onClick={() => {
-                        setSurveyData(prev => ({ ...prev, notes: '✨ AI Vision sedang menganalisis profil dan foto lokasi...' }));
+                        setSurveyData(prev => ({ ...prev, notes: 'AI Vision sedang menganalisis profil dan foto lokasi...' }));
                         setTimeout(() => {
                           const amount = selectedSurveyProspect?.amount || 0;
                           const income = Number(surveyData.monthlyIncome) || 0;
@@ -753,9 +747,9 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                           setSurveyData(prev => ({ ...prev, notes: note }));
                         }, 1500);
                       }}
-                      style={{ background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)' }}
+                      style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
-                      ✨ Isi Otomatis dengan AI
+                      Isi Otomatis dengan AI
                     </button>
                   </div>
                   <textarea 
@@ -772,23 +766,23 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                     onClick={handleRejectProspect}
                     disabled={surveyLoading || !surveyData.address}
                     style={{ 
-                      width: '100%', background: surveyData.address ? '#ef4444' : 'var(--border-primary)', color: surveyData.address ? '#ffffff' : 'var(--text-secondary)', padding: '16px', borderRadius: '12px', 
+                      width: '100%', background: surveyData.address ? 'var(--text-secondary)' : 'var(--border-primary)', color: surveyData.address ? 'var(--bg-page)' : 'var(--text-secondary)', padding: '16px', borderRadius: '12px', 
                       border: 'none', fontWeight: 900, cursor: surveyData.address ? 'pointer' : 'not-allowed', 
-                      boxShadow: surveyData.address ? '0 8px 20px rgba(239, 68, 68, 0.3)' : 'none', opacity: surveyLoading ? 0.7 : 1, transition: 'all 0.2s'
+                      boxShadow: 'none', opacity: surveyLoading ? 0.7 : 1, transition: 'all 0.2s'
                     }}
                   >
-                    {surveyLoading ? '⏳ TUNGGU...' : (!surveyData.address ? '⚠️ KETIK ALAMAT' : '❌ TOLAK PENGAJUAN')}
+                    {surveyLoading ? 'TUNGGU...' : (!surveyData.address ? 'KETIK ALAMAT' : 'TOLAK PENGAJUAN')}
                   </button>
                   <button 
                     onClick={handleSendToManager}
                     disabled={surveyLoading || !surveyData.address}
                     style={{ 
-                      width: '100%', background: surveyData.address ? '#10b981' : 'var(--border-primary)', color: surveyData.address ? '#ffffff' : 'var(--text-secondary)', padding: '16px', borderRadius: '12px', 
+                      width: '100%', background: surveyData.address ? 'var(--text-primary)' : 'var(--border-primary)', color: surveyData.address ? 'var(--bg-page)' : 'var(--text-secondary)', padding: '16px', borderRadius: '12px', 
                       border: 'none', fontWeight: 900, cursor: surveyData.address ? 'pointer' : 'not-allowed', 
-                      boxShadow: surveyData.address ? '0 8px 20px rgba(16, 185, 129, 0.3)' : 'none', opacity: surveyLoading ? 0.7 : 1, transition: 'all 0.2s'
+                      boxShadow: 'none', opacity: surveyLoading ? 0.7 : 1, transition: 'all 0.2s'
                     }}
                   >
-                    {surveyLoading ? '⏳ TUNGGU...' : (!surveyData.address ? '⚠️ KETIK ALAMAT' : '📤 AJUKAN KE MANAJER')}
+                    {surveyLoading ? 'TUNGGU...' : (!surveyData.address ? 'KETIK ALAMAT' : 'AJUKAN KE MANAJER')}
                   </button>
                 </div>
               </div>
@@ -804,9 +798,9 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       {message && (
         <div style={{ 
           padding: '20px', borderRadius: '16px', marginBottom: '30px',
-          background: message.type === 'success' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-          color: message.type === 'success' ? '#10b981' : '#fca5a5',
-          border: `1px solid ${message.type === 'success' ? '#10b981' : '#fca5a5'}`,
+          background: 'var(--border-primary)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-primary)',
           fontWeight: 700, textAlign: 'center'
         }}>
           {message.text}
@@ -819,7 +813,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
           <div style={{ marginTop: '40px' }}>
             <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
               <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                🚀 Pipeline Pembiayaan AO
+                Pipeline Pembiayaan AO
               </h3>
               {/* Pipeline Table Content */}
               <div style={{ overflowX: 'auto' }}>
@@ -835,7 +829,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                     {prospects.map((p) => (
                       <tr key={p.id} style={{ borderBottom: '1px solid var(--border-primary)', opacity: 0.9 }}>
                         <td style={{ padding: '20px 15px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</td>
-                        <td style={{ padding: '20px 15px', color: '#10b981', fontWeight: 700 }}>Rp {p.amount.toLocaleString('id-ID')}</td>
+                        <td style={{ padding: '20px 15px', color: 'var(--text-primary)', fontWeight: 700 }}>Rp {p.amount.toLocaleString('id-ID')}</td>
                         <td style={{ padding: '20px 15px', color: 'var(--text-secondary)' }}>{p.status}</td>
                       </tr>
                     ))}
@@ -856,7 +850,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         <div style={{ animation: 'fadeInUp 0.8s ease-out' }}>
            <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '35px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
             <h3 style={{ margin: '0 0 25px 0', fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              📂 Daftar Portofolio Anggota Aktif
+              Daftar Portofolio Anggota Aktif
             </h3>
             {portfolio.length > 0 ? (
               <div style={{ overflowX: 'auto' }}>
@@ -873,13 +867,13 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                     {portfolio.map((item: any) => (
                       <tr key={item.id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
                         <td style={{ padding: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.member_name || (item as any).users?.full_name || 'Nasabah Baru'}</td>
-                        <td style={{ padding: '15px', color: '#10b981', fontWeight: 700 }}>Rp {item.amount.toLocaleString('id-ID')}</td>
+                        <td style={{ padding: '15px', color: 'var(--text-primary)', fontWeight: 700 }}>Rp {item.amount.toLocaleString('id-ID')}</td>
                         <td style={{ padding: '15px', textAlign: 'right' }}>
                           <button 
                             onClick={() => generatePDFContract(item)}
                             style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '8px 16px', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s', boxShadow: '0 4px 10px var(--shadow-color)' }}
                           >
-                            📄 Unduh Akad
+                            Unduh Akad
                           </button>
                         </td>
                       </tr>
@@ -903,19 +897,13 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   );
 }
 
-function StatCard({ title, value, icon, color }: any) {
+function StatCard({ title, value }: any) {
   return (
     <div style={{ 
       background: 'var(--bg-card)', backdropFilter: 'blur(16px)', padding: '30px', borderRadius: '24px', 
       boxShadow: '0 15px 40px var(--shadow-color)', border: '1px solid var(--border-primary)',
       display: 'flex', alignItems: 'center', gap: '20px'
     }}>
-      <div style={{ 
-        width: '60px', height: '60px', borderRadius: '18px', background: `${color}15`, 
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' 
-      }}>
-        {icon}
-      </div>
       <div>
         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</div>
         <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px' }}>{value}</div>

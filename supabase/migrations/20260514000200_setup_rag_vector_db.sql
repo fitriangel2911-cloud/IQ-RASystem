@@ -25,12 +25,14 @@ ADD COLUMN IF NOT EXISTS ai_recommendation JSONB;
 -- Izin Akses: Hanya Super Admin dan AO yang bisa melihat/mencari
 ALTER TABLE public.sharia_knowledge ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Staf can read knowledge base" ON public.sharia_knowledge;
 CREATE POLICY "Staf can read knowledge base" 
 ON public.sharia_knowledge 
 FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Super Admin can manage knowledge base" ON public.sharia_knowledge;
 CREATE POLICY "Super Admin can manage knowledge base" 
 ON public.sharia_knowledge 
 FOR ALL 
