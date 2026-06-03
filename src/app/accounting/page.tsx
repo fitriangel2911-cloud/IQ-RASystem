@@ -128,7 +128,7 @@ export default function AccountingPage() {
         )}
 
         {/* Brand Header */}
-        <div style={{ marginBottom: '50px', paddingLeft: '12px' }}>
+        <div style={{ marginBottom: '30px', paddingLeft: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <BrandLogo size={40} fontSize="22px" textColor="var(--text-primary)" />
             <div style={{ marginRight: '35px' }}>
@@ -141,7 +141,7 @@ export default function AccountingPage() {
         </div>
 
         {/* Navigation Links */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexGrow: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
           <AccountingMenuButton 
             active={activeMenu === 'overview'} 
             onClick={() => setActiveMenu('overview')} 
@@ -166,14 +166,26 @@ export default function AccountingPage() {
             icon="🛡️" 
             label="Pencadangan CKPN" 
           />
+          <AccountingMenuButton 
+            active={activeMenu === 'eom'} 
+            onClick={() => setActiveMenu('eom')} 
+            icon="💰" 
+            label="Bagi Hasil Bulanan (EOM)" 
+          />
+          <AccountingMenuButton 
+            active={activeMenu === 'eod'} 
+            onClick={() => setActiveMenu('eod')} 
+            icon="🔒" 
+            label="Tutup Buku Harian (EOD)" 
+          />
         </nav>
 
         {/* Active Operator Profile */}
         <div style={{ 
           marginTop: 'auto', 
-          padding: '24px', 
+          padding: '16px', 
           background: 'var(--border-primary)', 
-          borderRadius: '24px',
+          borderRadius: '20px',
           border: '2px solid var(--border-primary)',
           boxShadow: 'inset 0 4px 10px var(--shadow-color)'
         }}>
@@ -237,6 +249,8 @@ export default function AccountingPage() {
               {activeMenu === 'journal' && '✒️ Jurnal Penyesuaian & Buku Besar'}
               {activeMenu === 'reports' && '📑 Laporan Keuangan Syariah'}
               {activeMenu === 'provisioning' && '🛡️ Manajemen Risiko Penurunan Nilai (CKPN)'}
+              {activeMenu === 'eom' && '💰 Distribusi Bagi Hasil Bulanan (EOM)'}
+              {activeMenu === 'eod' && '🔒 Tutup Buku Harian (End of Day)'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
               Manajemen akuntansi terotomasi terpadu berbasis PostgreSQL Cloud.
@@ -269,16 +283,16 @@ function AccountingMenuButton({ active, onClick, icon, label }: any) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
-        padding: '18px 24px',
+        gap: '12px',
+        padding: '14px 18px',
         background: active 
           ? 'var(--text-primary)' 
           : (isHovered ? 'var(--border-primary)' : 'transparent'),
         color: active ? 'var(--bg-page)' : 'var(--text-primary)',
         border: active ? 'none' : '1px solid var(--border-primary)',
-        borderRadius: '20px',
-        fontSize: '16px',
-        fontWeight: 900,
+        borderRadius: '16px',
+        fontSize: '14px',
+        fontWeight: 800,
         textAlign: 'left',
         cursor: 'pointer',
         transform: !active && isHovered ? 'translateX(6px)' : 'scale(1)',
@@ -288,7 +302,7 @@ function AccountingMenuButton({ active, onClick, icon, label }: any) {
       }}
     >
       <span style={{ 
-        fontSize: '22px',
+        fontSize: '18px',
         transform: isHovered ? 'scale(1.15)' : 'scale(1)',
         transition: 'transform 0.2s ease'
       }}>{icon}</span>

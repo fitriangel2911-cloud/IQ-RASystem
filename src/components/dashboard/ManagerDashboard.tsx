@@ -174,26 +174,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
         }
       }
 
-      // 3. Accounting Ledger Call
-      if (decision === 'approved') {
-        try {
-          await fetch('/api/accounting/record-v2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              date: new Date().toISOString().split('T')[0],
-              description: `[PENCAIRAN] ${contract.type?.toUpperCase() || 'PEMBIAYAAN'} - ${contract.users?.full_name || 'Nasabah'}`,
-              reference_no: `DSB-${Date.now()}`,
-              entries: [
-                { account_code: '1.1.03', debit: contract.amount, credit: 0 },
-                { account_code: '1.1.01', debit: 0, credit: contract.amount }
-              ]
-            })
-          });
-        } catch (e) {
-          console.warn("Accounting API unreachable during approval");
-        }
-      }
+      // 3. (Accounting ledger call dihapus dari sini karena Teller yang akan melakukan posting jurnal pencairan saat uang fisik diserahkan)
 
       setMessage({ 
         type: 'success', 

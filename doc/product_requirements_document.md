@@ -178,3 +178,14 @@ Pusat kendali tata kelola TI untuk memastikan stabilitas dan keamanan platform:
 **Sprint Aktif:** Pelaksanaan User Acceptance Testing (UAT), Blackbox Testing, dan Persiapan Deployment Produksi (Fase 4).
 
 > File utama yang harus diperhatikan: `src/components/dashboard/DPSDashboard.tsx`, `src/app/globals.css`, `src/app/api/ai/audit-contract/route.ts`
+
+---
+
+## 8. Catatan Inovasi Arsitektur (Pengembangan End-to-End)
+
+Dokumen ini mencatat berbagai inovasi teknis dan alur bisnis (*business logic*) yang berhasil ditemukan dan diimplementasikan selama proses penyempurnaan sistem:
+
+1. **On-the-fly Account Creator (Pembuatan Rekening Instan):** Pada Modul Pencairan Dana (Disbursement) di Terminal Teller, sistem dapat mendeteksi apakah nasabah sudah memiliki Rekening Simpanan Wadiah. Jika belum, dan Teller memilih metode pencairan "Transfer ke Rekening", sistem otomatis membuatkan nomor rekening baru di latar belakang (*background*) dalam hitungan milidetik, tanpa memaksa Teller pindah ke menu Customer Service.
+2. **Straight-Through Processing (STP) pada Distribusi EOM:** Distribusi Bagi Hasil (End of Month) tidak lagi sekadar entri agregat. Algoritma kini menarik seluruh data rekening Mudharabah, mengkalkulasi porsi bagi hasil (*Nisbah*) proporsional, dan secara riil menambahkan nominal uang ke dalam tabel `savings_accounts` milik setiap anggota beserta riwayat transaksinya, sebelum mem-posting jurnal agregat ke Buku Besar.
+3. **Seamless CIF Pipeline (Siklus Pengajuan Tanpa Celah):** Form Prospek Pembiayaan Account Officer (AO) menggunakan Dropdown Berbasis CIF (Customer Information File). Ini menjamin bahwa parameter `member_id` selalu terikat kuat sejak tahap AI RAG hingga Otorisasi Manajer, sehingga Teller dapat langsung menemukan tagihan pencairan dana berdasarkan nama anggota tanpa celah logika.
+4. **Dynamic Dual-Ledger Routing:** Saat melakukan pencairan pembiayaan (*Disbursement*), algoritma akuntansi mem-bypass destinasi akun Kredit berdasarkan metode: "Uang Tunai" mengkredit Kas (`101.01`), sedangkan "Transfer" mengkredit Simpanan Wadiah (`201.01`). Sisi Debit otomatis memetakan COA yang sesuai dengan hukum syariah (Murabahah, Qardh, dll).

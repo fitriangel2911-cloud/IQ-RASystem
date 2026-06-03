@@ -9,12 +9,13 @@ import Panel3Deposit from './teller/Panel3Deposit';
 import Panel4Withdrawal from './teller/Panel4Withdrawal';
 import Panel5Payment from './teller/Panel5Payment';
 import Panel6Shift, { ShiftData } from './teller/Panel6Shift';
+import Panel7Disbursement from './teller/Panel7Disbursement';
 
 interface TellerTerminalProps {
   userId: string;
 }
 
-type PanelKey = 'dashboard' | 'member' | 'deposit' | 'withdrawal' | 'payment' | 'shift';
+type PanelKey = 'dashboard' | 'member' | 'deposit' | 'withdrawal' | 'payment' | 'disbursement' | 'shift';
 
 const PANELS: { key: PanelKey; label: string; shortcut: string }[] = [
   { key: 'dashboard', label: 'Status & Dasbor', shortcut: '1' },
@@ -22,7 +23,8 @@ const PANELS: { key: PanelKey; label: string; shortcut: string }[] = [
   { key: 'deposit',   label: 'Setoran Tunai',   shortcut: '3' },
   { key: 'withdrawal',label: 'Penarikan Tunai', shortcut: '4' },
   { key: 'payment',   label: 'Bayar Angsuran',  shortcut: '5' },
-  { key: 'shift',     label: 'Shift Kas',       shortcut: '6' },
+  { key: 'disbursement', label: 'Pencairan Pembiayaan', shortcut: '6' },
+  { key: 'shift',     label: 'Shift Kas',       shortcut: '7' },
 ];
 
 const PANEL_TITLES: Record<PanelKey, string> = {
@@ -31,6 +33,7 @@ const PANEL_TITLES: Record<PanelKey, string> = {
   deposit:    'Setoran Tunai',
   withdrawal: 'Penarikan Tunai',
   payment:    'Pembayaran Angsuran',
+  disbursement: 'Pencairan Dana Pembiayaan',
   shift:      'Buka / Tutup Shift Kas',
 };
 
@@ -108,7 +111,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       const map: Record<string, PanelKey> = {
         '1': 'dashboard', '2': 'member', '3': 'deposit',
-        '4': 'withdrawal', '5': 'payment', '6': 'shift',
+        '4': 'withdrawal', '5': 'payment', '6': 'disbursement', '7': 'shift',
       };
       if (map[e.key]) {
         e.preventDefault();
@@ -247,6 +250,13 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
         )}
         {activePanel === 'payment' && (
           <Panel5Payment
+            selectedMember={selectedMember}
+            tellerName={tellerName}
+            onSuccess={handleTransactionSuccess}
+          />
+        )}
+        {activePanel === 'disbursement' && (
+          <Panel7Disbursement
             selectedMember={selectedMember}
             tellerName={tellerName}
             onSuccess={handleTransactionSuccess}

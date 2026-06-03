@@ -192,7 +192,7 @@ export class AIService {
       responseText = response.content;
     } else if (Array.isArray(response.content)) {
       responseText = response.content
-        .map(part => {
+        .map((part: any) => {
           if (typeof part === 'string') return part;
           if (part && typeof part === 'object' && 'text' in part) return (part as any).text;
           return JSON.stringify(part);
@@ -458,8 +458,30 @@ Berikan analisis Anda dalam format JSON persis seperti berikut (tanpa tambahan t
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (!apiKey) {
+      // Offline fallback if no API key is provided
+      let fallbackText = "Asisten AI belum aktif (GEMINI_API_KEY kosong). ";
+      
+      if (role === 'account_officer' && message.includes('DSCR')) {
+        // Fallback specifically for the AO Field Verification
+        const incomeMatch = message.match(/Estimasi Omset Bulanan \(Kotor\):\s*Rp\s*([\d,.]+)/);
+        const plafonMatch = message.match(/Plafon Pengajuan:\s*Rp\s*([\d,.]+)/);
+        
+        const income = incomeMatch ? parseInt(incomeMatch[1].replace(/\D/g, '')) : 0;
+        const plafon = plafonMatch ? parseInt(plafonMatch[1].replace(/\D/g, '')) : 0;
+        const installment = plafon / 12;
+        const dscr = income > 0 && installment > 0 ? (income / installment).toFixed(1) : 0;
+        
+        if (Number(dscr) >= 2) {
+          fallbackText = `[MODE OFFLINE/TANPA API KEY]\n\nHasil Analisis: LAYAK\nDSCR: ${dscr}x (Kemampuan bayar sangat baik).\n\nRekomendasi:\nBerkas dapat dilanjutkan ke tahap persetujuan Manajer karena profil risiko gagal bayar rendah.`;
+        } else {
+          fallbackText = `[MODE OFFLINE/TANPA API KEY]\n\nHasil Analisis: RISIKO TINGGI\nDSCR: ${dscr}x (Arus kas terlalu mepet untuk angsuran bulanan).\n\nRekomendasi:\nTolak pengajuan atau turunkan nominal plafon pinjaman untuk menyesuaikan kemampuan finansial nasabah.`;
+        }
+      } else {
+        fallbackText += "Namun Anda tetap dapat menyimpan prospek ini, hanya saja tidak ada analisis kelayakan otomatis dari mesin AI.";
+      }
+
       return {
-        text: "Asisten AI belum aktif. Pastikan `GEMINI_API_KEY` sudah dikonfigurasi dengan benar di file `.env.local`.",
+        text: fallbackText,
         sources: []
       };
     }
@@ -686,7 +708,7 @@ Berikan jawaban yang utuh, mendalam, dan selesai dengan sempurna (tidak terputus
         responseText = response.content;
       } else if (Array.isArray(response.content)) {
         responseText = response.content
-          .map(part => {
+          .map((part: any) => {
             if (typeof part === 'string') return part;
             if (part && typeof part === 'object' && 'text' in part) return (part as any).text;
             return JSON.stringify(part);

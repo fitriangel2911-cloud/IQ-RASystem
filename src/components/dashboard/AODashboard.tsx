@@ -18,16 +18,19 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   });
   const [prospects, setProspects] = useState<any[]>([]);
   const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [membersList, setMembersList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Form State for New Prospect
   const [formData, setFormData] = useState({
+    member_id: '',
     name: '',
     phone: '',
     amount: '',
     purpose: 'Modal Usaha'
   });
+  const [customPurpose, setCustomPurpose] = useState('');
 
   const fetchAOData = async () => {
     if (!profile?.id) return;
@@ -46,6 +49,14 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       const { count: prospectCount } = await supabase
         .from('prospects')
         .select('*', { count: 'exact', head: true });
+
+      // Fetch physical members for dropdown
+      const { data: physicalMembers } = await supabase
+        .from('members')
+        .select('*, users(full_name, email)');
+      if (physicalMembers) {
+        setMembersList(physicalMembers);
+      }
 
       setStats({
         activePortfolio: activeContracts.length || 12, // Mock 12 if table empty for demo
@@ -145,11 +156,17 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     const supabase = createClient();
     
     try {
+      let finalPurpose = formData.purpose;
+      if (finalPurpose === 'Lainnya' && customPurpose.trim() !== '') {
+        finalPurpose = customPurpose.trim();
+      }
+
       let insertData: any = {
+        member_id: formData.member_id || null,
         name: formData.name,
         phone: formData.phone,
         amount: Number(formData.amount),
-        purpose: formData.purpose,
+        purpose: finalPurpose,
         status: 'Menunggu Analisis',
         ao_id: profile.id
       };
@@ -166,7 +183,8 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       if (error) throw error;
 
       setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
-      setFormData({ name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setCustomPurpose('');
       fetchAOData();
     } catch (err: any) {
       // DEBUG: SEND ERROR TO BACKEND
@@ -177,18 +195,24 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       }).catch(console.error);
 
       // SILENT FALLBACK FOR PRESENTATION
+      let finalPurpose = formData.purpose;
+      if (finalPurpose === 'Lainnya' && customPurpose.trim() !== '') {
+        finalPurpose = customPurpose.trim();
+      }
       const newMockProspect = {
         id: 'mock-' + Date.now(),
+        member_id: formData.member_id || profile.id,
         name: formData.name,
         phone: formData.phone,
         amount: Number(formData.amount),
-        purpose: formData.purpose,
+        purpose: finalPurpose,
         status: 'Menunggu Analisis',
         created_at: new Date().toISOString()
       };
       setProspects([newMockProspect, ...prospects]);
       setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
-      setFormData({ name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setCustomPurpose('');
     } finally {
       setLoading(false);
     }
@@ -420,7 +444,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         const { error: contractError } = await supabase
           .from('financing_contracts')
           .insert({
-            member_id: profile.id, // Usually the customer's ID, but for demo AO is okay
+            member_id: selectedSurveyProspect.member_id || profile.id, // Gunakan ID nasabah asli agar Teller bisa menemukannya
             prospect_id: selectedSurveyProspect.id,
             member_name: selectedSurveyProspect.name,
             amount: selectedSurveyProspect.amount,
@@ -433,7 +457,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
           await supabase
             .from('financing_contracts')
             .insert({
-              member_id: profile.id,
+              member_id: selectedSurveyProspect.member_id || profile.id,
               amount: selectedSurveyProspect.amount,
               type: contractType,
               status: 'pending'
@@ -549,27 +573,35 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         
         <form onSubmit={handleAddProspect} style={{ display: 'grid', gap: '20px' }}>
           <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nama Lengkap Calon Anggota</label>
-            <input 
-              type="text" 
+            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Pilih Anggota Resmi (Database CIF)</label>
+            <select 
               required
-              placeholder="Contoh: Budi Santoso"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              value={formData.member_id ? `${formData.member_id}|${formData.name}|${formData.phone}` : ""}
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const [id, n, p] = e.target.value.split('|');
+                setFormData({...formData, member_id: id, name: n, phone: p});
+              }}
               style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none', transition: 'border-color 0.2s' }}
-            />
+            >
+              <option value="" disabled>-- Cari & Pilih Anggota --</option>
+              {membersList.map((m: any) => (
+                <option key={m.id} value={`${m.user_id}|${m.users?.full_name || m.mother_name}|${m.phone_number}`}>
+                  {m.users?.full_name || 'Tanpa Nama'} - NIK: {m.nik}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div style={{ display: 'grid', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nomor WhatsApp / HP</label>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nomor Telepon (Otomatis)</label>
               <input 
                 type="tel" 
-                required
-                placeholder="0812xxxx"
+                readOnly
+                placeholder="Terisi otomatis..."
                 value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
+                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-secondary)', fontSize: '16px', outline: 'none', cursor: 'not-allowed' }}
               />
             </div>
             <div style={{ display: 'grid', gap: '8px' }}>
@@ -596,8 +628,19 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
               <option value="Pembelian Barang">Pembelian Barang / Aset</option>
               <option value="Pendidikan">Biaya Pendidikan / Jasa</option>
               <option value="Renovasi Rumah">Renovasi Rumah / Bangunan</option>
-              <option value="Lainnya">Lainnya</option>
+              <option value="Lainnya">Lainnya (Ketik Manual)</option>
             </select>
+            
+            {formData.purpose === 'Lainnya' && (
+              <input 
+                type="text" 
+                required
+                placeholder="Tuliskan tujuan penggunaan dana secara spesifik..."
+                value={customPurpose}
+                onChange={(e) => setCustomPurpose(e.target.value)}
+                style={{ marginTop: '8px', padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--gold-intense)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none', animation: 'fadeIn 0.3s ease-out' }}
+              />
+            )}
           </div>
 
           <button 
@@ -722,30 +765,54 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Catatan Penilaian Kelayakan</label>
                     <button 
-                      onClick={() => {
-                        setSurveyData(prev => ({ ...prev, notes: 'AI Vision sedang menganalisis profil dan foto lokasi...' }));
-                        setTimeout(() => {
-                          const amount = selectedSurveyProspect?.amount || 0;
-                          const income = Number(surveyData.monthlyIncome) || 0;
-                          let note = '';
-                          
-                          if (income === 0) {
-                            note = '[Peringatan AI]: Harap isi "Estimasi Omset / Pendapatan Bulanan" terlebih dahulu agar AI dapat menghitung rasio kelayakan finansial secara akurat.';
+                      onClick={async () => {
+                        setSurveyData(prev => ({ ...prev, notes: 'AI RAG Engine sedang menganalisis kelayakan berdasarkan panduan syariah & mitigasi risiko...' }));
+                        
+                        const amount = selectedSurveyProspect?.amount || 0;
+                        const income = Number(surveyData.monthlyIncome) || 0;
+                        
+                        if (income === 0) {
+                          setSurveyData(prev => ({ ...prev, notes: '[Peringatan AI]: Harap isi "Estimasi Omset / Pendapatan Bulanan" terlebih dahulu agar AI dapat menghitung rasio kelayakan finansial secara akurat.' }));
+                          return;
+                        }
+
+                        try {
+                          const prompt = `Lakukan verifikasi kelayakan pembiayaan untuk nasabah berikut:
+Nama: ${selectedSurveyProspect?.name}
+Tujuan Pengajuan: ${selectedSurveyProspect?.purpose}
+Plafon Pengajuan: Rp ${amount.toLocaleString('id-ID')}
+Estimasi Omset Bulanan (Kotor): Rp ${income.toLocaleString('id-ID')}
+Alamat/Domisili: ${surveyData.address}
+
+TUGAS ANDA:
+Berikan keputusan final secara SINGKAT, TEGAS, dan LANGSUNG KE INTI tanpa basa-basi pembuka (Maksimal 3 poin utama).
+Gunakan format berikut:
+1. KEPUTUSAN FINAL: [Tulis dengan jelas: LAYAK DIAJUKAN atau DITOLAK]
+2. ALASAN FINANSIAL: [Sebutkan alasan berdasarkan rasio kemampuan bayar / DSCR 12 bulan dalam 1-2 kalimat saja]
+3. MITIGASI RISIKO: [Saran syariah singkat untuk Account Officer]
+
+DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau penjelasan bertele-tele. Langsung berikan hasilnya.`;
+
+                          const response = await fetch('/api/ai/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              message: prompt,
+                              role: 'account_officer',
+                              history: []
+                            })
+                          });
+
+                          const data = await response.json();
+                          if (data.text) {
+                            setSurveyData(prev => ({ ...prev, notes: `[Hasil Analisis AI RAG]:\n\n${data.text}` }));
                           } else {
-                            // Asumsi tenor 12 bulan untuk perhitungan kasar kelayakan
-                            const estimatedMonthlyInstallment = amount / 12;
-                            const dscr = income > 0 ? (income / estimatedMonthlyInstallment).toFixed(1) : 0;
-                            
-                            if (Number(dscr) >= 3.0) {
-                              note = `[Hasil Analisis AI]: SANGAT LAYAK. Dengan omset Rp ${income.toLocaleString('id-ID')}/bulan, nasabah memiliki kemampuan bayar yang luar biasa (DSCR = ${dscr}x) untuk plafon Rp ${amount.toLocaleString('id-ID')}. Risiko gagal bayar (NPL) nyaris 0%. Rekomendasi: APPROVE.`;
-                            } else if (Number(dscr) >= 1.5) {
-                              note = `[Hasil Analisis AI]: LAYAK. Omset Rp ${income.toLocaleString('id-ID')}/bulan mencukupi untuk angsuran pinjaman Rp ${amount.toLocaleString('id-ID')} (DSCR = ${dscr}x). Arus kas stabil. Rekomendasi: LAYAK DIBERIKAN PEMBIAYAAN.`;
-                            } else {
-                              note = `[Hasil Analisis AI]: RISIKO TINGGI! Omset Rp ${income.toLocaleString('id-ID')}/bulan terlalu mepet untuk plafon Rp ${amount.toLocaleString('id-ID')} (DSCR hanya ${dscr}x). Nasabah berpotensi besar kesulitan mengangsur. Rekomendasi: TOLAK atau TURUNKAN PLAFON.`;
-                            }
+                            throw new Error(data.error || 'No response from AI');
                           }
-                          setSurveyData(prev => ({ ...prev, notes: note }));
-                        }, 1500);
+                        } catch (err: any) {
+                          console.error(err);
+                          setSurveyData(prev => ({ ...prev, notes: `[Gagal Menghubungi AI RAG]: ${err.message}` }));
+                        }
                       }}
                       style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-primary)', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >

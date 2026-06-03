@@ -631,13 +631,17 @@ export default function DashboardPage() {
 
               <DashboardMenuButton active={activeTab === 'teller'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} icon="🏪" label="Layanan Kasir / Teller" />
 
+              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="📝" label="Input Prospek Baru" />
               <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="🤝" label="Pipeline Nasabah" />
               <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="📋" label="Analisis Akad & AI" />
               <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="📍" label="Verifikasi Lapangan" />
 
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="💼" label="Jurnal Umum Otomatis" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'ledger'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('ledger'); }} icon="📓" label="Buku Besar & Neraca" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="📈" label="Laporan SAK EP" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="📊" label="Ikhtisar Keuangan" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="✒️" label="Manajemen Jurnal" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="📑" label="Laporan SAK EP" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="🛡️" label="Pencadangan CKPN" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="💰" label="Bagi Hasil (EOM)" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="🔒" label="Tutup Buku (EOD)" />
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
               

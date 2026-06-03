@@ -1,4 +1,5 @@
 'use client';
+// force recompile
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -26,10 +27,16 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
   // Alert system
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isTodayClosed, setIsTodayClosed] = useState(false);
 
   // Manual Journal Form State (Multi-line Double-Entry)
   const [jDate, setJDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [eomNisbah, setEomNisbah] = useState(30); // Persentase untuk anggota
+  const [ledgerFilterAcc, setLedgerFilterAcc] = useState('ALL'); // Filter Buku Besar
+  
+  // Fitur Cetak Voucher Spesifik
+  const [printingVoucher, setPrintingVoucher] = useState<any>(null);
 
   useEffect(() => {
     if (journals.length > 0) {
@@ -94,6 +101,23 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       setJournals(data);
       calculateStatsFromJournals(data, reportYear);
     }
+    
+    // Cek status EOD hari ini
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: closureData } = await supabase
+        .from('daily_closures')
+        .select('id')
+        .eq('closing_date', today)
+        .single();
+        
+      if (closureData) {
+        setIsTodayClosed(true);
+      }
+    } catch(e) {
+      // Ignore if table missing or error
+    }
+
     setLoadingJournals(false);
   };
 
@@ -274,6 +298,100 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   };
 
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+
+  // 🖨️ MODE CETAK VOUCHER JURNAL TUNGGAL 🖨️
+  if (printingVoucher) {
+    return (
+      <div style={{ background: 'white', color: 'black', minHeight: '100vh', padding: '40px', fontFamily: '"Times New Roman", Times, serif' }}>
+        <style>{`
+          @media print {
+            button.hide-on-print { display: none !important; }
+            body { background: white !important; margin: 0; padding: 0; }
+          }
+        `}</style>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <button 
+            className="hide-on-print" 
+            onClick={() => setPrintingVoucher(null)}
+            style={{ background: '#ef4444', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Kembali ke Dasbor
+          </button>
+          <button 
+            className="hide-on-print" 
+            onClick={() => window.print()}
+            style={{ background: '#10b981', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            🖨️ Lanjutkan Cetak Dokumen
+          </button>
+        </div>
+
+        <div style={{ border: '2px solid black', padding: '40px', maxWidth: '800px', margin: '0 auto', position: 'relative' }}>
+          <div style={{ textAlign: 'center', borderBottom: '3px double black', paddingBottom: '20px', marginBottom: '30px' }}>
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', textTransform: 'uppercase' }}>KOPERASI SYARIAH iQ-RA</h1>
+            <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>Divisi Akuntansi & Keuangan Pusat</p>
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <h2 style={{ margin: 0, fontSize: '20px', textDecoration: 'underline' }}>BUKTI JURNAL TRANSAKSI / VOUCHER</h2>
+            <p style={{ margin: '5px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>NO. REF: {printingVoucher.reference_no}</p>
+          </div>
+
+          <table style={{ width: '100%', marginBottom: '40px', fontSize: '14px' }}>
+            <tbody>
+              <tr>
+                <td style={{ width: '150px', padding: '5px 0', fontWeight: 'bold' }}>Tanggal Transaksi</td>
+                <td style={{ width: '10px' }}>:</td>
+                <td>{printingVoucher.date}</td>
+              </tr>
+              <tr>
+                <td style={{ padding: '5px 0', fontWeight: 'bold' }}>Keterangan / Uraian</td>
+                <td>:</td>
+                <td>{printingVoucher.description}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '50px' }}>
+            <thead>
+              <tr>
+                <th style={{ border: '1px solid black', padding: '10px', textAlign: 'center' }}>KODE AKUN</th>
+                <th style={{ border: '1px solid black', padding: '10px', textAlign: 'center' }}>NAMA AKUN / POSISI</th>
+                <th style={{ border: '1px solid black', padding: '10px', textAlign: 'right' }}>DEBIT</th>
+                <th style={{ border: '1px solid black', padding: '10px', textAlign: 'right' }}>KREDIT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ border: '1px solid black', padding: '10px', textAlign: 'center' }}>{printingVoucher.account_code}</td>
+                <td style={{ border: '1px solid black', padding: '10px' }}>{coaList.find(c => c.code === printingVoucher.account_code)?.name || 'Akun Jurnal'}</td>
+                <td style={{ border: '1px solid black', padding: '10px', textAlign: 'right' }}>{printingVoucher.debit > 0 ? formatter.format(printingVoucher.debit) : '-'}</td>
+                <td style={{ border: '1px solid black', padding: '10px', textAlign: 'right' }}>{printingVoucher.credit > 0 ? formatter.format(printingVoucher.credit) : '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center', marginTop: '60px' }}>
+            <div style={{ width: '200px' }}>
+              <p style={{ marginBottom: '80px' }}>Dibuat Oleh,</p>
+              <p style={{ borderBottom: '1px solid black', margin: '0 20px', paddingBottom: '5px' }}>{profile?.full_name || 'Petugas Akuntansi'}</p>
+              <p style={{ fontSize: '12px', marginTop: '5px' }}>Staff Akuntansi</p>
+            </div>
+            <div style={{ width: '200px' }}>
+              <p style={{ marginBottom: '80px' }}>Disetujui Oleh,</p>
+              <p style={{ borderBottom: '1px solid black', margin: '0 20px', paddingBottom: '5px' }}>(..................................)</p>
+              <p style={{ fontSize: '12px', marginTop: '5px' }}>Manajer Keuangan</p>
+            </div>
+          </div>
+          
+          <div style={{ position: 'absolute', bottom: '10px', right: '10px', fontSize: '10px', color: '#666' }}>
+            Dicetak otomatis oleh Sistem iQ-RA pada {new Date().toLocaleString('id-ID')}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ animation: 'fadeInUp 0.5s ease-out' }}>
@@ -604,9 +722,23 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             border: '1px solid var(--border-primary)',
             boxShadow: '0 40px 80px var(--shadow-color)'
           }}>
-            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 900 }}>📜 BUKU BESAR (GENERAL LEDGER LOGS)</h3>
-              <button onClick={fetchJournals} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontWeight: 800, cursor: 'pointer' }}>🔄 Segarkan Data</button>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <label style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 800 }}>Filter Akun:</label>
+                  <select 
+                    value={ledgerFilterAcc} 
+                    onChange={(e) => setLedgerFilterAcc(e.target.value)}
+                    style={{ padding: '8px 16px', borderRadius: '10px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    <option value="ALL">Semua Akun</option>
+                    {coaList.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name}</option>)}
+                  </select>
+                </div>
+                <button onClick={fetchJournals} style={{ background: 'var(--border-primary)', padding: '8px 16px', borderRadius: '10px', border: 'none', color: 'var(--text-primary)', fontWeight: 800, cursor: 'pointer' }}>🔄 Segarkan Data</button>
+              </div>
             </div>
             <div style={{ padding: '20px 36px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -618,14 +750,16 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                     <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px' }}>KETERANGAN</th>
                     <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>DEBIT (Rp)</th>
                     <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'right' }}>KREDIT (Rp)</th>
+                    <th style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>AKSI</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loadingJournals ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 700 }}>Memuat data jurnal...</td>
+                      <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)', fontWeight: 700 }}>Memuat data jurnal...</td>
                     </tr>
-                  ) : journals.length > 0 ? journals.map((j, index) => (
+                  ) : journals.filter(j => ledgerFilterAcc === 'ALL' || j.account_code === ledgerFilterAcc).length > 0 ? 
+                    journals.filter(j => ledgerFilterAcc === 'ALL' || j.account_code === ledgerFilterAcc).map((j, index) => (
                     <tr key={j.id || index} style={{ borderBottom: '1px solid var(--border-primary)', background: 'rgba(0,0,0,0.03)' }}>
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{j.date}</td>
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '14px' }}>{j.reference_no}</td>
@@ -639,10 +773,19 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
                         {j.credit > 0 ? formatter.format(j.credit) : '—'}
                       </td>
+                      <td style={{ padding: '16px', textAlign: 'center' }}>
+                        <button 
+                          onClick={() => setPrintingVoucher(j)}
+                          style={{ background: 'rgba(243, 198, 83, 0.1)', border: '1px solid #f3c653', color: 'var(--gold-intense)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}
+                          title="Cetak Bukti Jurnal / Voucher"
+                        >
+                          🖨️ Cetak
+                        </button>
+                      </td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={6} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 800 }}>
+                      <td colSpan={7} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 800 }}>
                         🚫 Belum ada rekaman posting jurnal. Silakan lakukan posting perdana di atas.
                       </td>
                     </tr>
@@ -958,6 +1101,354 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   )}
                 </span>
               </div>
+            </div>
+
+            <div style={{ marginTop: '20px', background: 'var(--bg-page)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontSize: '16px', fontWeight: 800 }}>Otorisasi Pencadangan Otomatis</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                Menekan tombol di bawah ini akan secara otomatis memposting jurnal Beban Pencadangan (Debit) dan Cadangan Kerugian (Kredit) sebesar total nilai di atas.
+              </p>
+              <button 
+                onClick={async () => {
+                  const ckpnAmount = (stats.totalFinancing * 0.8 * 0.005) + 
+                                     (stats.totalFinancing * 0.12 * 0.05) +
+                                     (stats.totalFinancing * 0.05 * 0.15) +
+                                     (stats.totalFinancing * 0.02 * 0.5) +
+                                     (stats.totalFinancing * 0.01 * 1.0);
+                                     
+                  if (ckpnAmount <= 0) {
+                     setMessage({ type: 'error', text: 'Kebutuhan CKPN masih Rp 0, tidak ada yang perlu dicadangkan.' });
+                     window.scrollTo(0,0);
+                     return;
+                  }
+
+                  if (confirm(`Apakah Anda yakin ingin memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}?`)) {
+                    setLoading(true);
+                    try {
+                      const debitPayload = {
+                        date: new Date().toISOString().split('T')[0],
+                        reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
+                        description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Otomatis`,
+                        debit: ckpnAmount,
+                        credit: 0,
+                        account_code: '600005' // Beban CKPN (Asumsi)
+                      };
+
+                      const creditPayload = {
+                        ...debitPayload,
+                        debit: 0,
+                        credit: ckpnAmount,
+                        account_code: '400006' // Cadangan Khusus (Kredit/Ekuitas Cadangan)
+                      };
+
+                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
+                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
+                      
+                      await fetchJournals();
+                      setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}.` });
+                    } catch (err: any) {
+                      setMessage({ type: 'error', text: err.message });
+                    } finally {
+                      setLoading(false);
+                      window.scrollTo(0,0);
+                    }
+                  }
+                }}
+                disabled={loading}
+                style={{
+                  background: loading ? 'gray' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  color: 'white', border: 'none', padding: '16px 32px', borderRadius: '12px',
+                  fontSize: '15px', fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 10px 20px rgba(59, 130, 246, 0.3)', width: '100%'
+                }}
+              >
+                {loading ? 'MEMPROSES JURNAL CKPN...' : '🛡️ POSTING JURNAL CKPN SEKARANG'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+      {/* ======================================= */}
+      {/* 💰 TAB 5: DISTRIBUSI BAGI HASIL (EOM)     */}
+      {/* ======================================= */}
+      {activeMenu === 'eom' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
+          <div className="glass-dark" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px' }}>
+            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span>💰</span> DISTRIBUSI BAGI HASIL (END OF MONTH)
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
+              Modul ini akan menghitung seluruh Pendapatan Koperasi (Margin & Administrasi) bulan berjalan dan mendistribusikan porsi Bagi Hasil (Nisbah) ke rekening Simpanan Mudharabah Anggota.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+              <div style={{ padding: '24px', background: 'rgba(52, 211, 153, 0.05)', border: '2px solid rgba(52, 211, 153, 0.2)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-success)', fontWeight: 800, marginBottom: '8px' }}>Total Pendapatan (Bulan Ini)</div>
+                <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
+                  {formatter.format(
+                    journals.filter(j => 
+                      j.account_code?.startsWith('5') && 
+                      new Date(j.date || j.created_at).getMonth() === new Date().getMonth() &&
+                      new Date(j.date || j.created_at).getFullYear() === reportYear
+                    ).reduce((sum, j) => sum + (Number(j.credit) - Number(j.debit)), 0)
+                  )}
+                </div>
+              </div>
+              
+              <div style={{ padding: '24px', background: 'rgba(243, 198, 83, 0.05)', border: '2px solid var(--border-primary)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--gold-intense)', fontWeight: 800, marginBottom: '8px' }}>Nisbah Anggota (%)</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input 
+                    type="range" 
+                    min="10" 
+                    max="50" 
+                    step="5" 
+                    value={eomNisbah} 
+                    onChange={e => setEomNisbah(Number(e.target.value))}
+                    style={{ flexGrow: 1 }}
+                  />
+                  <span style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>{eomNisbah}%</span>
+                </div>
+              </div>
+
+              <div style={{ padding: '24px', background: 'rgba(239, 68, 68, 0.05)', border: '2px solid rgba(239, 68, 68, 0.2)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: '#ef4444', fontWeight: 800, marginBottom: '8px' }}>Estimasi Dibagikan ke Anggota</div>
+                <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
+                  {formatter.format(
+                    (journals.filter(j => 
+                      j.account_code?.startsWith('5') && 
+                      new Date(j.date || j.created_at).getMonth() === new Date().getMonth() &&
+                      new Date(j.date || j.created_at).getFullYear() === reportYear
+                    ).reduce((sum, j) => sum + (Number(j.credit) - Number(j.debit)), 0)) * (eomNisbah / 100)
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-page)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontSize: '16px', fontWeight: 800 }}>Otorisasi Distribusi (Straight-Through Processing)</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                Dengan menekan tombol di bawah, sistem akan secara otomatis mendebit Beban Bagi Hasil (600001) dan mengkreditkan Simpanan Mudharabah Anggota (310001) secara agregat.
+              </p>
+              <button 
+                onClick={async () => {
+                  const currentMonthIncome = journals.filter(j => 
+                    j.account_code?.startsWith('5') && 
+                    new Date(j.date || j.created_at).getMonth() === new Date().getMonth() &&
+                    new Date(j.date || j.created_at).getFullYear() === reportYear
+                  ).reduce((sum, j) => sum + (Number(j.credit) - Number(j.debit)), 0);
+
+                  const profitShareAmount = currentMonthIncome * (eomNisbah / 100);
+
+                  if (profitShareAmount <= 0) {
+                    setMessage({ type: 'error', text: 'Tidak ada Pendapatan di bulan ini yang bisa dibagikan.' });
+                    window.scrollTo(0,0);
+                    return;
+                  }
+
+                  if (confirm(`Apakah Anda yakin ingin mendistribusikan Bagi Hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Simpanan Mudharabah?`)) {
+                    setLoading(true);
+                    try {
+                      const monthName = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                      const supabase = createClient();
+                      
+                      // 1. Ambil semua rekening Mudharabah
+                      const { data: mudharabahAccs, error: fetchErr } = await supabase
+                        .from('savings_accounts')
+                        .select('id, balance')
+                        .eq('account_type', 'mudharabah');
+                        
+                      if (fetchErr) throw new Error('Gagal mengambil data rekening Mudharabah: ' + fetchErr.message);
+                      
+                      if (mudharabahAccs && mudharabahAccs.length > 0) {
+                        const totalMudharabahBalance = mudharabahAccs.reduce((sum, acc) => sum + Number(acc.balance || 0), 0);
+                        
+                        if (totalMudharabahBalance > 0) {
+                          // 2. Proporsionalkan dan update masing-masing rekening
+                          for (const acc of mudharabahAccs) {
+                            const accBal = Number(acc.balance || 0);
+                            if (accBal > 0) {
+                              const porsi = (accBal / totalMudharabahBalance) * profitShareAmount;
+                              
+                              // Update saldo
+                              await supabase
+                                .from('savings_accounts')
+                                .update({ balance: accBal + porsi })
+                                .eq('id', acc.id);
+                                
+                              // Catat mutasi tabungan
+                              await supabase
+                                .from('savings_transactions')
+                                .insert([{
+                                  account_id: acc.id,
+                                  transaction_type: 'profit_sharing',
+                                  amount: porsi,
+                                  reference_no: `EOM-${Date.now()}`
+                                }]);
+                            }
+                          }
+                        }
+                      }
+                      
+                      // 3. Posting Jurnal Agregat ke Buku Besar
+                      const debitPayload = {
+                        date: new Date().toISOString().split('T')[0],
+                        reference_no: `EOM-${Math.floor(100000 + Math.random() * 900000)}`,
+                        description: `Distribusi Bagi Hasil Bulan ${monthName} (Nisbah Anggota ${eomNisbah}%)`,
+                        debit: profitShareAmount,
+                        credit: 0,
+                        account_code: '600001' // Beban Bagi Hasil
+                      };
+
+                      const creditPayload = {
+                        date: new Date().toISOString().split('T')[0],
+                        reference_no: debitPayload.reference_no,
+                        description: debitPayload.description,
+                        debit: 0,
+                        credit: profitShareAmount,
+                        account_code: '310001' // Simpanan Mudharabah Anggota
+                      };
+
+                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
+                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
+                      
+                      await fetchJournals();
+                      setMessage({ type: 'success', text: `Berhasil mendistribusikan bagi hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Mudharabah.` });
+                    } catch (err: any) {
+                      setMessage({ type: 'error', text: err.message });
+                    } finally {
+                      setLoading(false);
+                      window.scrollTo(0,0);
+                    }
+                  }
+                }}
+                disabled={loading}
+                style={{
+                  background: loading ? 'gray' : 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                  color: 'white', border: 'none', padding: '16px 32px', borderRadius: '12px',
+                  fontSize: '15px', fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)', width: '100%'
+                }}
+              >
+                {loading ? 'MEMPROSES DISTRIBUSI...' : '💰 JALANKAN DISTRIBUSI BAGI HASIL SEKARANG'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================= */}
+      {/* 🔒 TAB 6: TUTUP BUKU HARIAN (EOD)       */}
+      {/* ======================================= */}
+      {activeMenu === 'eod' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
+          
+          <div className="glass-dark" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px' }}>
+            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span>🔒</span> TUTUP BUKU HARIAN (END OF DAY / EOD)
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '30px' }}>
+              Validasi dan rekonsiliasi mutasi kas harian sebelum melakukan penguncian (freezing) transaksi hari ini. Pastikan saldo fisik di laci kasir (Teller) sesuai dengan catatan sistem.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+              <div style={{ padding: '24px', background: 'rgba(52, 211, 153, 0.05)', border: '2px solid rgba(52, 211, 153, 0.2)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-success)', fontWeight: 800, marginBottom: '8px' }}>Total Kas Masuk (Hari Ini)</div>
+                <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
+                  {formatter.format(
+                    journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.debit > 0)
+                            .reduce((sum, j) => sum + Number(j.debit), 0)
+                  )}
+                </div>
+              </div>
+              
+              <div style={{ padding: '24px', background: 'rgba(239, 68, 68, 0.05)', border: '2px solid rgba(239, 68, 68, 0.2)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: '#ef4444', fontWeight: 800, marginBottom: '8px' }}>Total Kas Keluar (Hari Ini)</div>
+                <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
+                  {formatter.format(
+                    journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.credit > 0)
+                            .reduce((sum, j) => sum + Number(j.credit), 0)
+                  )}
+                </div>
+              </div>
+
+              <div style={{ padding: '24px', background: 'rgba(243, 198, 83, 0.05)', border: '2px solid var(--border-primary)', borderRadius: '16px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--gold-intense)', fontWeight: 800, marginBottom: '8px' }}>Ekspektasi Saldo Akhir Laci Teller</div>
+                <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
+                  {formatter.format(getBal('110102'))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-page)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontSize: '16px', fontWeight: 800 }}>Otorisasi Penguncian (Freezing)</h4>
+              
+              {isTodayClosed ? (
+                <div style={{ background: 'rgba(52, 211, 153, 0.1)', border: '2px solid rgba(52, 211, 153, 0.3)', padding: '20px', borderRadius: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '10px' }}>✅</div>
+                  <h4 style={{ color: 'var(--text-success)', margin: '0 0 10px 0', fontSize: '18px', fontWeight: 900 }}>TRANSAKSI HARI INI TELAH DIKUNCI</h4>
+                  <p style={{ color: 'var(--text-primary)', fontSize: '14px', margin: 0, fontWeight: 600 }}>
+                    Buku harian untuk tanggal {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} sudah resmi ditutup. Semua mutasi transaksi baru akan otomatis dialihkan ke tanggal berikutnya.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                    Dengan menekan tombol di bawah ini, Anda menyatakan bahwa penghitungan uang fisik telah sesuai dengan catatan di sistem. Seluruh transaksi pada tanggal <strong>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> akan dikunci permanen dan tidak dapat diubah lagi.
+                  </p>
+                  
+                  <button 
+                    onClick={async () => {
+                      if (confirm('PERINGATAN: Apakah Anda yakin saldo fisik laci kasir sudah BENAR dan ingin MENGUNCI seluruh transaksi hari ini?')) {
+                        try {
+                          setLoading(true);
+                          const payload = {
+                            closing_date: new Date().toISOString().split('T')[0],
+                            total_in: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.debit > 0).reduce((sum, j) => sum + Number(j.debit), 0),
+                            total_out: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.credit > 0).reduce((sum, j) => sum + Number(j.credit), 0),
+                            expected_balance: getBal('110102'),
+                            actual_balance: getBal('110102'), // Placeholder: actual physical cash input can be added in future
+                            closed_by: profile?.id || 'system'
+                          };
+                          
+                          const res = await fetch('/api/accounting/eod', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                          });
+                          
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || 'Gagal melakukan tutup buku');
+                          
+                          setMessage({ type: 'success', text: data.message });
+                          setIsTodayClosed(true); // Update state directly
+                        } catch (err: any) {
+                          setMessage({ type: 'error', text: err.message });
+                        } finally {
+                          setLoading(false);
+                          window.scrollTo(0, 0); // Scroll to top to see message
+                        }
+                      }
+                    }}
+                    disabled={loading}
+                    style={{
+                      background: loading ? 'gray' : 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '16px 32px',
+                      borderRadius: '12px',
+                      fontSize: '15px',
+                      fontWeight: 900,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 10px 20px rgba(239, 68, 68, 0.3)',
+                      width: '100%'
+                    }}
+                  >
+                    {loading ? 'MEMPROSES KUNCIAN...' : '🔒 TUTUP BUKU & KUNCI TRANSAKSI HARI INI'}
+                  </button>
+                </>
+              )}
             </div>
 
           </div>

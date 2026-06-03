@@ -14,6 +14,19 @@ export class AccountingService {
   static async recordTransaction(data: { date: string, description: string, reference_no: string, member_id?: string, entries: any[] }) {
     const supabase = await createClient();
     
+    // VALIDASI EOD (TUTUP BUKU HARIAN)
+    // Cegah masuknya transaksi (bahkan manual atau otomatis) jika buku sudah dikunci
+    const txDate = data.date || new Date().toISOString().split('T')[0];
+    const { data: closureInfo, error: closureError } = await supabase
+      .from('daily_closures')
+      .select('id')
+      .eq('closing_date', txDate)
+      .single();
+      
+    if (closureInfo) {
+      throw new Error(`Transaksi ditolak: Buku Harian untuk tanggal ${txDate} sudah ditutup (Dikunci).`);
+    }
+
     // Validate Double-Entry: Total Debit must equal Total Credit
     const totalDebit = data.entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0);
     const totalCredit = data.entries.reduce((sum, e) => sum + (Number(e.credit) || 0), 0);

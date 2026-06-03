@@ -58,12 +58,18 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
   const uniqueCode = getUniqueCode();
   const selectedContract = contracts.find(c => c.id === selectedContractId);
 
-  // Monthly installment simulation
+  // Monthly installment calculation
+  const basePrincipal = selectedContract ? Math.round(selectedContract.amount / selectedContract.tenor_months) : 0;
   const monthlyInstallment = selectedContract
     ? Math.round((selectedContract.amount * (1 + selectedContract.margin_ratio)) / selectedContract.tenor_months)
     : 0;
 
   const baseAmount = paymentMode === 'full' ? monthlyInstallment : paymentMode === 'partial' ? partialAmount : monthlyInstallment * 2;
+  const marginPortion = paymentMode === 'full' ? (monthlyInstallment - basePrincipal) : 
+                        paymentMode === 'advance' ? (monthlyInstallment - basePrincipal) * 2 :
+                        Math.max(0, baseAmount - basePrincipal); // Simplified partial margin calculation
+  const principalPortion = baseAmount - marginPortion;
+
   const totalAmount = baseAmount + adminFee + infaqVal + uniqueCode;
 
   useEffect(() => {
@@ -98,9 +104,18 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
       
       const entries = [
         { account_code: debitAccount, debit: totalAmount, credit: 0 },
-        { account_code: COA.RECEIVABLE_MURABAHAH, debit: 0, credit: baseAmount },
-        { account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee }
+        { account_code: COA.RECEIVABLE_MURABAHAH, debit: 0, credit: principalPortion },
       ];
+
+      if (marginPortion > 0) {
+        // COA 501.xx / 502.xx for Margin Income. Let's use 500001 or 501.01 (Pendapatan Margin Murabahah)
+        // If your COA has a specific one, using '501001' or similar. We'll use '501001' as standard.
+        entries.push({ account_code: '501001', debit: 0, credit: marginPortion });
+      }
+
+      if (adminFee > 0) {
+        entries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
+      }
 
       if (infaqVal + uniqueCode > 0) {
         entries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqVal + uniqueCode });
