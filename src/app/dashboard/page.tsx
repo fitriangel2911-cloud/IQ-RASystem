@@ -311,16 +311,37 @@ export default function DashboardPage() {
         .eq('id', currentUser.id)
         .single();
 
-      if (dbError || !dbProfile) {
-        console.error('Profile fetch error:', dbError);
+      let finalProfile = dbProfile;
+
+      if (dbError && dbError.code === 'PGRST116') {
+        // User profile missing, auto-create it
+        const { data: newProfile, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: currentUser.id,
+            email: currentUser.email,
+            full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
+            role: 'member'
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Failed to auto-create profile:', JSON.stringify(insertError));
+          setLoading(false);
+          return;
+        }
+        finalProfile = newProfile;
+      } else if (dbError || !finalProfile) {
+        console.error('Profile fetch error:', JSON.stringify(dbError));
         setLoading(false);
         return;
       }
 
-      setProfile(dbProfile);
+      setProfile(finalProfile);
       
       // 1. PRIORITAS REDIRECT: Cek role staff khusus dulu
-      const role = dbProfile.role;
+      const role = finalProfile.role;
       
       if (role === 'customer_service') {
         router.push('/customer-service');
