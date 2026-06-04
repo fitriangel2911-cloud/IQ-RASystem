@@ -33,9 +33,9 @@ DROP POLICY IF EXISTS "Admin can read all verifications" ON public.deposit_verif
 CREATE POLICY "Admin can read all verifications" ON public.deposit_verifications
     FOR SELECT TO authenticated USING (
       EXISTS (
-        SELECT 1 FROM public.access_rules
-        WHERE access_rules.user_id = auth.uid()
-        AND access_rules.role IN ('super_admin', 'cs', 'manager', 'teller')
+        SELECT 1 FROM public.users
+        WHERE public.users.id = auth.uid()
+        AND public.users.role IN ('super_admin', 'customer_service', 'manager', 'teller')
       )
     );
 
@@ -44,9 +44,9 @@ DROP POLICY IF EXISTS "Admin can update verifications" ON public.deposit_verific
 CREATE POLICY "Admin can update verifications" ON public.deposit_verifications
     FOR UPDATE TO authenticated USING (
       EXISTS (
-        SELECT 1 FROM public.access_rules
-        WHERE access_rules.user_id = auth.uid()
-        AND access_rules.role IN ('super_admin', 'cs', 'manager', 'teller')
+        SELECT 1 FROM public.users
+        WHERE public.users.id = auth.uid()
+        AND public.users.role IN ('super_admin', 'customer_service', 'manager', 'teller')
       )
     );
 

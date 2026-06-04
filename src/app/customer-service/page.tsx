@@ -84,7 +84,7 @@ export default function CustomerServicePage() {
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        padding: isSidebarOpen ? '40px 24px' : '0px',
+        padding: isSidebarOpen ? '20px 24px' : '0px',
         zIndex: 100,
         boxShadow: isSidebarOpen ? '20px 0 50px var(--shadow-color)' : 'none',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -117,7 +117,7 @@ export default function CustomerServicePage() {
 
         <div style={{ marginBottom: '25px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <BrandLogo size={36} fontSize="18px" textColor="var(--text-primary)" />
+            <BrandLogo size={46} fontSize="22px" textColor="var(--text-primary)" />
             <div style={{ marginRight: '45px' }}>
               <NotificationBell />
               <ThemeToggle />

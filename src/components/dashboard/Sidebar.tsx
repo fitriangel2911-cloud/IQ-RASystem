@@ -106,7 +106,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       borderRadius: isOpen ? '30px' : '0px',
       display: 'flex',
       flexDirection: 'column',
-      padding: isOpen ? '40px 24px' : '0px',
+      padding: isOpen ? '20px 24px' : '0px',
       position: 'fixed',
       top: '20px',
       left: '20px',
@@ -120,8 +120,8 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       {/* Brand & Close Toggle Container */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px', marginTop: '5px' }}>
         <div>
-          <BrandLogo size={32} fontSize="16px" textColor="var(--text-primary)" />
-          <div style={{ fontSize: '9px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '4px', marginLeft: '40px' }}>PORTAL ANGGOTA</div>
+          <BrandLogo size={46} fontSize="22px" textColor="var(--text-primary)" />
+          <div style={{ fontSize: '10px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '4px', marginLeft: '55px' }}>PORTAL ANGGOTA</div>
         </div>
 
         {/* Modern Close Sidebar Button */}
