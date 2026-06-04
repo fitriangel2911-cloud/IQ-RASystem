@@ -115,7 +115,8 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       boxShadow: isOpen ? '0 20px 60px var(--shadow-color)' : 'none',
       flexShrink: 0,
       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-      overflow: 'hidden'
+      overflowY: 'auto',
+      overflowX: 'hidden'
     }}>
       {/* Brand & Close Toggle Container */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', marginTop: '10px' }}>

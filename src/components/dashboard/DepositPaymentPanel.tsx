@@ -15,8 +15,8 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
   const [paymentType, setPaymentType] = useState<'principal' | 'mandatory' | 'voluntary'>('principal');
   const [amount, setAmount] = useState(300000);
   const [displayAmount, setDisplayAmount] = useState('300.000');
-  const [adminFee, setAdminFee] = useState(2500);
-  const [infaq, setInfaq] = useState(1500);
+  const [adminFee, setAdminFee] = useState(15000);
+  const [infaq, setInfaq] = useState(10000);
   const [uniqueCode, setUniqueCode] = useState(0);
   const [voluntaryAccount, setVoluntaryAccount] = useState<'wadiah' | 'mudharabah'>('wadiah');
   const [loading, setLoading] = useState(false);
@@ -35,15 +35,15 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
     if (paymentType === 'principal') {
       setAmount(300000);
       setDisplayAmount('300.000');
-      setAdminFee(2500);
+      setAdminFee(15000);
     } else if (paymentType === 'mandatory') {
       setAmount(50000);
       setDisplayAmount('50.000');
-      setAdminFee(2500);
+      setAdminFee(15000);
     } else {
       setAmount(100000);
       setDisplayAmount('100.000');
-      setAdminFee(2500);
+      setAdminFee(15000);
     }
   }, [paymentType]);
 
@@ -65,6 +65,11 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
   const handleConfirmPayment = async () => {
     if (paymentType === 'voluntary' && amount < 10000) {
       setMessage({ type: 'error', text: 'Minimal setoran sukarela adalah Rp 10.000.' });
+      return;
+    }
+
+    if (infaq < 10000) {
+      setMessage({ type: 'error', text: 'Minimal infaq/sedekah adalah Rp 10.000.' });
       return;
     }
 

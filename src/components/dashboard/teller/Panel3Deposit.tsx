@@ -89,8 +89,8 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
 
   // New features: Transaction Method (Tunai vs Transfer), Admin Fee, and Infaq
   const [transactionMethod, setTransactionMethod] = useState<'tunai' | 'transfer'>('tunai');
-  const [adminFee, setAdminFee] = useState(0);
-  const [infaq, setInfaq] = useState(0);
+  const [adminFee, setAdminFee] = useState(15000);
+  const [infaq, setInfaq] = useState(10000);
   const [selectedCategory, setSelectedCategory] = useState<'pokok' | 'wajib' | 'wadiah' | 'mudharabah'>('wadiah');
 
   // System parameters state
@@ -183,6 +183,7 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
     e.preventDefault();
     if (!selectedMember) { setMessage({ type: 'error', text: 'Pilih anggota terlebih dahulu di Panel [2].' }); return; }
     if (amount <= 0) { setMessage({ type: 'error', text: 'Masukkan nominal setoran yang valid.' }); return; }
+    if (infaq < 10000) { setMessage({ type: 'error', text: 'Minimal infaq/sedekah adalah Rp 10.000.' }); return; }
 
     setLoading(true); setMessage(null);
     try {
