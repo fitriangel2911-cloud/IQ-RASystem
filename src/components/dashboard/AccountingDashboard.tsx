@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import Modal from './Modal';
 
 interface AccountingDashboardProps {
   activeMenu: string;
@@ -28,6 +29,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   // Alert system
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isTodayClosed, setIsTodayClosed] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
 
   // Manual Journal Form State (Multi-line Double-Entry)
   const [jDate, setJDate] = useState(new Date().toISOString().split('T')[0]);
@@ -1122,37 +1124,43 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                      return;
                   }
 
-                  if (confirm(`Apakah Anda yakin ingin memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}?`)) {
-                    setLoading(true);
-                    try {
-                      const debitPayload = {
-                        date: new Date().toISOString().split('T')[0],
-                        reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
-                        description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Otomatis`,
-                        debit: ckpnAmount,
-                        credit: 0,
-                        account_code: '600005' // Beban CKPN (Asumsi)
-                      };
+                  setConfirmModal({
+                    isOpen: true,
+                    title: 'Otorisasi Pencadangan',
+                    message: `Apakah Anda yakin ingin memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}?`,
+                    onConfirm: async () => {
+                      setConfirmModal(null);
+                      setLoading(true);
+                      try {
+                        const debitPayload = {
+                          date: new Date().toISOString().split('T')[0],
+                          reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
+                          description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Otomatis`,
+                          debit: ckpnAmount,
+                          credit: 0,
+                          account_code: '600005' // Beban CKPN (Asumsi)
+                        };
 
-                      const creditPayload = {
-                        ...debitPayload,
-                        debit: 0,
-                        credit: ckpnAmount,
-                        account_code: '400006' // Cadangan Khusus (Kredit/Ekuitas Cadangan)
-                      };
+                        const creditPayload = {
+                          ...debitPayload,
+                          debit: 0,
+                          credit: ckpnAmount,
+                          account_code: '400006' // Cadangan Khusus (Kredit/Ekuitas Cadangan)
+                        };
 
-                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
-                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
-                      
-                      await fetchJournals();
-                      setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}.` });
-                    } catch (err: any) {
-                      setMessage({ type: 'error', text: err.message });
-                    } finally {
-                      setLoading(false);
-                      window.scrollTo(0,0);
+                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
+                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
+                        
+                        await fetchJournals();
+                        setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}.` });
+                      } catch (err: any) {
+                        setMessage({ type: 'error', text: err.message });
+                      } finally {
+                        setLoading(false);
+                        window.scrollTo(0,0);
+                      }
                     }
-                  }
+                  });
                 }}
                 disabled={loading}
                 style={{
@@ -1247,81 +1255,87 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                     return;
                   }
 
-                  if (confirm(`Apakah Anda yakin ingin mendistribusikan Bagi Hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Simpanan Mudharabah?`)) {
-                    setLoading(true);
-                    try {
-                      const monthName = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-                      const supabase = createClient();
-                      
-                      // 1. Ambil semua rekening Mudharabah
-                      const { data: mudharabahAccs, error: fetchErr } = await supabase
-                        .from('savings_accounts')
-                        .select('id, balance')
-                        .eq('account_type', 'mudharabah');
+                  setConfirmModal({
+                    isOpen: true,
+                    title: 'Distribusi Bagi Hasil',
+                    message: `Apakah Anda yakin ingin mendistribusikan Bagi Hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Simpanan Mudharabah?`,
+                    onConfirm: async () => {
+                      setConfirmModal(null);
+                      setLoading(true);
+                      try {
+                        const monthName = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                        const supabase = createClient();
                         
-                      if (fetchErr) throw new Error('Gagal mengambil data rekening Mudharabah: ' + fetchErr.message);
-                      
-                      if (mudharabahAccs && mudharabahAccs.length > 0) {
-                        const totalMudharabahBalance = mudharabahAccs.reduce((sum, acc) => sum + Number(acc.balance || 0), 0);
+                        // 1. Ambil semua rekening Mudharabah
+                        const { data: mudharabahAccs, error: fetchErr } = await supabase
+                          .from('savings_accounts')
+                          .select('id, balance')
+                          .eq('account_type', 'mudharabah');
+                          
+                        if (fetchErr) throw new Error('Gagal mengambil data rekening Mudharabah: ' + fetchErr.message);
                         
-                        if (totalMudharabahBalance > 0) {
-                          // 2. Proporsionalkan dan update masing-masing rekening
-                          for (const acc of mudharabahAccs) {
-                            const accBal = Number(acc.balance || 0);
-                            if (accBal > 0) {
-                              const porsi = (accBal / totalMudharabahBalance) * profitShareAmount;
-                              
-                              // Update saldo
-                              await supabase
-                                .from('savings_accounts')
-                                .update({ balance: accBal + porsi })
-                                .eq('id', acc.id);
+                        if (mudharabahAccs && mudharabahAccs.length > 0) {
+                          const totalMudharabahBalance = mudharabahAccs.reduce((sum, acc) => sum + Number(acc.balance || 0), 0);
+                          
+                          if (totalMudharabahBalance > 0) {
+                            // 2. Proporsionalkan dan update masing-masing rekening
+                            for (const acc of mudharabahAccs) {
+                              const accBal = Number(acc.balance || 0);
+                              if (accBal > 0) {
+                                const porsi = (accBal / totalMudharabahBalance) * profitShareAmount;
                                 
-                              // Catat mutasi tabungan
-                              await supabase
-                                .from('savings_transactions')
-                                .insert([{
-                                  account_id: acc.id,
-                                  transaction_type: 'profit_sharing',
-                                  amount: porsi,
-                                  reference_no: `EOM-${Date.now()}`
-                                }]);
+                                // Update saldo
+                                await supabase
+                                  .from('savings_accounts')
+                                  .update({ balance: accBal + porsi })
+                                  .eq('id', acc.id);
+                                  
+                                // Catat mutasi tabungan
+                                await supabase
+                                  .from('savings_transactions')
+                                  .insert([{
+                                    account_id: acc.id,
+                                    transaction_type: 'profit_sharing',
+                                    amount: porsi,
+                                    reference_no: `EOM-${Date.now()}`
+                                  }]);
+                              }
                             }
                           }
                         }
+                        
+                        // 3. Posting Jurnal Agregat ke Buku Besar
+                        const debitPayload = {
+                          date: new Date().toISOString().split('T')[0],
+                          reference_no: `EOM-${Math.floor(100000 + Math.random() * 900000)}`,
+                          description: `Distribusi Bagi Hasil Bulan ${monthName} (Nisbah Anggota ${eomNisbah}%)`,
+                          debit: profitShareAmount,
+                          credit: 0,
+                          account_code: '600001' // Beban Bagi Hasil
+                        };
+
+                        const creditPayload = {
+                          date: new Date().toISOString().split('T')[0],
+                          reference_no: debitPayload.reference_no,
+                          description: debitPayload.description,
+                          debit: 0,
+                          credit: profitShareAmount,
+                          account_code: '310001' // Simpanan Mudharabah Anggota
+                        };
+
+                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
+                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
+                        
+                        await fetchJournals();
+                        setMessage({ type: 'success', text: `Berhasil mendistribusikan bagi hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Mudharabah.` });
+                      } catch (err: any) {
+                        setMessage({ type: 'error', text: err.message });
+                      } finally {
+                        setLoading(false);
+                        window.scrollTo(0,0);
                       }
-                      
-                      // 3. Posting Jurnal Agregat ke Buku Besar
-                      const debitPayload = {
-                        date: new Date().toISOString().split('T')[0],
-                        reference_no: `EOM-${Math.floor(100000 + Math.random() * 900000)}`,
-                        description: `Distribusi Bagi Hasil Bulan ${monthName} (Nisbah Anggota ${eomNisbah}%)`,
-                        debit: profitShareAmount,
-                        credit: 0,
-                        account_code: '600001' // Beban Bagi Hasil
-                      };
-
-                      const creditPayload = {
-                        date: new Date().toISOString().split('T')[0],
-                        reference_no: debitPayload.reference_no,
-                        description: debitPayload.description,
-                        debit: 0,
-                        credit: profitShareAmount,
-                        account_code: '310001' // Simpanan Mudharabah Anggota
-                      };
-
-                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
-                      await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
-                      
-                      await fetchJournals();
-                      setMessage({ type: 'success', text: `Berhasil mendistribusikan bagi hasil sebesar ${formatter.format(profitShareAmount)} ke seluruh rekening Mudharabah.` });
-                    } catch (err: any) {
-                      setMessage({ type: 'error', text: err.message });
-                    } finally {
-                      setLoading(false);
-                      window.scrollTo(0,0);
                     }
-                  }
+                  });
                 }}
                 disabled={loading}
                 style={{
@@ -1400,36 +1414,42 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   
                   <button 
                     onClick={async () => {
-                      if (confirm('PERINGATAN: Apakah Anda yakin saldo fisik laci kasir sudah BENAR dan ingin MENGUNCI seluruh transaksi hari ini?')) {
-                        try {
-                          setLoading(true);
-                          const payload = {
-                            closing_date: new Date().toISOString().split('T')[0],
-                            total_in: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.debit > 0).reduce((sum, j) => sum + Number(j.debit), 0),
-                            total_out: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.credit > 0).reduce((sum, j) => sum + Number(j.credit), 0),
-                            expected_balance: getBal('110102'),
-                            actual_balance: getBal('110102'), // Placeholder: actual physical cash input can be added in future
-                            closed_by: profile?.id || 'system'
-                          };
-                          
-                          const res = await fetch('/api/accounting/eod', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                          });
-                          
-                          const data = await res.json();
-                          if (!res.ok) throw new Error(data.error || 'Gagal melakukan tutup buku');
-                          
-                          setMessage({ type: 'success', text: data.message });
-                          setIsTodayClosed(true); // Update state directly
-                        } catch (err: any) {
-                          setMessage({ type: 'error', text: err.message });
-                        } finally {
-                          setLoading(false);
-                          window.scrollTo(0, 0); // Scroll to top to see message
+                      setConfirmModal({
+                        isOpen: true,
+                        title: 'Kunci Transaksi Hari Ini',
+                        message: 'PERINGATAN: Apakah Anda yakin saldo fisik laci kasir sudah BENAR dan ingin MENGUNCI seluruh transaksi hari ini?',
+                        onConfirm: async () => {
+                          setConfirmModal(null);
+                          try {
+                            setLoading(true);
+                            const payload = {
+                              closing_date: new Date().toISOString().split('T')[0],
+                              total_in: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.debit > 0).reduce((sum, j) => sum + Number(j.debit), 0),
+                              total_out: journals.filter(j => (j.date === new Date().toISOString().split('T')[0] || (j.created_at && j.created_at.startsWith(new Date().toISOString().split('T')[0]))) && j.account_code === '110102' && j.credit > 0).reduce((sum, j) => sum + Number(j.credit), 0),
+                              expected_balance: getBal('110102'),
+                              actual_balance: getBal('110102'), // Placeholder: actual physical cash input can be added in future
+                              closed_by: profile?.id || 'system'
+                            };
+                            
+                            const res = await fetch('/api/accounting/eod', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(payload)
+                            });
+                            
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Gagal melakukan tutup buku');
+                            
+                            setMessage({ type: 'success', text: data.message });
+                            setIsTodayClosed(true); // Update state directly
+                          } catch (err: any) {
+                            setMessage({ type: 'error', text: err.message });
+                          } finally {
+                            setLoading(false);
+                            window.scrollTo(0, 0); // Scroll to top to see message
+                          }
                         }
-                      }
+                      });
                     }}
                     disabled={loading}
                     style={{
@@ -1484,23 +1504,29 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <button 
                   onClick={async () => {
-                    if (confirm('Jalankan pemindaian otomatis untuk membentuk pencadangan CKPN? Operasi ini akan menjurnal transaksi penyesuaian untuk setiap NPL yang ditemukan.')) {
-                      try {
-                        setLoading(true);
-                        const res = await fetch('/api/accounting/provisioning', { method: 'POST' });
-                        const data = await res.json();
-                        if (data.success) {
-                          setMessage({ type: 'success', text: data.message });
-                          fetchJournals();
-                        } else {
-                          setMessage({ type: 'error', text: 'Error: ' + data.error });
+                    setConfirmModal({
+                      isOpen: true,
+                      title: 'Pemindaian CKPN Otomatis',
+                      message: 'Jalankan pemindaian otomatis untuk membentuk pencadangan CKPN? Operasi ini akan menjurnal transaksi penyesuaian untuk setiap NPL yang ditemukan.',
+                      onConfirm: async () => {
+                        setConfirmModal(null);
+                        try {
+                          setLoading(true);
+                          const res = await fetch('/api/accounting/provisioning', { method: 'POST' });
+                          const data = await res.json();
+                          if (data.success) {
+                            setMessage({ type: 'success', text: data.message });
+                            fetchJournals();
+                          } else {
+                            setMessage({ type: 'error', text: 'Error: ' + data.error });
+                          }
+                        } catch (err: any) {
+                          setMessage({ type: 'error', text: 'Gagal menjalankan provisioning: ' + err.message });
+                        } finally {
+                          setLoading(false);
                         }
-                      } catch (err: any) {
-                        setMessage({ type: 'error', text: 'Gagal menjalankan provisioning: ' + err.message });
-                      } finally {
-                        setLoading(false);
                       }
-                    }
+                    });
                   }}
                   disabled={loading}
                   style={{
@@ -1518,6 +1544,17 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             </div>
           </div>
         </div>
+      )}
+
+      {confirmModal && (
+        <Modal
+          isOpen={confirmModal.isOpen}
+          type="confirm"
+          title={confirmModal.title}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+        />
       )}
 
       <style jsx global>{`

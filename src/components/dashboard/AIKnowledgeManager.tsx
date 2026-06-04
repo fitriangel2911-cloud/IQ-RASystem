@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import Modal from './Modal';
 
 export default function AIKnowledgeManager() {
   const [knowledgeList, setKnowledgeList] = useState<any[]>([]);
@@ -12,6 +13,7 @@ export default function AIKnowledgeManager() {
     content: ''
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
 
   // Status berkas yang diunggah
   const [isFileUploaded, setIsFileUploaded] = useState(false);
@@ -203,25 +205,31 @@ export default function AIKnowledgeManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus dokumen ini dari basis pengetahuan RAG?')) return;
-    
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('sharia_knowledge')
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      setMessage({ type: 'success', text: 'Dokumen berhasil dihapus dari basis pengetahuan AI!' });
-      fetchKnowledge();
-    } catch (err: any) {
-      setMessage({ type: 'error', text: 'Gagal menghapus dokumen: ' + err.message });
-    } finally {
-      setLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Hapus Pengetahuan RAG?',
+      message: 'Apakah Anda yakin ingin menghapus dokumen ini dari basis pengetahuan RAG?',
+      onConfirm: async () => {
+        setConfirmModal(null);
+        setLoading(true);
+        try {
+          const supabase = createClient();
+          const { error } = await supabase
+            .from('sharia_knowledge')
+            .delete()
+            .eq('id', id);
+            
+          if (error) throw error;
+          
+          setMessage({ type: 'success', text: 'Dokumen berhasil dihapus dari basis pengetahuan AI!' });
+          fetchKnowledge();
+        } catch (err: any) {
+          setMessage({ type: 'error', text: 'Gagal menghapus dokumen: ' + err.message });
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   return (
@@ -409,6 +417,17 @@ export default function AIKnowledgeManager() {
           </table>
         </div>
       </div>
+
+      {confirmModal && (
+        <Modal
+          isOpen={confirmModal.isOpen}
+          type="confirm"
+          title={confirmModal.title}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+        />
+      )}
     </div>
   );
 }

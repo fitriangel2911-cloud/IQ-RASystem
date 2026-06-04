@@ -232,7 +232,8 @@ function ProdukSection() {
     { name: 'Simpanan Haji & Umrah', icon: '🕋', desc: 'Perencanaan keuangan terarah untuk ibadah suci Anda dengan porsi haji prioritas.', tag: 'Terencana' },
     { name: 'Pembiayaan Murabahah', icon: '🛍️', desc: 'Kepemilikan barang (kendaraan/properti) dengan akad jual beli syariah ber-margin tetap.', tag: 'Populer' },
     { name: 'Pembiayaan Ijarah', icon: '🏠', desc: 'Sewa manfaat aset produktif atau multijasa (pendidikan/kesehatan) dengan ujrah tetap.', tag: 'Sewa Jasa' },
-    { name: 'Pembiayaan Modal Kerja', icon: '🤝', desc: 'Kemitraan produktif (Mudharabah/Musyarakah) untuk ekspansi dan pertumbuhan UMKM.', tag: 'Kemitraan' }
+    { name: 'Pembiayaan Modal Kerja', icon: '🤝', desc: 'Kemitraan produktif (Mudharabah/Musyarakah) untuk ekspansi dan pertumbuhan UMKM.', tag: 'Kemitraan' },
+    { name: 'Pembiayaan Qardhul Hasan', icon: '🤲', desc: 'Pinjaman kebajikan tanpa margin/tambahan, ditujukan khusus untuk kebutuhan mendesak atau berjiwa sosial.', tag: 'Sosial' }
   ];
 
   return (
@@ -240,7 +241,7 @@ function ProdukSection() {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }} className="reveal">
           <SectionBadge text="PILIHAN PRODUK" />
-          <h2 className="gold-text-gradient" style={{ fontSize: 'clamp(2rem, 6vw, 2.6rem)', fontWeight: 900 }}>6 Pilihan Layanan Syariah Utama</h2>
+          <h2 className="gold-text-gradient" style={{ fontSize: 'clamp(2rem, 6vw, 2.6rem)', fontWeight: 900 }}>7 Pilihan Layanan Syariah Utama</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {products.map((p, i) => (
@@ -512,7 +513,7 @@ function Footer() {
     <footer className="page-content-section py-12 md:py-16 px-6 mt-12 md:mt-20 bg-[#042f24] text-white">
       <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ marginBottom: 20 }}>
-          <BrandLogo size={56} fontSize="28px" />
+          <BrandLogo size={96} fontSize="42px" />
         </div>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, maxWidth: 800, margin: '0 auto 32px' }}>
           Keunggulan Syariah dalam Balutan Kecerdasan Teknologi Masa Depan

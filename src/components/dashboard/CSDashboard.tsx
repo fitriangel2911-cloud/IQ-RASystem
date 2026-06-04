@@ -34,6 +34,13 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [systemParams, setSystemParams] = useState<any[]>([]);
 
+  // Modal State for centered confirmation popup
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   useEffect(() => {
     if (selectedMemberProfile) {
       const fetchAccounts = async () => {
@@ -52,10 +59,26 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
   const [isSameAddress, setIsSameAddress] = useState(false);
 
+  // States for target/special savings (Haji/Umrah)
+  const [specialSavingsMemberId, setSpecialSavingsMemberId] = useState('');
+  const [specialSavingsType, setSpecialSavingsType] = useState('haji');
+  const [specialInitialDeposit, setSpecialInitialDeposit] = useState('500000');
+
+  // AI Sharia Assistant Chat States
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    {
+      sender: 'ai',
+      text: `Halo! Saya asisten AI iQ-RA. Ada yang bisa saya bantu terkait produk simpanan, KYC, atau pembiayaan syariah hari ini?`
+    }
+  ]);
+  const [aiLoading, setAiLoading] = useState(false);
+
   // Form State dengan Email, Password, dan Setoran Awal Simpanan Koperasi
   const [formData, setFormData] = useState({
     fullName: '',
     nik: '',
+    kkNumber: '',
     birthPlaceDate: '',
     gender: 'Laki-laki',
     maritalStatus: 'Belum Kawin',
@@ -75,7 +98,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     heirPhone: '',
     password: '', // Sandi login anggota
     initialPrincipal: '300000', // Setoran awal Pokok (Default 300k)
-    initialMandatory: '50000'   // Setoran awal Wajib (Default 50k)
+    initialMandatory: '50000',  // Setoran awal Wajib (Default 50k)
+    initialInfaq: '10000'       // Infak awal (Default 10k)
   });
 
   const fetchStats = async () => {
@@ -194,14 +218,18 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       }
 
       // 3. Masukkan data profil fisik / demografis CIF ke tabel members
+      const cleanNIK = formData.nik.replace(/\D/g, '');
+      const cleanKK = formData.kkNumber.replace(/\D/g, '');
+      const cleanPhone = formData.phone.replace(/[^0-9+]/g, '');
+
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .insert([{
           user_id: userId,
-          nik: formData.nik,
+          nik: cleanNIK,
           mother_name: formData.motherName,
-          kk_number: '',
-          phone_number: formData.phone,
+          kk_number: cleanKK,
+          phone_number: cleanPhone,
           ktp_address: formData.ktpAddress,
           domicile_address: formData.domicileAddress || formData.ktpAddress,
           occupation: formData.occupation,
@@ -216,7 +244,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           heir_name: formData.heirName,
           heir_relationship: formData.heirRelationship,
           heir_phone: formData.heirPhone,
-          status: 'active' // Langsung aktif karena menyertakan setoran awal & divalidasi sistem
+          status: 'pending' // Menunggu verifikasi pembayaran setoran awal
         }])
         .select()
         .single();
@@ -249,7 +277,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             member_id: userId,
             account_number: accNumber,
             account_type: acc.type,
-            balance: acc.balance
+            balance: 0 // Saldo 0, menunggu diverifikasi
           }])
           .select()
           .single();
@@ -261,81 +289,37 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         }
       }
 
-      // 5. DOUBLE-ENTRY JOURNALING DENGAN BIAYA ADM, INFAQ, DAN KODE UNIK (SAK EP COMPLIANT)
+      // 5. INSERT ANTRIAN KE DEPOSIT VERIFICATIONS
       const totalInitialDeposit = initialPrincipalAmount + initialMandatoryAmount;
       
       // Ambil 3 digit terakhir WhatsApp/Phone untuk Kode Unik
-      const phoneDigits = (formData.phone || '').replace(/\D/g, '');
-      const nikDigits = (formData.nik || '').replace(/\D/g, '');
-      const sourceDigits = phoneDigits || nikDigits || '000';
-      const uniqueCodeStr = sourceDigits.slice(-3).padStart(3, '0');
-      const uniqueCodeValue = Number(uniqueCodeStr) || 0;
+      // (Dihilangkan untuk pendaftaran melalui CS secara offline)
+      const uniqueCodeValue = 0;
 
       const admParam = systemParams.find(p => p.key === 'biaya_adm');
-      const infaqParam = systemParams.find(p => p.key === 'biaya_infaq');
-      
       const admFee = admParam ? Number(admParam.value) : 15000;
-      const infaqSedekahBase = infaqParam ? Number(infaqParam.value) : 10000;
-      const infaqSedekahTotal = infaqSedekahBase + uniqueCodeValue;
+      const infaqSedekahBase = Number(formData.initialInfaq) || 10000;
+      const infaqSedekahTotal = infaqSedekahBase; // Kode unik dipisah ke unik_code kolom
 
-      const grandTotalPayment = totalInitialDeposit + admFee + infaqSedekahTotal;
+      const grandTotalPayment = totalInitialDeposit + admFee + infaqSedekahTotal + uniqueCodeValue;
 
       if (grandTotalPayment > 0) {
-        const journalEntries = [];
-        
-        // Debit: Kas di Tangan (COA 101.01) - Mencakup Setoran Awal + ADM + Infaq + Kode Unik
-        journalEntries.push({ account_code: '101.01', debit: grandTotalPayment, credit: 0 });
+        const { error: depositErr } = await supabase
+          .from('deposit_verifications')
+          .insert([{
+            member_id: userId,
+            payment_type: `registration_bundle|${initialPrincipalAmount}|${initialMandatoryAmount}`,
+            target_account_type: 'pokok_wajib',
+            amount: totalInitialDeposit,
+            admin_fee: admFee,
+            infaq: infaqSedekahTotal,
+            unique_code: uniqueCodeValue,
+            total_paid: grandTotalPayment,
+            reference_no: `REG-${Date.now()}`
+          }]);
 
-        if (initialPrincipalAmount > 0) {
-          // Kredit: Simpanan Pokok Anggota (COA 301.01)
-          journalEntries.push({ account_code: '301.01', debit: 0, credit: initialPrincipalAmount });
-        }
-
-        if (initialMandatoryAmount > 0) {
-          // Kredit: Simpanan Wajib Anggota (COA 301.02)
-          journalEntries.push({ account_code: '301.02', debit: 0, credit: initialMandatoryAmount });
-        }
-
-        // Kredit: Pendapatan Administrasi (COA 401.02)
-        journalEntries.push({ account_code: '401.02', debit: 0, credit: admFee });
-
-        // Kredit: Dana Kebajikan / Infaq & Sedekah (COA 302.01) - Termasuk Kode Unik
-        journalEntries.push({ account_code: '302.01', debit: 0, credit: infaqSedekahTotal });
-
-        const accountingRes = await fetch('/api/accounting/record-v2', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: new Date().toISOString().split('T')[0],
-            description: `[PENDAFTARAN ANGGOTA] Setoran CIF Baru: ${formData.fullName} (Pokok: Rp ${initialPrincipalAmount.toLocaleString('id-ID')}, Wajib: Rp ${initialMandatoryAmount.toLocaleString('id-ID')}, ADM: Rp ${admFee.toLocaleString('id-ID')}, Infaq & Kode Unik: Rp ${infaqSedekahTotal.toLocaleString('id-ID')})`,
-            entries: journalEntries,
-            reference_no: `REG-${Date.now()}`,
-            member_id: memberId
-          })
-        });
-
-        if (!accountingRes.ok) {
-          const accErrorJson = await accountingRes.json();
-          console.error('Accounting Entry Fail:', accErrorJson.error);
-        }
-
-        // 6. Catat Transaksi Tabungan di savings_transactions
-        for (const account of createdAccounts) {
-          let depositValue = 0;
-          if (account.account_type === 'pokok') depositValue = initialPrincipalAmount;
-          if (account.account_type === 'wajib') depositValue = initialMandatoryAmount;
-
-          if (depositValue > 0) {
-            await supabase
-              .from('savings_transactions')
-              .insert([{
-                account_id: account.id,
-                transaction_type: 'deposit',
-                amount: depositValue,
-                reference_no: `TX-REG-${Date.now()}-${account.account_type}`,
-                created_by: profile?.id
-              }]);
-          }
+        if (depositErr) {
+          console.error('Failed to create deposit verification:', depositErr);
         }
       }
 
@@ -355,17 +339,22 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       setMessage({ 
         type: 'success', 
-        text: `Pendaftaran Sukses! Anggota "${formData.fullName}" aktif di sistem. 3 Rekening Simpanan (Pokok, Wajib, Wadiah) berhasil dibuat. Total Pembayaran diterima sebesar Rp ${grandTotalPayment.toLocaleString('id-ID')} (Termasuk ADM Rp 15.000, Infaq Rp 10.000, dan Kode Unik Anggota Rp ${uniqueCodeStr}) telah dibukukan dengan Double-Entry SAK EP.`
+        text: `Pendaftaran Sukses! Bukti Setoran Awal telah dicetak. Silakan lanjutkan Verifikasi Pembayaran senilai Rp ${grandTotalPayment.toLocaleString('id-ID')} untuk menyelesaikan pembuatan Jurnal SAK EP.`
       });
+
+      // Memicu cetak struk secara otomatis
+      setTimeout(() => {
+        handlePrintReceipt();
+      }, 500);
 
       // Reset Form ke Default
       setFormData({
-        fullName: '', nik: '', birthPlaceDate: '', gender: 'Laki-laki',
+        fullName: '', nik: '', kkNumber: '', birthPlaceDate: '', gender: 'Laki-laki',
         maritalStatus: 'Belum Kawin', motherName: '', religion: 'Islam',
         citizenship: 'WNI', email: '', phone: '', ktpAddress: '', domicileAddress: '',
         occupation: '', companyName: '', monthlyIncome: '', fundingSource: 'Gaji',
         heirName: '', heirRelationship: '', heirPhone: '',
-        password: '', initialPrincipal: '300000', initialMandatory: '50000'
+        password: '', initialPrincipal: '300000', initialMandatory: '50000', initialInfaq: '10000'
       });
       setIsSameAddress(false);
 
@@ -391,6 +380,164 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       fetchStats();
     }
     setLoading(false);
+  };
+
+  const handleOpenSpecialSavings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    const supabase = createClient();
+
+    try {
+      if (!specialSavingsMemberId) {
+        throw new Error('Pilih anggota terlebih dahulu.');
+      }
+
+      const initialDepositNum = Number(specialInitialDeposit);
+      if (isNaN(initialDepositNum) || initialDepositNum < 500000) {
+        throw new Error('Setoran awal minimal harus Rp 500.000.');
+      }
+
+      // 1. Ambil data anggota untuk mendapatkan user_id & nama
+      const { data: member, error: memberErr } = await supabase
+        .from('members')
+        .select('*, users(full_name, email)')
+        .eq('id', specialSavingsMemberId)
+        .single();
+
+      if (memberErr || !member) {
+        throw new Error('Gagal mengambil data profil anggota.');
+      }
+
+      const userId = member.user_id;
+
+      // 2. Buat nomor rekening unik
+      const prefix = specialSavingsType === 'haji' ? '31' : '32';
+      const randomSuffix = Math.floor(1000000 + Math.random() * 9000000);
+      const accNumber = `${prefix}${randomSuffix}`;
+
+      // 3. Masukkan ke savings_accounts
+      const { data: newAccount, error: accError } = await supabase
+        .from('savings_accounts')
+        .insert([{
+          member_id: userId,
+          account_number: accNumber,
+          account_type: specialSavingsType,
+          balance: initialDepositNum
+        }])
+        .select()
+        .single();
+
+      if (accError) {
+        throw new Error('Gagal membuat rekening simpanan Bertujuan: ' + accError.message);
+      }
+
+      // 4. Catat Transaksi Tabungan di savings_transactions
+      const refNo = `TX-SP-${Date.now()}`;
+      const { error: txErr } = await supabase
+        .from('savings_transactions')
+        .insert([{
+          account_id: newAccount.id,
+          transaction_type: 'deposit',
+          amount: initialDepositNum,
+          reference_no: refNo,
+          created_by: profile?.id
+        }]);
+
+      if (txErr) {
+        console.error('Gagal mencatat transaksi mutasi simpanan khusus:', txErr);
+      }
+
+      // 5. Post double-entry journal ke /api/accounting/record-v2 (SAK EP)
+      const creditAccount = specialSavingsType === 'haji' ? '302020' : '302030';
+      const journalDesc = `[BUKA TABUNGAN BERTUJUAN] Pembukaan Rekening ${specialSavingsType === 'haji' ? 'Haji' : 'Umrah'} Baru: ${member.users?.full_name || member.mother_name} (No. Rek: ${accNumber}, Setoran Awal: Rp ${initialDepositNum.toLocaleString('id-ID')})`;
+
+      const journalEntries = [
+        { account_code: '101.01', debit: initialDepositNum, credit: 0 },
+        { account_code: creditAccount, debit: 0, credit: initialDepositNum }
+      ];
+
+      const accountingRes = await fetch('/api/accounting/record-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          description: journalDesc,
+          entries: journalEntries,
+          reference_no: refNo,
+          member_id: member.id
+        })
+      });
+
+      if (!accountingRes.ok) {
+        const accErrorJson = await accountingRes.json();
+        console.error('Journal entry failed:', accErrorJson.error);
+      }
+
+      // 6. Notify Member
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type: 'success',
+        message: `Alhamdulillah, rekening Simpanan ${specialSavingsType === 'haji' ? 'Haji' : 'Umrah'} Anda (${accNumber}) berhasil dibuka dengan setoran awal Rp ${initialDepositNum.toLocaleString('id-ID')}.`
+      });
+
+      setMessage({
+        type: 'success',
+        text: `Rekening Simpanan ${specialSavingsType === 'haji' ? 'Haji' : 'Umrah'} (${accNumber}) sukses dibuka untuk anggota "${member.users?.full_name || member.mother_name}" dengan setoran awal Rp ${initialDepositNum.toLocaleString('id-ID')}!`
+      });
+
+      // Reset Form
+      setSpecialSavingsMemberId('');
+      setSpecialInitialDeposit('500000');
+
+      fetchStats();
+
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || aiLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    
+    const updatedMessages = [...chatMessages, { sender: 'user', text: userMessage }];
+    setChatMessages(updatedMessages);
+    setAiLoading(true);
+
+    try {
+      const history = chatMessages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }));
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          role: 'customer_service',
+          history: history
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal memproses pertanyaan Anda.');
+      }
+
+      setChatMessages(prev => [...prev, { sender: 'ai', text: data.text }]);
+    } catch (err: any) {
+      setChatMessages(prev => [...prev, { sender: 'ai', text: `Maaf, terjadi kesalahan: ${err.message}` }]);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handlePrintReceipt = () => {
@@ -438,7 +585,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
             <div class="row"><span class="label">Simpanan Pokok (Setoran Awal):</span><span class="val">Rp ${registeredReceiptData.principal.toLocaleString('id-ID')}</span></div>
             <div class="row"><span class="label">Simpanan Wajib (Setoran Awal):</span><span class="val">Rp ${registeredReceiptData.mandatory.toLocaleString('id-ID')}</span></div>
             <div class="row"><span class="label">Biaya Administrasi:</span><span class="val">Rp ${registeredReceiptData.adm.toLocaleString('id-ID')}</span></div>
-            <div class="row"><span class="label">Infaq & Kode Unik Anggota:</span><span class="val">Rp ${registeredReceiptData.infaq.toLocaleString('id-ID')}</span></div>
+            <div class="row"><span class="label">Infaq Koperasi:</span><span class="val">Rp ${registeredReceiptData.infaq.toLocaleString('id-ID')}</span></div>
             
             <div class="total row">
               <span class="label">TOTAL SETORAN TUNAI:</span>
@@ -478,19 +625,48 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   return (
     <div style={{ animation: 'fadeInUp 0.5s ease-out' }}>
       {message && (
-        <div style={{ 
-          padding: '20px', borderRadius: '16px', marginBottom: '30px',
-          background: 'var(--border-primary)',
-          color: 'var(--text-primary)',
-          border: '1px solid var(--border-primary)',
-          fontWeight: 700, textAlign: 'center'
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999,
+          animation: 'fadeIn 0.2s ease-out'
         }}>
-          {message.text}
+          <div style={{ 
+            padding: '30px', borderRadius: '24px', maxWidth: '400px', width: '90%',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            border: `2px solid ${message.type === 'error' ? '#ef4444' : 'var(--gold-intense)'}`,
+            fontWeight: 700, textAlign: 'center',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            transform: 'scale(1)',
+            transition: 'all 0.2s ease-out'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>
+              {message.type === 'error' ? '❌' : '✅'}
+            </div>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '20px', color: 'var(--text-primary)' }}>
+              {message.type === 'error' ? 'Terjadi Kesalahan' : 'Berhasil'}
+            </h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+              {message.text}
+            </p>
+            <button
+              onClick={() => setMessage(null)}
+              style={{
+                width: '100%', padding: '14px', background: message.type === 'error' ? '#ef4444' : 'var(--gold-gradient)',
+                color: message.type === 'error' ? '#fff' : '#02130e',
+                border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer',
+                boxShadow: '0 4px 12px var(--shadow-color)'
+              }}
+            >
+              MENGERTI & TUTUP
+            </button>
+          </div>
         </div>
       )}
 
       {/* Shared Stats Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px', marginBottom: '40px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <StatCard label="Total Anggota" value={stats.totalMembers} />
         <StatCard label="Antrian KYC" value={stats.pendingKYC} />
         <StatCard label="Bantuan Aktif" value={stats.activeHelp} />
@@ -506,10 +682,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           border: '1px solid var(--border-primary)',
           boxShadow: '0 40px 80px var(--shadow-color)'
         }}>
-          <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'var(--bg-header)', padding: '20px 30px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px' }}>PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
-              <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
+              <h2 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px' }}>PENDAFTARAN CIF (DOKUMEN FISIK)</h2>
+              <div style={{ width: '60px', height: '3px', background: 'var(--gold-intense)', margin: '6px 0 0 0', borderRadius: '2px' }} />
             </div>
             <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900, border: '1px solid var(--border-primary)' }}>TAHAP: DATA DEMOGRAFI</span>
           </div>
@@ -567,7 +743,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.adm.toLocaleString('id-ID')}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Infaq & Kode Unik:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Infaq Koperasi:</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>Rp {registeredReceiptData.infaq.toLocaleString('id-ID')}</span>
                   </div>
 
@@ -605,10 +781,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleRegister} style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <form onSubmit={handleRegister} style={{ padding: '20px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
              {/* A. DATA PRIBADI (SESUAI KTP) */}
              <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '10px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>👤 A. DATA PRIBADI (SESUAI KTP)</h3>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>A. DATA PRIBADI (SESUAI KTP)</h3>
              </div>
              
              <CSInputField 
@@ -624,30 +800,36 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                onChange={(val: string) => setFormData({...formData, nik: val})} 
              />
              <CSInputField 
+               label="Nomor Kartu Keluarga (KK)" 
+               placeholder="16 Digit Nomor KK..." 
+               value={formData.kkNumber} 
+               onChange={(val: string) => setFormData({...formData, kkNumber: val})} 
+             />
+             <CSInputField 
                label="Tempat & Tanggal Lahir" 
                placeholder="Contoh: Jakarta, 17 Agustus 1990..." 
                value={formData.birthPlaceDate} 
                onChange={(val: string) => setFormData({...formData, birthPlaceDate: val})} 
              />
              
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Jenis Kelamin</label>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jenis Kelamin</label>
                <select 
                  value={formData.gender} 
                  onChange={(e) => setFormData({...formData, gender: e.target.value})}
-                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+                 style={{ padding: '10px 14px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '10px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }}
                >
                  <option value="Laki-laki">Laki-laki</option>
                  <option value="Perempuan">Perempuan</option>
                </select>
              </div>
 
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Status Pernikahan</label>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Pernikahan</label>
                <select 
                  value={formData.maritalStatus} 
                  onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})}
-                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+                 style={{ padding: '10px 14px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '10px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }}
                >
                  <option value="Belum Kawin">Belum Kawin</option>
                  <option value="Kawin">Kawin</option>
@@ -663,12 +845,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                onChange={(val: string) => setFormData({...formData, motherName: val})} 
              />
 
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Agama</label>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Agama</label>
                <select 
                  value={formData.religion} 
                  onChange={(e) => setFormData({...formData, religion: e.target.value})}
-                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+                 style={{ padding: '10px 14px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '10px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }}
                >
                  <option value="Islam">Islam</option>
                  <option value="Kristen">Kristen</option>
@@ -680,12 +862,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                </select>
              </div>
 
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Kewarganegaraan</label>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kewarganegaraan</label>
                <select 
                  value={formData.citizenship} 
                  onChange={(e) => setFormData({...formData, citizenship: e.target.value})}
-                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+                 style={{ padding: '10px 14px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '10px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }}
                >
                  <option value="WNI">WNI (Warga Negara Indonesia)</option>
                  <option value="WNA">WNA (Warga Negara Asing)</option>
@@ -693,8 +875,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              </div>
 
              {/* B. DATA KONTAK & ALAMAT */}
-             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>📞 B. DATA KONTAK & ALAMAT</h3>
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '4px', marginTop: '8px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>B. DATA KONTAK & ALAMAT</h3>
              </div>
 
              <div style={{ gridColumn: 'span 2' }}>
@@ -712,7 +894,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                />
              </div>
 
-             <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '-10px' }}>
+             <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '-6px' }}>
                <input 
                  type="checkbox" 
                  id="sameAddressToggle" 
@@ -726,8 +908,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                  }}
                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--gold-intense)' }} 
                />
-               <label htmlFor="sameAddressToggle" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
-                 Alamat Domisili Saat Ini Sama dengan KTP (Efisiensi Pengisian)
+               <label htmlFor="sameAddressToggle" style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                 Alamat Domisili Sama Dengan KTP
                </label>
              </div>
 
@@ -756,8 +938,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              />
 
              {/* C. DATA PEKERJAAN & KEWANGAAN */}
-             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💼 C. DATA PEKERJAAN & KEWANGAAN</h3>
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '4px', marginTop: '8px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>C. DATA PEKERJAAN & KEWANGAAN</h3>
              </div>
 
              <CSInputField 
@@ -779,12 +961,12 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                onChange={(val: string) => setFormData({...formData, monthlyIncome: val})} 
              />
              
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-               <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Sumber Dana (APU-PPT Compliance)</label>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+               <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sumber Dana (APU-PPT Compliance)</label>
                <select 
                  value={formData.fundingSource} 
                  onChange={(e) => setFormData({...formData, fundingSource: e.target.value})}
-                 style={{ padding: '16px 20px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '14px', color: 'var(--text-primary)', outline: 'none', fontSize: '16px', fontWeight: 700 }}
+                 style={{ padding: '10px 14px', background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', borderRadius: '10px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }}
                >
                  <option value="Gaji">Gaji / Slip Penghasilan</option>
                  <option value="Hasil Usaha">Hasil Usaha / Bisnis</option>
@@ -795,8 +977,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              </div>
 
              {/* D. DATA AHLI WARIS */}
-             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>👪 D. DATA AHLI WARIS (Khas Koperasi)</h3>
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '4px', marginTop: '8px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>D. DATA AHLI WARIS (Khas Koperasi)</h3>
              </div>
 
              <CSInputField 
@@ -821,31 +1003,32 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
              </div>
 
              {/* Section 2: Kredensial Akun Portal */}
-             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>🛡️ KREDENSIAL LOGIN PORTAL ANGGOTA</h3>
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '4px', marginTop: '8px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>KREDENSIAL LOGIN PORTAL ANGGOTA</h3>
              </div>
              
              <CSInputField label="Kata Sandi Akun (Opsional)" placeholder="Bawaan menggunakan NIK..." value={formData.password} onChange={(val: string) => setFormData({...formData, password: val})} />
 
              {/* Section 3: Setoran Awal Koperasi compliant SAK EP */}
-             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '10px', marginTop: '20px' }}>
-               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>💵 SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
+             <div style={{ gridColumn: 'span 2', borderBottom: '1px solid var(--border-primary)', paddingBottom: '4px', marginTop: '8px' }}>
+               <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
              </div>
 
              <CSInputField label="Simpanan Pokok (Setoran Awal)" placeholder="Contoh: 100000" value={formData.initialPrincipal} onChange={(val: string) => setFormData({...formData, initialPrincipal: val})} />
              <CSInputField label="Simpanan Wajib (Setoran Awal)" placeholder="Contoh: 20000" value={formData.initialMandatory} onChange={(val: string) => setFormData({...formData, initialMandatory: val})} />
+             <CSInputField label="Donasi Infaq Koperasi (Opsional)" placeholder="Minimal 10000" value={formData.initialInfaq} onChange={(val: string) => setFormData({...formData, initialInfaq: val})} />
             
-            <div style={{ gridColumn: 'span 2', marginTop: '30px' }}>
+            <div style={{ gridColumn: 'span 2', marginTop: '12px' }}>
               <button 
                 type="submit"
                 disabled={loading}
                 style={{ 
-                  width: '100%', padding: '22px', background: 'var(--text-primary)',
+                  width: '100%', padding: '14px', background: 'var(--text-primary)',
                   color: 'var(--bg-page)', border: 'none', borderRadius: '18px', fontWeight: 900, fontSize: '18px',
-                  cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 30px var(--shadow-color)', transition: 'all 0.2s'
+                  cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 6px 20px var(--shadow-color)', transition: 'all 0.2s'
                 }}
               >
-                {loading ? '⏳ MEMPROSES REKENING & JURNAL SAK EP...' : '🔥 DAFTARKAN ANGGOTA & BUKA TABUNGAN'}
+                {loading ? 'MEMPROSES REKENING & JURNAL SAK EP...' : 'DAFTARKAN ANGGOTA & BUKA TABUNGAN'}
               </button>
             </div>
           </form>
@@ -944,8 +1127,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   {/* Personal Info */}
                   <div style={{ background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
-                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>📍 Profil Demografis</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Profil Demografis</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Lengkap</span>
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.users?.full_name}</span>
@@ -979,8 +1162,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
                   {/* Financial & Job */}
                   <div style={{ background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
-                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>💼 Pekerjaan & Keuangan</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Pekerjaan & Keuangan</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pekerjaan Nasabah</span>
                         <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedKyc.occupation || '-'}</span>
@@ -1010,7 +1193,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
                   {/* Ahli Waris Info */}
                   <div style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
-                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>👪 Informasi Ahli Waris</h4>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Informasi Ahli Waris</h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                       <div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700 }}>NAMA AHLI WARIS</div>
@@ -1029,7 +1212,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
                   {/* Addresses */}
                   <div style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.01)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
-                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>🏠 Alamat Tempat Tinggal</h4>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Alamat Tempat Tinggal</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                         <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Alamat Sesuai KTP</span>
@@ -1061,27 +1244,25 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginTop: '20px', borderTop: '2px solid var(--border-primary)', paddingTop: '24px' }}>
-                  <button
-                    onClick={() => {
-                      if (confirm('Tolak berkas KYC nasabah ini? Harap berikan alasan penolakan.')) {
-                        alert('Fitur penolakan dokumen berhasil dikirim ke nasabah via email.');
-                      }
-                    }}
-                    style={{
-                      padding: '16px 24px',
-                      background: 'var(--border-primary)',
-                      color: 'var(--text-primary)',
-                      border: '1.5px solid var(--border-primary)',
-                      borderRadius: '14px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'var(--border-primary)'}
-                  >
-                    Tolak Berkas
-                  </button>
+                  <button 
+                      onClick={() => {
+                        setConfirmModal({
+                          title: 'Tolak Berkas KYC?',
+                          message: 'Harap berikan alasan penolakan. Berkas nasabah ini akan dikembalikan dan harus diperbaiki.',
+                          onConfirm: () => {
+                            const reason = prompt('Alasan Penolakan:');
+                            if (reason) {
+                              // Simulasi tolak KYC
+                              setMessage({ type: 'success', text: `Berkas KYC ditolak dengan alasan: ${reason}` });
+                              fetchStats();
+                            }
+                          }
+                        });
+                      }}
+                      style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1.5px solid #ef4444', fontWeight: 800, cursor: 'pointer' }}
+                    >
+                      Tolak & Minta Perbaikan
+                    </button>
 
                   <button
                     disabled={loading}
@@ -1125,8 +1306,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         }}>
           <div style={{ background: 'var(--bg-header)', padding: '30px 40px', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>DATABASE ANGGOTA TERVERIFIKASI</h3>
-              <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '16px', textTransform: 'uppercase', letterSpacing: '1.5px' }}>DATABASE ANGGOTA TERVERIFIKASI</h3>
+              <div style={{ width: '60px', height: '3px', background: 'var(--gold-intense)', margin: '6px 0 0 0', borderRadius: '2px' }} />
             </div>
             <div style={{ color: 'var(--text-primary)', opacity: 0.8, fontSize: '14px', fontWeight: 700 }}>Total: {membersList.length} Anggota</div>
           </div>
@@ -1179,14 +1360,18 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                         <button 
                           onClick={async () => {
-                            if (confirm(`Apakah Anda yakin ingin mengubah status blacklist anggota ${item.users?.full_name || item.id_number}?`)) {
-                              const supabase = createClient();
-                              const { error } = await supabase.from('members').update({ is_blacklisted: !item.is_blacklisted }).eq('id', item.id);
-                              if (!error) {
-                                fetchStats(); // Refresh data
-                                setMessage({ type: 'success', text: `Status blacklist berhasil diubah untuk ${item.id_number}.` });
+                            setConfirmModal({
+                              title: item.is_blacklisted ? 'Hapus dari Blacklist?' : 'Tandai Blacklist?',
+                              message: `Apakah Anda yakin ingin mengubah status blacklist anggota ${item.users?.full_name || item.nik}?`,
+                              onConfirm: async () => {
+                                const supabase = createClient();
+                                const { error } = await supabase.from('members').update({ is_blacklisted: !item.is_blacklisted }).eq('id', item.id);
+                                if (!error) {
+                                  fetchStats(); // Refresh data
+                                  setMessage({ type: 'success', text: `Status blacklist berhasil diubah untuk ${item.users?.full_name || item.nik}.` });
+                                }
                               }
-                            }
+                            });
                           }}
                           style={{
                             background: item.is_blacklisted ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
@@ -1271,27 +1456,30 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     </td>
                     <td style={{ padding: '16px', textAlign: 'center' }}>
                       <button 
-                        onClick={async () => {
-                          if (confirm(`Setujui transfer sebesar Rp ${v.total_paid.toLocaleString('id-ID')} dari ${v.users?.full_name}?`)) {
-                            setLoading(true);
-                            try {
+                        onClick={() => {
+                          setConfirmModal({
+                            title: 'Setujui Verifikasi?',
+                            message: `Setujui transfer sebesar Rp ${v.total_paid.toLocaleString('id-ID')} dari ${v.users?.full_name}?`,
+                            onConfirm: async () => {
+                              const supabase = createClient();
                               const res = await fetch('/api/cs/verify-deposit', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ verificationId: v.id })
+                                body: JSON.stringify({
+                                  verificationId: v.id,
+                                  verifiedBy: profile?.user_id
+                                })
                               });
                               const data = await res.json();
                               if (res.ok) {
-                                setMessage({ type: 'success', text: `Setoran berhasil disetujui! Saldo dan jurnal telah diupdate.` });
+                                setMessage({ type: 'success', text: `Verifikasi sukses! Saldo ditambah & jurnal terbentuk.` });
                                 fetchStats();
                               } else {
-                                throw new Error(data.error);
+                                setMessage({ type: 'error', text: data.error || 'Gagal memverifikasi' });
                               }
-                            } catch (err: any) {
-                              setMessage({ type: 'error', text: err.message });
+                              setLoading(false);
                             }
-                            setLoading(false);
-                          }
+                          });
                         }}
                         style={{
                           background: 'linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-intense) 100%)',
@@ -1299,7 +1487,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                           fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 15px rgba(204, 163, 52, 0.2)'
                         }}
                       >
-                        ✅ Approve Transfer
+                        Approve Transfer
                       </button>
                     </td>
                   </tr>
@@ -1316,20 +1504,22 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       {activeMenu === 'special-savings' && (
         <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1.5px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
           <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)' }}>
-            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>🕌 BUKA REKENING SIMPANAN BERTUJUAN</h2>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>BUKA REKENING SIMPANAN BERTUJUAN</h2>
           </div>
           <div style={{ padding: '36px' }}>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setMessage({ type: 'success', text: 'Permintaan pembukaan rekening simpanan Haji/Umrah berhasil disubmit untuk diproses!' });
-            }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <form onSubmit={handleOpenSpecialSavings} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>PILIH ANGGOTA / MEMBER ID</label>
-                <select required style={inputStyle}>
+                <select 
+                  required 
+                  style={inputStyle}
+                  value={specialSavingsMemberId}
+                  onChange={(e) => setSpecialSavingsMemberId(e.target.value)}
+                >
                   <option value="">-- Pilih Anggota Terdaftar --</option>
                   {membersList.map(m => (
-                    <option key={m.id} value={m.id}>{m.id_number} - {m.users?.full_name || m.mother_name}</option>
+                    <option key={m.id} value={m.id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
                   ))}
                 </select>
               </div>
@@ -1337,19 +1527,32 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               <div style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>TIPE SIMPANAN KHUSUS</label>
-                  <select required style={inputStyle}>
+                  <select 
+                    required 
+                    style={inputStyle}
+                    value={specialSavingsType}
+                    onChange={(e) => setSpecialSavingsType(e.target.value)}
+                  >
                     <option value="haji">Simpanan Haji Khusus (Mudharabah Mutlaqah)</option>
                     <option value="umrah">Simpanan Umrah (Mudharabah Mutlaqah)</option>
                   </select>
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>SETORAN AWAL (RP)</label>
-                  <input type="number" required placeholder="Minimal Rp 500.000" min="500000" style={inputStyle} />
+                  <input 
+                    type="number" 
+                    required 
+                    placeholder="Minimal Rp 500.000" 
+                    min="500000" 
+                    style={inputStyle} 
+                    value={specialInitialDeposit}
+                    onChange={(e) => setSpecialInitialDeposit(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div style={{ background: 'rgba(204, 163, 52, 0.1)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
-                <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800 }}>📝 Ketentuan Akad Mudharabah</h4>
+                <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800 }}>Ketentuan Akad Mudharabah</h4>
                 <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6 }}>
                   <li>Rekening khusus Haji/Umrah menggunakan prinsip Mudharabah Mutlaqah.</li>
                   <li>Dana tidak dapat ditarik sewaktu-waktu kecuali untuk pelunasan biaya perjalanan.</li>
@@ -1362,34 +1565,240 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 color: '#02130e', border: 'none', borderRadius: '16px', fontWeight: 900, fontSize: '15px',
                 cursor: 'pointer', boxShadow: '0 8px 25px rgba(204, 163, 52, 0.3)', marginTop: '10px'
               }}>
-                ✅ Buka Rekening Simpanan Bertujuan
+                Buka Rekening Simpanan Bertujuan
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* 5. AI HELP TAB */}
+      {/* 5. PENGAJUAN PEMBIAYAAN TAB */}
+      {/* 5. PENGAJUAN PEMBIAYAAN TAB */}
+      {activeMenu === 'financing' && (
+        <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1.5px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)', animation: 'fadeInUp 0.4s ease-out' }}>
+          <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>PENGAJUAN PEMBIAYAAN (OFFLINE / WALK-IN)</h2>
+            <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 900 }}>FORM PETUGAS CS</span>
+          </div>
+          <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            <form onSubmit={(e) => { e.preventDefault(); alert('Pengajuan Pembiayaan Offline Berhasil Disubmit ke Account Officer!'); }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              {/* Member Selection & Basic Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Pilih Anggota Nasabah</label>
+                  <select required style={inputStyle}>
+                    <option value="">-- Cari Nama / NIK Anggota --</option>
+                    {membersList.map(m => (
+                      <option key={m.id} value={m.id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Pilih Akad Syariah</label>
+                  <select required style={inputStyle}>
+                    <option value="murabahah">Murabahah (Jual Beli Barang)</option>
+                    <option value="ijarah">Ijarah (Manfaat Jasa/Sewa)</option>
+                    <option value="mudharabah">Mudharabah (Modal Kerja / Kemitraan)</option>
+                    <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
+                  <input type="number" required style={inputStyle} placeholder="Contoh: 10000000" />
+                </div>
+              </div>
+
+              {/* Data Entry Forms */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, borderBottom: '2px solid var(--border-primary)', paddingBottom: '8px', textTransform: 'uppercase' }}>1. Pengisian Data Formulir</h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Tujuan Penggunaan Dana (FPP)</label>
+                    <input type="text" style={inputStyle} placeholder="Contoh: Modal usaha warung sembako..." required />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Detail Usaha / Pekerjaan Saat Ini (FPP)</label>
+                    <input type="text" style={inputStyle} placeholder="Contoh: Berjualan sembako di pasar..." required />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Spesifikasi Objek Akad</label>
+                    <input type="text" style={inputStyle} placeholder="Barang yang dibeli / Proyek yang dijalankan..." required />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Daftar Inventaris Aset & Jaminan</label>
+                    <input type="text" style={inputStyle} placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." required />
+                  </div>
+                </div>
+              </div>
+
+              {/* Checkbox Validasi Dokumen Fisik */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid var(--border-primary)', paddingBottom: '8px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, textTransform: 'uppercase' }}>2. Verifikasi Dokumen Fisik (Bundel)</h3>
+                  <button type="button" onClick={() => alert('Membuka PDF Formulir Kosong...')} style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>🖨️ Cetak Form Kosong</button>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '-8px 0 0 0' }}>Centang dokumen fisik yang sudah diterima secara langsung dan dimasukkan ke dalam bundel pengajuan.</p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Dokumen Nasabah</h4>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>1. Fotokopi KTP (Pemohon & Pasangan)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>2. Kartu Keluarga (KK)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>3. Buku Nikah / Akta Cerai</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>4. NPWP Pribadi/Badan</span>
+                    </label>
+                  </div>
+                  
+                  <div style={{ background: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <h4 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>Berkas Usaha & Legal</h4>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>5. Bukti Pendapatan (Slip Gaji/Nota)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>6. Legalitas Usaha (SKU/NIB)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>7. Bukti Jaminan (SHM/BPKB dll)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', background: 'rgba(218, 165, 32, 0.1)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed var(--gold-intense)' }}>
+                      <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: 'var(--gold-intense)' }} required />
+                      <span style={{ fontSize: '13px', color: 'var(--gold-intense)', fontWeight: 800 }}>8. Form Persetujuan Pasangan (Ttd Asli)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Otorisasi SLIK OJK */}
+              <div style={{ background: 'rgba(218, 165, 32, 0.05)', border: '1.5px solid var(--gold-intense)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h4 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '15px', fontWeight: 900 }}>Otorisasi BI Checking / SLIK OJK (Oleh CS)</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input type="checkbox" id="cs_slik_ojk" style={{ width: '20px', height: '20px', accentColor: 'var(--gold-intense)', cursor: 'pointer' }} required />
+                  <label htmlFor="cs_slik_ojk" style={{ color: 'var(--text-primary)', fontSize: '13px', cursor: 'pointer', fontWeight: 700, lineHeight: 1.5 }}>
+                    Saya telah memverifikasi identitas nasabah dan menyatakan bahwa nasabah memberikan kuasa penuh kepada KSPPS iQ-RA untuk melakukan pengecekan riwayat kredit (SLIK OJK).
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                type="button" 
+                onClick={() => setConfirmModal({ title: 'Submit Pengajuan Pembiayaan?', message: 'Apakah Anda yakin dokumen fisik nasabah sudah lengkap dan sesuai dengan aslinya? Pengajuan ini akan diteruskan ke Account Officer.', onConfirm: () => {
+                  setConfirmModal(null);
+                  setMessage({ type: 'success', text: 'Bundel pengajuan pembiayaan telah diteruskan ke Account Officer.' });
+                } })}
+                style={{
+                  width: '100%',
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg-page)',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 30px var(--shadow-color)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                📥 SUBMIT BUNDEL PENGAJUAN & TERUSKAN KE AO
+              </button>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. AI HELP TAB */}
       {activeMenu === 'ai-help' && (
         <div style={{ height: '70vh', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
           <div style={{ padding: '24px 40px', background: 'var(--bg-header)', borderBottom: '1px solid var(--border-primary)' }}>
             <div>
-              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px' }}>💬 iQ-RA AI Sharia Assistant</h3>
+              <h3 style={{ color: 'var(--gold-intense)', margin: 0, fontWeight: 900, fontSize: '20px', textTransform: 'uppercase', letterSpacing: '2px' }}>iQ-RA AI Sharia Assistant</h3>
               <div style={{ width: '80px', height: '4px', background: 'var(--gold-intense)', margin: '8px 0 0 0', borderRadius: '2px', boxShadow: '0 0 8px var(--shadow-color)' }} />
             </div>
           </div>
           <div style={{ flexGrow: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ alignSelf: 'flex-start', background: 'var(--border-primary)', padding: '20px', borderRadius: '0 24px 24px 24px', maxWidth: '70%', color: 'var(--text-primary)', fontSize: '15px', boxShadow: '0 4px 15px var(--shadow-color)' }}>
-              Halo {profile?.full_name}! Saya asisten AI iQ-RA. Ada yang bisa saya bantu terkait produk simpanan atau pembiayaan syariah hari ini?
-            </div>
+            {chatMessages.map((msg, index) => (
+              <div 
+                key={index} 
+                style={{ 
+                  alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start', 
+                  background: msg.sender === 'user' ? 'var(--gold-intense)' : 'var(--border-primary)', 
+                  color: msg.sender === 'user' ? '#000000' : 'var(--text-primary)', 
+                  padding: '14px 18px', 
+                  borderRadius: msg.sender === 'user' ? '24px 24px 0 24px' : '0 24px 24px 24px', 
+                  maxWidth: '75%', 
+                  fontSize: '14px', 
+                  fontWeight: msg.sender === 'user' ? 700 : 400,
+                  fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                  boxShadow: '0 4px 15px var(--shadow-color)',
+                  lineHeight: '1.7',
+                }}
+              >
+                {msg.sender === 'user' 
+                  ? msg.text 
+                  : msg.text
+                      .replace(/\*\*(.+?)\*\*/g, '$1')
+                      .replace(/\*(.+?)\*/g, '$1')
+                      .replace(/^#{1,3}\s+/gm, '')
+                      .split('\n')
+                      .map((line: string, i: number) => (
+                        <span key={i} style={{ display: 'block', marginBottom: line.trim() === '' ? '6px' : '0' }}>
+                          {line.replace(/^[-•]\s/, '· ')}
+                        </span>
+                      ))
+                }
+              </div>
+            ))}
+            {aiLoading && (
+              <div style={{ alignSelf: 'flex-start', background: 'var(--border-primary)', padding: '16px 20px', borderRadius: '0 24px 24px 24px', color: 'var(--text-primary)', fontSize: '14px', fontStyle: 'italic', opacity: 0.8 }}>
+                Sedang mengetik tanggapan syariah...
+              </div>
+            )}
           </div>
-          <div style={{ padding: '30px 40px', background: 'rgba(0,0,0,0.02)' }}>
+          <form onSubmit={handleSendChatMessage} style={{ padding: '20px 40px', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border-primary)', display: 'flex', gap: '15px' }}>
             <input 
               type="text" 
-              placeholder="Tanyakan sesuatu pada AI..." 
-              style={{ width: '100%', padding: '18px 24px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '20px', color: 'var(--text-primary)', outline: 'none' }} 
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Tanyakan fatwa, akad mudharabah/wadiah, atau prosedur CS..." 
+              disabled={aiLoading}
+              style={{ flexGrow: 1, padding: '18px 24px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '20px', color: 'var(--text-primary)', outline: 'none', fontSize: '14px', fontWeight: 700 }} 
             />
-          </div>
+            <button 
+              type="submit" 
+              disabled={aiLoading || !chatInput.trim()}
+              style={{ 
+                padding: '12px 24px', 
+                background: 'var(--gold-intense)', 
+                color: '#000000', 
+                border: 'none', 
+                borderRadius: '20px', 
+                fontWeight: 900, 
+                cursor: 'pointer',
+                opacity: (aiLoading || !chatInput.trim()) ? 0.5 : 1
+              }}
+            >
+              Kirim
+            </button>
+          </form>
         </div>
       )}
 
@@ -1459,7 +1868,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               {/* Personal details */}
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
                 <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Identitas Demografi</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Lengkap</span>
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.users?.full_name}</span>
@@ -1494,7 +1903,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               {/* Financial & Job */}
               <div style={{ background: 'rgba(255,255,255,0.01)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
                 <h3 style={{ color: 'var(--gold-intense)', margin: '0 0 16px 0', fontSize: '15px', fontWeight: 900, textTransform: 'uppercase' }}>Pekerjaan & Keuangan</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Pekerjaan</span>
                     <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, textAlign: 'right' }}>{selectedMemberProfile.occupation}</span>
@@ -1645,10 +2054,93 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         </div>
       )}
 
+      {/* CENTERED CONFIRMATION POPUP MODAL */}
+      {confirmModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '2px solid var(--border-primary)',
+            borderRadius: '24px',
+            padding: '40px',
+            maxWidth: '480px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 30px 60px rgba(0,0,0,0.5)',
+            animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
+              {confirmModal.title}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: 1.6, marginBottom: '32px' }}>
+              {confirmModal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setConfirmModal(null)}
+                style={{
+                  padding: '16px 28px',
+                  background: 'transparent',
+                  border: '2px solid var(--border-primary)',
+                  borderRadius: '14px',
+                  color: 'var(--text-primary)',
+                  fontWeight: 800,
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  flex: 1
+                }}
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirmModal.onConfirm) {
+                    confirmModal.onConfirm();
+                  }
+                  setConfirmModal(null);
+                }}
+                style={{
+                  padding: '16px 28px',
+                  background: 'var(--gold-intense)',
+                  border: 'none',
+                  borderRadius: '14px',
+                  color: '#02130e',
+                  fontWeight: 900,
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  flex: 1,
+                  boxShadow: '0 8px 24px rgba(218,165,32,0.3)'
+                }}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </div>
@@ -1660,16 +2152,16 @@ function StatCard({ label, value }: any) {
     <div style={{ 
       background: 'var(--bg-card)', 
       backdropFilter: 'blur(16px)', 
-      padding: '30px', 
-      borderRadius: '24px', 
+      padding: '16px 20px', 
+      borderRadius: '18px', 
       border: '1px solid var(--border-primary)',
       display: 'flex',
       alignItems: 'center',
-      gap: '20px'
+      gap: '12px'
     }}>
       <div>
-        <div style={{ color: 'var(--text-primary)', opacity: 0.7, fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
-        <div style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 900 }}>{value}</div>
+        <div style={{ color: 'var(--text-primary)', opacity: 0.7, fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</div>
+        <div style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 900 }}>{value}</div>
       </div>
     </div>
   );
@@ -1677,18 +2169,18 @@ function StatCard({ label, value }: any) {
 
 function CSInputField({ label, placeholder, value, onChange }: any) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <label style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 900, textTransform: 'uppercase' }}>{label}</label>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</label>
       <input 
         type="text" 
         placeholder={placeholder} 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         style={{ 
-          padding: '16px 20px', background: 'var(--bg-page)', 
-          border: '1.5px solid var(--border-primary)', borderRadius: '14px', 
+          padding: '10px 14px', background: 'var(--bg-page)', 
+          border: '1.5px solid var(--border-primary)', borderRadius: '10px', 
           color: 'var(--text-primary)', outline: 'none', transition: 'all 0.2s',
-          fontSize: '16px', fontWeight: 700
+          fontSize: '14px', fontWeight: 700
         }}
         onFocus={e => e.currentTarget.style.borderColor = 'var(--text-primary)'}
         onBlur={e => e.currentTarget.style.borderColor = 'var(--border-primary)'}

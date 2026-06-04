@@ -18,8 +18,11 @@ import AIChatbot from '@/components/dashboard/AIChatbot';
 import Modal from '@/components/dashboard/Modal';
 import ProductsPanel from '@/components/dashboard/ProductsPanel';
 import DepositPaymentPanel from '@/components/dashboard/DepositPaymentPanel';
+import SpecialSavingsPanel from '@/components/dashboard/SpecialSavingsPanel';
+import RepaymentPanel from '@/components/dashboard/RepaymentPanel';
+import WithdrawalPanel from '@/components/dashboard/WithdrawalPanel';
 
-type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile' | 'products' | 'deposits';
+type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile' | 'products' | 'deposits' | 'special_savings' | 'repayment' | 'withdrawal';
 
 export default function MemberPage() {
   const { profile, accounts, transactions, contracts, loading, error, refetch } = useMemberDashboardData();
@@ -29,6 +32,11 @@ export default function MemberPage() {
   const [modalConfig, setModalConfig] = useState<any>(null);
   const { theme } = useTheme();
   const router = useRouter();
+
+  const formattedDay = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+  const formattedDate = new Date().toLocaleDateString('id-ID', { 
+    day: 'numeric', month: 'long', year: 'numeric' 
+  });
 
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
@@ -234,7 +242,13 @@ export default function MemberPage() {
           </div>
 
           {/* Dynamic Theme Switcher & Profile Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {/* Tanggal Hari Ini (Desktop Only) */}
+            <div className="hidden md:flex flex-col text-right mr-2 border-r-2 border-solid border-[var(--border-primary)] pr-5">
+              <span style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 900, textTransform: 'uppercase' }}>{formattedDay}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700 }}>{formattedDate}</span>
+            </div>
+
             <div style={{ display: 'flex', gap: '15px' }}>
               <NotificationBell />
               <ThemeToggle />
@@ -367,6 +381,31 @@ export default function MemberPage() {
 
           {activeTab === 'deposits' && (
             <DepositPaymentPanel 
+              profile={profile}
+              accounts={accounts}
+              onPaymentSuccess={refetch}
+            />
+          )}
+
+          {activeTab === 'special_savings' && (
+            <SpecialSavingsPanel 
+              profile={profile}
+              accounts={accounts}
+              onPaymentSuccess={refetch}
+            />
+          )}
+
+          {activeTab === 'repayment' && (
+            <RepaymentPanel 
+              profile={profile}
+              accounts={accounts}
+              contracts={contracts}
+              onPaymentSuccess={refetch}
+            />
+          )}
+
+          {activeTab === 'withdrawal' && (
+            <WithdrawalPanel 
               profile={profile}
               accounts={accounts}
               onPaymentSuccess={refetch}

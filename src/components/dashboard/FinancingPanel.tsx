@@ -16,6 +16,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
   // Form states
   const [amount, setAmount] = useState<number>(5000000);
   const [contractType, setContractType] = useState<string>('murabahah');
+  const [purpose, setPurpose] = useState<string>('');
   
   // Validation: Profile must have core docs
   const isProfileComplete = !!(profile?.nik && profile?.kk_number && profile?.mother_name && profile?.phone_number);
@@ -153,38 +154,105 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
             </div>
           )}
 
-          <form onSubmit={handleApply} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Jumlah Pembiayaan (Rupiah)</label>
-              <input 
-                type="number" 
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                style={inputStyle}
-                placeholder="Min Rp 1.000.000"
-              />
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.7 }}>Nominal yang Anda butuhkan (Tanpa titik/koma)</div>
+          <form onSubmit={handleApply}>
+            {/* Formulir Data Pribadi & Pembiayaan */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
+                  <input 
+                    type="number" 
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    placeholder="Contoh: 5000000" 
+                    style={inputStyle}
+                    required 
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Tujuan Penggunaan Dana (FPP)</label>
+                  <input 
+                    type="text" 
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                    placeholder="Contoh: Modal usaha warung sembako..." 
+                    style={inputStyle}
+                    required 
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Detail Usaha / Pekerjaan Saat Ini (FPP)</label>
+                  <input type="text" style={inputStyle} placeholder="Contoh: Berjualan sembako di pasar..." required />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Pilih Akad Syariah</label>
+                  <select 
+                    value={contractType}
+                    onChange={(e) => setContractType(e.target.value)}
+                    style={inputStyle}
+                  >
+                    <option value="murabahah">Murabahah (Jual Beli)</option>
+                    <option value="ijarah">Ijarah (Sewa/Multijasa)</option>
+                    <option value="mudharabah">Mudharabah (Bagi Hasil / Modal Kerja)</option>
+                    <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Spesifikasi Objek Akad</label>
+                  <input type="text" style={inputStyle} placeholder="Barang yang dibeli / Proyek yang dijalankan..." required />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Daftar Inventaris Aset & Jaminan</label>
+                  <input type="text" style={inputStyle} placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." required />
+                </div>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Pilih Akad Syariah</label>
-              <select 
-                value={contractType}
-                onChange={(e) => setContractType(e.target.value)}
-                style={inputStyle}
-              >
-                <option value="murabahah">Murabahah (Jual Beli Barang)</option>
-                <option value="ijarah">Ijarah (Manfaat Jasa/Sewa)</option>
-                <option value="mudharabah">Mudharabah (Modal Kerja / Kemitraan)</option>
-                <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
-              </select>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.7 }}>Petugas kami akan membantu memvalidasi akad terbaik untuk Anda.</div>
+            {/* Dokumen Upload Section */}
+            <div style={{ marginTop: '32px', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 16px 0', borderBottom: '2px solid var(--border-primary)', paddingBottom: '8px', textTransform: 'uppercase' }}>
+                Dokumen Persyaratan Wajib
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <FileInputBox label="1. Fotokopi KTP (Pemohon & Pasangan)" />
+                  <FileInputBox label="2. Kartu Keluarga (KK)" />
+                  <FileInputBox label="3. Buku Nikah / Akta Cerai" />
+                  <FileInputBox label="4. NPWP Pribadi/Badan" />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <FileInputBox label="5. Bukti Pendapatan (Slip Gaji/Nota)" />
+                  <FileInputBox label="6. Legalitas Usaha (SKU/NIB)" />
+                  <FileInputBox label="7. Bukti Jaminan (SHM/BPKB dll)" />
+                  <FileInputBox label="8. Form Persetujuan Pasangan (Ttd Asli)" isSpecial />
+                </div>
+              </div>
             </div>
 
-            <div style={{ gridColumn: 'span 2', background: 'var(--border-primary)', padding: '24px', borderRadius: '16px', display: 'flex', gap: '16px' }}>
+            <div style={{ background: 'rgba(218, 165, 32, 0.05)', border: '1.5px solid var(--gold-intense)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                <h4 style={{ color: 'var(--gold-intense)', margin: 0, fontSize: '14px', fontWeight: 900 }}>Otorisasi BI Checking / SLIK OJK</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input type="checkbox" id="slik_ojk" style={{ width: '20px', height: '20px', accentColor: 'var(--gold-intense)', cursor: 'pointer' }} required />
+                  <label htmlFor="slik_ojk" style={{ color: 'var(--text-primary)', fontSize: '13px', cursor: 'pointer' }}>
+                    Saya memberikan kuasa penuh kepada KSPPS iQ-RA untuk melakukan pengecekan riwayat kredit (SLIK OJK) atas nama saya.
+                  </label>
+                </div>
+                <input type="text" style={{ ...inputStyle, maxWidth: '300px', padding: '10px 14px', fontSize: '13px' }} placeholder="Ketik Nama Terang (Tanda Tangan Digital)..." required />
+              </div>
+
+
+            <div style={{ gridColumn: 'span 2', background: 'var(--border-primary)', padding: '24px', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
               <span style={{ fontSize: '24px' }}>🛡️</span>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                <strong>Deklarasi Syariah:</strong> Dengan mengirimkan pengajuan ini, saya bersedia mengikuti prinsip-prinsip syariah yang berlaku di iQ-RA Banking System dan bersedia memberikan data yang jujur untuk proses *Assesment* kelayakan pembiayaan.
+                <strong>Deklarasi Syariah:</strong> Dengan mengirimkan pengajuan ini, saya bersedia mengikuti prinsip-prinsip syariah yang berlaku di iQ-RA Banking System dan bersedia memberikan data yang jujur untuk proses <em>Assesment</em> kelayakan pembiayaan.
               </p>
             </div>
 
@@ -309,3 +377,70 @@ const inputStyle = {
   outline: 'none',
   width: '100%'
 };
+
+function FileInputBox({ label, isSpecial = false }: { label: string, isSpecial?: boolean }) {
+  const [file, setFile] = useState<File | null>(null);
+
+  return (
+    <div style={{
+      background: 'var(--bg-page)',
+      border: `2px dashed ${isSpecial ? 'var(--gold-intense)' : 'var(--border-primary)'}`,
+      borderRadius: '12px',
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.2s',
+      backgroundColor: file ? (isSpecial ? 'rgba(218, 165, 32, 0.05)' : 'rgba(255,255,255,0.02)') : 'var(--bg-page)'
+    }}>
+      <div style={{ fontSize: '12px', fontWeight: 800, color: isSpecial ? 'var(--gold-intense)' : 'var(--text-secondary)' }}>
+        {label}
+      </div>
+      
+      {file ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>
+            📄 {file.name}
+          </div>
+          <button 
+            type="button" 
+            onClick={() => setFile(null)} 
+            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 900, fontSize: '14px' }}
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <>
+          <label style={{
+            background: 'var(--border-primary)',
+            color: 'var(--text-primary)',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            fontSize: '11px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            textAlign: 'center',
+            display: 'inline-block',
+            textTransform: 'uppercase'
+          }}>
+            Pilih File
+            <input 
+              type="file" 
+              accept=".jpg,.jpeg,.png,.pdf" 
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setFile(e.target.files[0]);
+                }
+              }}
+              style={{ display: 'none' }} 
+            />
+          </label>
+          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', opacity: 0.6 }}>PDF / JPG / PNG Max 5MB</div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -12,6 +12,8 @@ export const COA = {
   // LIABILITIES (2xx)
   SAVINGS_WADIAH: "201.01",
   SAVINGS_MUDHARABAH: "201.02",
+  SAVINGS_HAJI: "201.03",
+  SAVINGS_UMRAH: "201.04",
   
   // EQUITY (3xx)
   MEMBER_CAPITAL_PRINCIPAL: "301.01", // Simpanan Pokok

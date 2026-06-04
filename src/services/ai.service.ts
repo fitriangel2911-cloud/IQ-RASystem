@@ -621,7 +621,7 @@ Berikan analisis Anda dalam format JSON persis seperti berikut (tanpa tambahan t
     const ragSection = hasContext
       ? `\n\n${isUnifiedFullContext ? 'BASIS PENGETAHUAN SYARIAH UNIFIED (SELURUH DOKUMEN INTERNAL KSPPS IQ-RA):' : 'DOKUMEN INTERNAL KSPPS IQ-RA YANG RELEVAN:'}\n\n${
           contextDocs.map((doc: any, idx: number) =>
-            `--- DOKUMEN ${idx + 1}: "${doc.source_title || 'Referensi Syariah'}" ---\n${doc.content}`
+            `--- [${doc.source_title || 'Referensi Syariah'}] ---\n${doc.content}`
           ).join('\n\n')
         }`
       : `\n\nINFO: Tidak ada dokumen internal syariah yang cocok di basis pengetahuan koperasi.`;
@@ -645,14 +645,14 @@ PANDUAN MENJAWAB (WAJIB DIPATUHI SEPENUHNYA):
 1. PAHAMI pertanyaan user dengan sangat teliti. Identifikasi topik spesifik hukum fikih atau operasional koperasi syariah.
 2. Berikan jawaban yang SANGAT JELAS, LENGKAP, DETAIL, dan TUNTAS. JAWABAN HARUS TERSTRUKTUR DAN SELESAI SEMPURNA. Jangan biarkan kalimat terputus di akhir atau menggantung tanpa penutup yang logis.
 3. {contextInstruction}
-4. Gaya bahasa: KOMUNIKATIF, HANGAT, BERWIBAWA, dan PROFESIONAL — layaknya konsultan/dewan pengawas syariah senior.
+4. Gaya bahasa: KOMUNIKATIF, HANGAT, BERWIBAWA, dan PROFESIONAL — layaknya konsultan/dewan pengawas syariah senior. JIKA INI ADALAH PERTANYAAN LANJUTAN (ADA RIWAYAT PERCAKAPAN), DILARANG KERAS mengucapkan salam pembuka (seperti Assalamu'alaikum) lagi. Salam HANYA untuk pesan pertama.
 5. Struktur jawaban: Gunakan format Markdown yang rapi (gunakan bold untuk penekanan, bullet points, dan pisahkan penjelasan ke dalam langkah-langkah terstruktur).
 6. DILARANG KERAS: Jangan cantumkan teks aksara Arab dalam bentuk apapun (cukup tuliskan transliterasi latin atau langsung artinya saja).
 7. Referensi dalil: Tulis "QS. [Nama Surat] ayat [Nomor]" beserta artinya dalam Bahasa Indonesia agar kuat landasannya.
 8. Jika pertanyaan berkaitan dengan hal yang jelas-jelas dilarang (misal usaha babi, judi, riba), jelaskan hukum keharamannya secara tegas tetapi sopan, berikan solusi atau alternatif akad syariah lainnya jika ada.
-9. TAGGING RUJUKAN RELEVAN (SANGAT PENTING): Di bagian paling akhir jawaban Anda (di baris baru paling bawah), Anda WAJIB mencantumkan tag format berikut untuk menunjukkan dokumen referensi nomor berapa saja (dari RAG) yang benar-benar relevan dengan jawaban Anda:
-   [RELEVANT_SOURCES: Dokumen 1, Dokumen 3]
-   Jika dari hasil analisis Anda tidak ada satu pun dokumen rujukan di atas yang relevan (seperti kasus club malam / babi ini), Anda WAJIB menuliskan:
+9. TAGGING RUJUKAN RELEVAN (SANGAT PENTING): Di bagian paling akhir jawaban Anda (di baris baru paling bawah), Anda WAJIB mencantumkan tag format berikut untuk menunjukkan judul dokumen referensi yang benar-benar relevan dengan jawaban Anda. Tulis JUDUL DOKUMEN ASLI (bukan nomor urut), pisahkan dengan koma:
+   [RELEVANT_SOURCES: Nama Fatwa/Buku 1, Nama Fatwa/Buku 2]
+   Jika dari hasil analisis Anda tidak ada satu pun dokumen rujukan di atas yang relevan, Anda WAJIB menuliskan:
    [RELEVANT_SOURCES: NONE]{ragSection}
 {historyTextSection}
 
@@ -729,18 +729,22 @@ Berikan jawaban yang utuh, mendalam, dan selesai dengan sempurna (tidak terputus
         finalResponseText = finalResponseText.replace(/\[RELEVANT_SOURCES:\s*(.*?)\]/gi, '').trim();
 
         if (sourcesStr.toUpperCase() !== 'NONE') {
-          // Parse which documents are marked as relevant (e.g. "Dokumen 1, Dokumen 3")
-          const docIndices = sourcesStr.split(',')
-            .map(s => {
-              const numMatch = s.match(/\d+/);
-              return numMatch ? parseInt(numMatch[0], 10) - 1 : -1;
-            })
-            .filter(idx => idx >= 0 && idx < contextDocs.length);
+          // Parse titles cited in [RELEVANT_SOURCES: Title A, Title B]
+          const citedTitles = sourcesStr.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
 
-          filteredSources = docIndices.map(idx => ({
-            title: contextDocs[idx].source_title || contextDocs[idx].title || 'Referensi Syariah',
-            category: contextDocs[idx].category || 'UMUM'
-          }));
+          // Match by source_title (fuzzy: check if any contextDoc title is included in cited string)
+          filteredSources = citedTitles
+            .map((cited: string) => {
+              const match = contextDocs.find((doc: any) => {
+                const docTitle = (doc.source_title || '').toLowerCase();
+                return docTitle && cited.toLowerCase().includes(docTitle.substring(0, 15));
+              });
+              return match ? {
+                title: match.source_title || 'Referensi Syariah',
+                category: match.category || 'UMUM'
+              } : { title: cited, category: 'UMUM' };
+            })
+            .filter((s: any) => s.title && s.title.toUpperCase() !== 'NONE');
         }
       }
 

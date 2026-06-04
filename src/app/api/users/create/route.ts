@@ -35,11 +35,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Kata sandi minimal harus 6 karakter.' }, { status: 400 });
     }
 
-    // 4. Instantiate a isolated, stateless Supabase Client
+    // 4. Instantiate a isolated, stateless Supabase Admin Client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-    const standAloneClient = createClient(supabaseUrl, supabaseAnonKey, {
+    const standAloneClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -58,14 +58,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email ini sudah terdaftar di sistem. Silakan gunakan alamat email lain.' }, { status: 400 });
     }
 
-    // 5. Perform Auth SignUp on the Server Side (Does not mutate browser cookies)
-    const { data: authData, error: signUpError } = await standAloneClient.auth.signUp({
+    // 5. Perform Admin Auth createUser on the Server Side to bypass Email Verification
+    const { data: authData, error: signUpError } = await standAloneClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName
-        }
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName
       }
     });
 
@@ -88,8 +87,6 @@ export async function POST(request: Request) {
       .upsert({
         id: authData.user.id,
         full_name: fullName,
-        email: email,
-        password: password, // Plaintext stored for visual Super Admin Audit visibility as per existing system design
         role: role
       });
 

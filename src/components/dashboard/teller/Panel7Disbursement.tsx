@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { COA } from '@/lib/constants/coa';
 import { createClient } from '@/lib/supabase/client';
+import Modal from '../Modal';
 
 interface Member {
   id: string;
@@ -45,6 +46,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
   const [loadingContracts, setLoadingContracts] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
   
   // New: Transaction Method
   const [transactionMethod, setTransactionMethod] = useState<'tunai' | 'transfer'>('tunai');
@@ -69,8 +71,16 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
   }, [selectedMember]);
 
   const handleDisburse = async (contract: Contract) => {
-    if (!confirm(`Apakah Anda yakin ingin mencairkan dana sebesar ${fmt(contract.amount)} untuk kontrak ini? Dana akan keluar dari Laci Kas Teller.`)) return;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Konfirmasi Pencairan',
+      message: `Apakah Anda yakin ingin mencairkan dana sebesar ${fmt(contract.amount)} untuk kontrak ini? Dana akan keluar dari Laci Kas Teller.`,
+      onConfirm: () => executeDisburse(contract)
+    });
+  };
 
+  const executeDisburse = async (contract: Contract) => {
+    setConfirmModal(null);
     setLoading(true);
     setMessage(null);
 
@@ -157,6 +167,39 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         .eq('id', contract.id);
         
       if (updateError) throw updateError;
+
+      // 3. Generate Financing Schedules (Amortization)
+      if (contract.tenor_months > 0) {
+        const principalPerMonth = Math.floor(contract.amount / contract.tenor_months);
+        const marginAmount = Math.floor(contract.amount * contract.margin_ratio);
+        const marginPerMonth = Math.floor(marginAmount / contract.tenor_months);
+        
+        const schedules = [];
+        for (let i = 1; i <= contract.tenor_months; i++) {
+          const dueDate = new Date();
+          dueDate.setMonth(dueDate.getMonth() + i);
+          
+          schedules.push({
+            contract_id: contract.id,
+            member_id: selectedMember!.user_id,
+            installment_number: i,
+            due_date: dueDate.toISOString().split('T')[0],
+            principal_amount: principalPerMonth,
+            margin_amount: marginPerMonth,
+            total_installment: principalPerMonth + marginPerMonth,
+            status: 'pending'
+          });
+        }
+        
+        const { error: scheduleError } = await supabase
+          .from('financing_schedules')
+          .insert(schedules);
+          
+        if (scheduleError) {
+          console.error("Gagal membuat jadwal angsuran:", scheduleError);
+          // Don't throw, allow disbursement to succeed but log error
+        }
+      }
 
       // Print Slip
       const win = window.open('', '_blank', 'width=380,height=600');
@@ -262,7 +305,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {contracts.map(contract => (
             <div key={contract.id} style={{ 
-              background: 'linear-gradient(135deg, rgba(52,211,153,0.05) 0%, rgba(16,185,129,0.02) 100%)', 
+              background: 'linear-gradient(135deg, rgba(52,211,153,0.05) 0%, rgba(10,185,129,0.02) 100%)', 
               border: '2px solid #34d399', 
               borderRadius: '16px', 
               padding: '24px',
@@ -335,6 +378,17 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
             </div>
           ))}
         </div>
+      )}
+
+      {confirmModal && (
+        <Modal
+          isOpen={confirmModal.isOpen}
+          type="confirm"
+          title={confirmModal.title}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+        />
       )}
     </div>
   );

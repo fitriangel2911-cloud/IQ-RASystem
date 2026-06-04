@@ -4,6 +4,22 @@ import React from 'react';
 export default function ProductsPanel() {
   const products = [
     {
+      id: 'pokok',
+      category: 'Simpanan Wajib & Pokok',
+      name: 'Simpanan Pokok',
+      icon: '🏛️',
+      description: 'Kontribusi modal awal keanggotaan koperasi yang menjadi bukti keikutsertaan kepemilikan dan hak suara anggota.',
+      features: ['Hak Suara Anggota', 'Bagi Hasil SHU', 'Sesuai Prinsip Syariah']
+    },
+    {
+      id: 'wajib',
+      category: 'Simpanan Wajib & Pokok',
+      name: 'Simpanan Wajib',
+      icon: '🔄',
+      description: 'Kontribusi bulanan rutin anggota yang berfungsi memperkuat struktur permodalan koperasi untuk pembiayaan.',
+      features: ['Iuran Terjangkau', 'Pembangunan Koperasi', 'Akses Pembiayaan']
+    },
+    {
       id: 'wadiah',
       category: 'Simpanan',
       name: 'Simpanan Wadiah Yad Dhamanah',
