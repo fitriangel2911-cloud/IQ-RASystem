@@ -50,6 +50,14 @@ export default function ProductsPanel() {
       icon: '🤝',
       description: 'Kemitraan usaha produktif menggunakan akad Mudharabah atau Musyarakah. Cocok untuk UMKM yang membutuhkan ekspansi bisnis.',
       features: ['Sistem Bagi Hasil', 'Pendampingan Usaha', 'Sesuai Siklus Bisnis']
+    },
+    {
+      id: 'pembiayaan-qardhul-hasan',
+      category: 'Pembiayaan',
+      name: 'Pembiayaan Qardhul Hasan',
+      icon: '🤲',
+      description: 'Pembiayaan dana kebajikan tanpa adanya margin keuntungan tambahan. Pengembalian murni sebesar pokok pinjaman untuk membantu anggota.',
+      features: ['Tanpa Bunga/Margin', 'Berbasis Kebajikan', 'Hanya Bayar Pokok']
     }
   ];
 

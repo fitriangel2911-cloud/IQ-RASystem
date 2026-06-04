@@ -174,10 +174,8 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
                 style={inputStyle}
               >
                 <option value="murabahah">Murabahah (Jual Beli Barang)</option>
-                <option value="mudharabah">Mudharabah (Bagi Hasil Usaha)</option>
-                <option value="musyarakah">Musyarakah (Kerjasama Proyek)</option>
                 <option value="ijarah">Ijarah (Manfaat Jasa/Sewa)</option>
-                <option value="istishna">Istishna (Pesanan Barang Baru)</option>
+                <option value="mudharabah">Mudharabah (Modal Kerja / Kemitraan)</option>
                 <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
               </select>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', opacity: 0.7 }}>Petugas kami akan membantu memvalidasi akad terbaik untuk Anda.</div>
