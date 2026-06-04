@@ -167,7 +167,7 @@ export default function MemberPage() {
       }}>
         
         {/* Responsive Dashboard Topbar Header */}
-        <header className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8 md:mb-11">
+        <header className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4 md:mb-5">
           <div className="flex items-center gap-4 md:gap-6">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -212,7 +212,7 @@ export default function MemberPage() {
               <span style={{ fontSize: '13px', letterSpacing: '1px', fontWeight: 800 }}>MENU PORTAL</span>
             </button>
             <div>
-              <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '0 0 6px 0' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '0 0 4px 0' }}>
                 {activeTab === 'overview' && 'Ikhtisar Ringkasan'}
                 {activeTab === 'accounts' && 'Portofolio Rekening'}
                 {activeTab === 'transactions' && 'Log Aktivitas Finansial'}
@@ -221,7 +221,7 @@ export default function MemberPage() {
                 {activeTab === 'profile' && 'Verifikasi Kredensial Dokumen'}
                 {activeTab === 'deposits' && 'Aktivasi Keanggotaan & Pembayaran'}
               </h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, margin: 0 }}>
                 {activeTab === 'overview' && 'Status ringkasan menyeluruh rekening & transaksi syariah Anda.'}
                 {activeTab === 'accounts' && 'Rincian dan rupa saldo dari seluruh wadiah & mudharabah Anda.'}
                 {activeTab === 'transactions' && 'Catatan terperinci mutasi debit & kredit riil tanpa jeda.'}

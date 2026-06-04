@@ -115,21 +115,22 @@ export default function CustomerServicePage() {
           </button>
         )}
 
-        <div style={{ marginBottom: '50px' }}>
+        <div style={{ marginBottom: '25px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <BrandLogo size={42} fontSize="22px" textColor="var(--text-primary)" />
+            <BrandLogo size={36} fontSize="18px" textColor="var(--text-primary)" />
             <div style={{ marginRight: '45px' }}>
               <NotificationBell />
               <ThemeToggle />
             </div>
           </div>
-          <span style={{ color: 'var(--text-primary)', fontSize: '12px', display: 'block', opacity: 0.6, marginTop: '12px', fontWeight: 800, letterSpacing: '1px' }}>CUSTOMER SERVICE</span>
+          <span style={{ color: 'var(--text-primary)', fontSize: '10px', display: 'block', opacity: 0.6, marginTop: '6px', fontWeight: 800, letterSpacing: '1px' }}>CUSTOMER SERVICE</span>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
           <CSMenuButton active={activeMenu === 'onboarding'} onClick={() => setActiveMenu('onboarding')} icon="📝" label="Registrasi Anggota" />
           <CSMenuButton active={activeMenu === 'kyc'} onClick={() => setActiveMenu('kyc')} icon="📂" label="Verifikasi KYC" />
           <CSMenuButton active={activeMenu === 'members'} onClick={() => setActiveMenu('members')} icon="👥" label="Database Anggota" />
+          <CSMenuButton active={activeMenu === 'verifications'} onClick={() => setActiveMenu('verifications')} icon="💳" label="Verifikasi Pembayaran Online" />
           <CSMenuButton active={activeMenu === 'special-savings'} onClick={() => setActiveMenu('special-savings')} icon="🕌" label="Simpanan Bertujuan (Haji/Umrah)" />
           <CSMenuButton active={activeMenu === 'ai-help'} onClick={() => setActiveMenu('ai-help')} icon="💬" label="AI Sharia Assistant" />
         </nav>
@@ -161,7 +162,7 @@ export default function CustomerServicePage() {
       {/* ⚪ MAIN CONTENT */}
       <main style={{ 
         flexGrow: 1, 
-        padding: '40px 60px', 
+        padding: '20px 40px', 
         zIndex: 20, 
         overflowY: 'auto',
         height: '100vh',

@@ -29,6 +29,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   const [selectedMemberProfile, setSelectedMemberProfile] = useState<any>(null); // State detail profil anggota
   const [memberAccounts, setMemberAccounts] = useState<any[]>([]); // Rekening anggota terpilih
   const [registeredReceiptData, setRegisteredReceiptData] = useState<any>(null); // Data nota bukti cetak
+  const [verificationsList, setVerificationsList] = useState<any[]>([]); // Antrean verifikasi transfer
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [systemParams, setSystemParams] = useState<any[]>([]);
@@ -114,6 +115,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       .eq('status', 'active')
       .order('created_at', { ascending: false });
     if (activeData) setMembersList(activeData);
+
+    // Ambil antrean verifikasi deposit
+    const { data: verificationsData } = await supabase
+      .from('deposit_verifications')
+      .select('*, users!deposit_verifications_member_id_fkey(full_name, email)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (verificationsData) setVerificationsList(verificationsData);
   };
 
   useEffect(() => {
@@ -1220,6 +1229,82 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       Tidak ada data anggota untuk ditampilkan.
                     </td>
                   </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 3.5. VERIFICATIONS TAB */}
+      {activeMenu === 'verifications' && (
+        <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1.5px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
+          <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)' }}>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>💳 VERIFIKASI SETORAN ONLINE</h2>
+          </div>
+          <div style={{ padding: '24px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <th style={{ padding: '16px', textAlign: 'left', fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>ANGGOTA & REF</th>
+                  <th style={{ padding: '16px', textAlign: 'left', fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>TIPE TRANSAKSI</th>
+                  <th style={{ padding: '16px', textAlign: 'right', fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>TOTAL TRANSFER (RP)</th>
+                  <th style={{ padding: '16px', textAlign: 'center', fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>AKSI CS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {verificationsList.length > 0 ? verificationsList.map(v => (
+                  <tr key={v.id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{v.users?.full_name || 'Tanpa Nama'}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Ref: {v.reference_no}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>{new Date(v.created_at).toLocaleString('id-ID')}</div>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ background: 'rgba(218, 165, 32, 0.1)', color: 'var(--gold-intense)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 900 }}>
+                        {v.payment_type.toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <div style={{ fontWeight: 900, color: '#4ade80' }}>{v.total_paid.toLocaleString('id-ID')}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Pokok: {v.amount.toLocaleString('id-ID')} | ADM: {v.admin_fee.toLocaleString('id-ID')}</div>
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                      <button 
+                        onClick={async () => {
+                          if (confirm(`Setujui transfer sebesar Rp ${v.total_paid.toLocaleString('id-ID')} dari ${v.users?.full_name}?`)) {
+                            setLoading(true);
+                            try {
+                              const res = await fetch('/api/cs/verify-deposit', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ verificationId: v.id })
+                              });
+                              const data = await res.json();
+                              if (res.ok) {
+                                setMessage({ type: 'success', text: `Setoran berhasil disetujui! Saldo dan jurnal telah diupdate.` });
+                                fetchStats();
+                              } else {
+                                throw new Error(data.error);
+                              }
+                            } catch (err: any) {
+                              setMessage({ type: 'error', text: err.message });
+                            }
+                            setLoading(false);
+                          }
+                        }}
+                        style={{
+                          background: 'linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-intense) 100%)',
+                          color: '#02130e', border: 'none', padding: '10px 20px', borderRadius: '10px',
+                          fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 15px rgba(204, 163, 52, 0.2)'
+                        }}
+                      >
+                        ✅ Approve Transfer
+                      </button>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Tidak ada antrean verifikasi transfer online.</td></tr>
                 )}
               </tbody>
             </table>

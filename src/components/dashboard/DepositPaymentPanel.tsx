@@ -119,7 +119,7 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
 
       setMessage({
         type: 'success',
-        text: 'Pembayaran simpanan berhasil dikonfirmasi! Keanggotaan Anda telah terupdate secara otomatis.'
+        text: 'Pengajuan transfer Anda sedang diproses (PENDING). Silakan konfirmasi via WhatsApp ke CS Online.'
       });
 
       onPaymentSuccess();
@@ -385,7 +385,7 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
             <div style={{ textAlign: 'center', borderBottom: '1.5px dashed var(--border-primary)', paddingBottom: '16px' }}>
               <span style={{ fontSize: '40px' }}>📜</span>
               <h4 style={{ color: '#4ade80', margin: '8px 0 0 0', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Setoran Terkonfirmasi
+                Menunggu Verifikasi CS (Pending)
               </h4>
               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Ref: {receiptData.refNo}</span>
             </div>
@@ -414,27 +414,42 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
-              <button
-                onClick={handlePrintReceipt}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+              <a
+                href={`https://wa.me/6285713473576?text=${encodeURIComponent(`Halo Admin KSPPS IQ-RA, saya ${profile?.users?.full_name || 'Anggota'} telah melakukan transfer setoran online sebesar Rp ${receiptData.totalPaid.toLocaleString('id-ID')} dengan No. Ref: ${receiptData.refNo}. Mohon verifikasinya.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  background: '#4ade80', color: '#02130e', border: 'none',
-                  padding: '12px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  background: '#25D366', color: '#ffffff', border: 'none', textDecoration: 'none',
+                  padding: '14px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)'
                 }}
               >
-                🖨️ Cetak Struk
-              </button>
-              <button
-                onClick={() => setReceiptData(null)}
-                style={{
-                  background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)',
-                  border: '1px solid var(--border-primary)', padding: '12px', borderRadius: '10px',
-                  fontWeight: 800, cursor: 'pointer'
-                }}
-              >
-                Tutup
-              </button>
+                💬 Konfirmasi ke WA CS Online
+              </a>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <button
+                  onClick={handlePrintReceipt}
+                  style={{
+                    background: '#4ade80', color: '#02130e', border: 'none',
+                    padding: '12px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  }}
+                >
+                  🖨️ Cetak Struk
+                </button>
+                <button
+                  onClick={() => setReceiptData(null)}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)',
+                    border: '1px solid var(--border-primary)', padding: '12px', borderRadius: '10px',
+                    fontWeight: 800, cursor: 'pointer'
+                  }}
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
         ) : (
