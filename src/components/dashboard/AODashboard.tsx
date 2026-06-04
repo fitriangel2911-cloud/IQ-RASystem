@@ -65,26 +65,30 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         overdueTasks: 2 // Simulated for now
       });
 
-      // 3. Fetch Pipeline Data
+      // 3. Fetch Pipeline Data from financing_contracts directly
       const { data: prospectList } = await supabase
-        .from('prospects')
-        .select('*')
+        .from('financing_contracts')
+        .select('*, users:member_id (full_name, email)')
+        .eq('status', 'pending')
+        .eq('is_surveyed_by_ao', false)
         .order('created_at', { ascending: false });
       
       if (prospectList && prospectList.length > 0) {
         // Murni dari database Production!
-        setProspects(prospectList);
+        // Format to match UI expectations
+        const formattedList = prospectList.map((c: any) => ({
+          id: c.id,
+          member_id: c.member_id,
+          name: c.member_name || c.users?.full_name,
+          amount: c.amount,
+          purpose: c.collateral_metadata?.purpose || 'Pembiayaan Umum',
+          status: 'Menunggu Survei',
+          ai_contract_type: c.type,
+          created_at: c.created_at
+        }));
+        setProspects(formattedList);
       } else {
-        const savedProspects = localStorage.getItem('demo_prospects');
-        if (savedProspects) {
-          setProspects(JSON.parse(savedProspects));
-        } else {
-          // Fallback mock if database is still empty
-          setProspects([
-            { id: '1', name: 'Bpk. Ahmad Suherman', amount: 50000000, status: 'Survei Lapangan', created_at: new Date().toISOString() },
-            { id: '2', name: 'Ibu Fatimah Zahra', amount: 15000000, status: 'Analisis Kelayakan', created_at: new Date().toISOString() }
-          ]);
-        }
+        setProspects([]);
       }
 
       // 4. Fetch Portfolio (Members with contracts)
@@ -175,28 +179,21 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         finalPurpose = customPurpose.trim();
       }
 
+      // Instead of prospects, insert directly into financing_contracts
       let insertData: any = {
         member_id: formData.member_id || null,
-        name: formData.name,
-        phone: formData.phone,
+        member_name: formData.name,
         amount: Number(formData.amount),
-        purpose: finalPurpose,
-        status: 'Menunggu Analisis',
-        ao_id: profile.id
+        type: 'mudharabah',
+        status: 'pending',
+        collateral_metadata: { purpose: finalPurpose, phone: formData.phone }
       };
       
-      let { error } = await supabase.from('prospects').insert(insertData);
-
-      if (error && error.message.includes('Could not find')) {
-        // Retry without ao_id
-        delete insertData.ao_id;
-        const retryRes = await supabase.from('prospects').insert(insertData);
-        error = retryRes.error;
-      }
+      let { error } = await supabase.from('financing_contracts').insert(insertData);
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
+      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline (financing_contracts)!' });
       setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
       setCustomPurpose('');
       fetchAOData();
@@ -220,7 +217,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         phone: formData.phone,
         amount: Number(formData.amount),
         purpose: finalPurpose,
-        status: 'Menunggu Analisis',
+        status: 'Menunggu Survei',
         created_at: new Date().toISOString()
       };
       setProspects([newMockProspect, ...prospects]);
@@ -361,7 +358,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     setLoading(true);
     if (selectedProspect?.id && !selectedProspect.id.toString().startsWith('mock-')) {
       const supabase = createClient();
-      await supabase.from('prospects').update({ status: 'Menunggu Survei' }).eq('id', selectedProspect.id);
+      await supabase.from('financing_contracts').update({ type: aiResult?.contract?.toLowerCase() || 'mudharabah' }).eq('id', selectedProspect.id);
     }
     setTimeout(() => {
       setMessage({ type: 'success', text: `Analisis AI Selesai! Prospek ${selectedProspect?.name} diteruskan ke tahap Survei Lapangan.` });
@@ -379,7 +376,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     setSurveyLoading(true);
     if (selectedSurveyProspect?.id && !selectedSurveyProspect.id.toString().startsWith('mock-')) {
       const supabase = createClient();
-      await supabase.from('prospects').update({ status: 'Ditolak' }).eq('id', selectedSurveyProspect.id);
+      await supabase.from('financing_contracts').update({ status: 'rejected' }).eq('id', selectedSurveyProspect.id);
     }
     setTimeout(() => {
       setMessage({ type: 'error', text: `Pengajuan ${selectedSurveyProspect?.name} telah DITOLAK.` });
@@ -448,35 +445,23 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
 
         const supabase = createClient();
         
-        // 1. Update prospect status
+        // 1. Update financing_contracts with collateral and is_surveyed flag
+        const collateralData = {
+          address: surveyData.address,
+          coordinates: surveyData.coordinates,
+          income: surveyData.monthlyIncome,
+          notes: surveyData.notes,
+          photoUrl: surveyData.photoUrl
+        };
+        
         await supabase
-          .from('prospects')
-          .update({ status: 'Menunggu Approval Manajer' })
-          .eq('id', selectedSurveyProspect.id);
-
-        // 2. Insert into financing_contracts
-        const { error: contractError } = await supabase
           .from('financing_contracts')
-          .insert({
-            member_id: selectedSurveyProspect.member_id || profile.id, // Gunakan ID nasabah asli agar Teller bisa menemukannya
-            prospect_id: selectedSurveyProspect.id,
-            member_name: selectedSurveyProspect.name,
-            amount: selectedSurveyProspect.amount,
-            type: contractType,
-            status: 'pending'
-          });
-
-        // Try inserting without prospect_id if column missing
-        if (contractError && contractError.message.includes('Could not find')) {
-          await supabase
-            .from('financing_contracts')
-            .insert({
-              member_id: selectedSurveyProspect.member_id || profile.id,
-              amount: selectedSurveyProspect.amount,
-              type: contractType,
-              status: 'pending'
-            });
-        }
+          .update({ 
+            is_surveyed_by_ao: true,
+            collateral_metadata: collateralData,
+            type: contractType
+          })
+          .eq('id', selectedSurveyProspect.id);
       }
 
       setMessage({ type: 'success', text: `BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });

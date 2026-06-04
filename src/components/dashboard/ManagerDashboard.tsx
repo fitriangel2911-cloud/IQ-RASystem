@@ -307,7 +307,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                 contracts.filter(c => c.status === 'pending').map((c) => {
                   const score = getAIScore(c.id);
                   return (
-                    <div key={c.id} style={{ background: 'var(--shadow-color)', border: '1.5px solid var(--border-primary)', borderRadius: '24px', padding: '30px', display: 'grid', gridTemplateColumns: '2.5fr 1fr 1.5fr 2fr', gap: '20px', alignItems: 'center', transition: 'transform 0.2s' }}>
+                    <div key={c.id} style={{ background: 'var(--shadow-color)', border: '1.5px solid var(--border-primary)', borderRadius: '24px', padding: '30px', display: 'grid', gridTemplateColumns: '1.5fr 1fr 2fr 2fr', gap: '20px', alignItems: 'center', transition: 'transform 0.2s' }}>
                       
                       {/* 1. Member Profile */}
                       <div>
@@ -324,19 +324,40 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                         <div style={{ color: 'var(--text-primary)', fontSize: '20px', fontWeight: 900, marginTop: '4px' }}>{formatIDR.format(c.amount)}</div>
                       </div>
 
-                      {/* 3. AI Assessment RAG Result */}
-                      <div>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>Rekomendasi AI RAG</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', border: '1.5px solid var(--border-primary)' }}>
-                            🛡️ {score}%
+                      {/* 3. Laporan Paralel (AO & DPS) */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                          <span style={{ 
+                            padding: '4px 8px', borderRadius: '6px', fontWeight: 900, fontSize: '10px',
+                            background: c.is_surveyed_by_ao ? 'var(--bg-subtle-success)' : 'var(--bg-subtle-warning)',
+                            color: c.is_surveyed_by_ao ? 'var(--text-success)' : 'var(--text-warning)'
+                          }}>
+                            {c.is_surveyed_by_ao ? 'AO: SUDAH SURVEI' : 'AO: BELUM SURVEI'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px' }}>
+                          <span style={{ 
+                            padding: '4px 8px', borderRadius: '6px', fontWeight: 900, fontSize: '10px', whiteSpace: 'nowrap',
+                            background: c.is_reviewed_by_dps ? 'var(--bg-subtle-info)' : 'var(--bg-subtle-warning)',
+                            color: c.is_reviewed_by_dps ? 'var(--text-info)' : 'var(--text-warning)'
+                          }}>
+                            {c.is_reviewed_by_dps ? 'DPS: ' + (c.dps_advice?.isHalal ? 'HALAL' : 'TEMUAN') : 'DPS: MENUNGGU'}
+                          </span>
+                          {c.is_reviewed_by_dps && c.dps_advice?.opinion && (
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '11px', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              "{c.dps_advice.opinion}"
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', padding: '4px 8px', borderRadius: '8px', fontWeight: 900, fontSize: '11px', border: '1px solid var(--border-primary)' }}>
+                            🛡️ AI: {score}%
                           </div>
-                          <span style={{ color: 'var(--text-primary)', fontSize: '11px', fontWeight: 700 }}>PRIMA (PATUH)</span>
                         </div>
                       </div>
 
                       {/* 4. Manager Final Action Call */}
-                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexDirection: 'column' }}>
                         <button 
                           onClick={() => handleDecision(c, 'rejected')}
                           disabled={loading}

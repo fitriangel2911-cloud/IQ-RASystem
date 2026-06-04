@@ -123,14 +123,15 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
         setContracts(data);
         // Pre-populate auditedContractsMetadata dari database!
         const metaMap: Record<string, any> = {};
-        const auditedList = data.filter((c: any) => c.status === 'VERIFIED_HALAL' || c.status === 'ANOMALY_REVISION');
+        const auditedList = data.filter((c: any) => c.is_reviewed_by_dps === true || c.status === 'VERIFIED_HALAL' || c.status === 'ANOMALY_REVISION');
         
         auditedList.forEach((c: any) => {
           metaMap[c.id] = {
             complianceScore: c.audit_metadata?.complianceScore ?? (c.status === 'VERIFIED_HALAL' ? 100 : 50),
-            opinion: c.audit_metadata?.opinion ?? 'Tervalidasi di database.',
-            decision: c.status === 'VERIFIED_HALAL' ? 'TERVERIFIKASI SYARIAH (HALAL)' : 'TEMUAN ANOMALI (PERLU REVISI)',
-            date: c.audit_metadata?.auditedAt ?? c.created_at
+            opinion: c.dps_advice?.opinion || c.audit_metadata?.opinion || 'Telah direviu oleh DPS.',
+            decision: c.dps_advice?.isHalal ? 'TERVERIFIKASI SYARIAH (HALAL)' : (c.dps_advice ? 'Saran Diberikan' : (c.status === 'VERIFIED_HALAL' ? 'TERVERIFIKASI SYARIAH (HALAL)' : 'TEMUAN ANOMALI (PERLU REVISI)')),
+            date: c.dps_advice?.auditedAt || c.audit_metadata?.auditedAt || c.created_at,
+            checklist: c.dps_advice?.checklist || c.audit_metadata?.checklist || null
           };
         });
         setAuditedContractsMetadata(metaMap);
@@ -329,7 +330,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
     }
   };
 
-  // Submit Audit Sampling decision (Persetujuan Halal)
+  // Submit Audit Sampling decision (Persetujuan Halal / Saran)
   const handleAuditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeAuditContract) return;
@@ -341,17 +342,17 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             (auditChecklist.bebasRiba ? 25 : 0);
 
     const isHalal = complianceScore === 100;
-    const finalDecision = isHalal ? 'VERIFIED_HALAL' : 'ANOMALY_REVISION';
     const finalOpinion = auditOpinion || (isHalal ? 'Dokumen akad tervalidasi memenuhi seluruh rukun syariah.' : 'Ditemukan ketidaksesuaian rukun akad.');
 
     const supabase = createClient();
     try {
-      // 1. Update status dan audit_metadata di database Supabase!
+      // 1. Update is_reviewed_by_dps dan dps_advice di database Supabase tanpa mengubah status!
       const { error } = await supabase
         .from('financing_contracts')
         .update({
-          status: finalDecision,
-          audit_metadata: {
+          is_reviewed_by_dps: true,
+          dps_advice: {
+            isHalal,
             complianceScore,
             opinion: finalOpinion,
             checklist: auditChecklist,
@@ -366,7 +367,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       // 2. Trigger dynamic stats recalculation from database!
       await fetchContracts();
 
-      setAuditSuccessMsg(`Audit kontrak ${activeAuditContract.users?.full_name} berhasil disimpan ke database! Skor Kepatuhan: ${complianceScore}%`);
+      setAuditSuccessMsg(`Saran DPS untuk kontrak ${activeAuditContract.users?.full_name} berhasil dikirim ke Manajer! Skor Kepatuhan: ${complianceScore}%`);
       
       setTimeout(() => {
         setAuditSuccessMsg('');
@@ -386,7 +387,6 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
     if (!activeAuditContract) return;
 
     setLoadingContracts(true);
-    const finalDecision = 'ANOMALY_REVISION';
     const finalOpinion = auditOpinion || 'Ditemukan ketidaksesuaian rukun akad setelah direviu secara detail oleh DPS.';
 
     const supabase = createClient();
@@ -395,8 +395,9 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       const { error } = await supabase
         .from('financing_contracts')
         .update({
-          status: finalDecision,
-          audit_metadata: {
+          is_reviewed_by_dps: true,
+          dps_advice: {
+            isHalal: false,
             complianceScore: 50,
             opinion: finalOpinion,
             checklist: auditChecklist,
@@ -411,7 +412,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
       // 2. Trigger dynamic stats recalculation from database!
       await fetchContracts();
 
-      setAuditSuccessMsg(`Kontrak ${activeAuditContract.users?.full_name} berhasil ditandai sebagai Temuan (Perlu Revisi)!`);
+      setAuditSuccessMsg(`Kontrak ${activeAuditContract.users?.full_name} berhasil ditandai sebagai Temuan dan diteruskan ke Manajer!`);
       
       setTimeout(() => {
         setAuditSuccessMsg('');
@@ -853,10 +854,10 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
 
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <button type="submit" style={{ flex: 1, padding: '16px', background: 'var(--text-success)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
-                      SAHKAN KEPATUHAN SYARIAH (HALAL)
+                      KIRIM SARAN KE MANAJER (HALAL)
                     </button>
                     <button type="button" onClick={handleAuditReject} style={{ padding: '16px', background: 'var(--bg-subtle-danger)', color: 'var(--text-danger)', border: '1.5px solid var(--text-danger)', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
-                      Tolak / Temuan
+                      Beri Catatan Temuan
                     </button>
                   </div>
                 </form>

@@ -64,6 +64,16 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
   const [specialSavingsType, setSpecialSavingsType] = useState('haji');
   const [specialInitialDeposit, setSpecialInitialDeposit] = useState('500000');
 
+  // Financing Form State
+  const [financingData, setFinancingData] = useState({
+    member_id: '',
+    name: '',
+    phone: '',
+    amount: '',
+    purpose: '',
+    type: 'murabahah'
+  });
+
   // AI Sharia Assistant Chat States
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<any[]>([
@@ -1519,7 +1529,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 >
                   <option value="">-- Pilih Anggota Terdaftar --</option>
                   {membersList.map(m => (
-                    <option key={m.id} value={m.id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
+                    <option key={m.user_id || m.id} value={m.user_id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
                   ))}
                 </select>
               </div>
@@ -1582,22 +1592,40 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           </div>
           <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            <form onSubmit={(e) => { e.preventDefault(); alert('Pengajuan Pembiayaan Offline Berhasil Disubmit ke Account Officer!'); }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <form onSubmit={(e) => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
               {/* Member Selection & Basic Info */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Pilih Anggota Nasabah</label>
-                  <select required style={inputStyle}>
+                  <select 
+                    required 
+                    style={inputStyle}
+                    value={financingData.member_id}
+                    onChange={(e) => {
+                      const selected = membersList.find(m => m.user_id === e.target.value);
+                      setFinancingData({ 
+                        ...financingData, 
+                        member_id: e.target.value, 
+                        name: selected?.users?.full_name || selected?.mother_name || '',
+                        phone: selected?.phone_number || ''
+                      });
+                    }}
+                  >
                     <option value="">-- Cari Nama / NIK Anggota --</option>
                     {membersList.map(m => (
-                      <option key={m.id} value={m.id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
+                      <option key={m.user_id || m.id} value={m.user_id}>{m.nik} - {m.users?.full_name || m.mother_name}</option>
                     ))}
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Pilih Akad Syariah</label>
-                  <select required style={inputStyle}>
+                  <select 
+                    required 
+                    style={inputStyle}
+                    value={financingData.type}
+                    onChange={(e) => setFinancingData({...financingData, type: e.target.value})}
+                  >
                     <option value="murabahah">Murabahah (Jual Beli Barang)</option>
                     <option value="ijarah">Ijarah (Manfaat Jasa/Sewa)</option>
                     <option value="mudharabah">Mudharabah (Modal Kerja / Kemitraan)</option>
@@ -1606,7 +1634,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
-                  <input type="number" required style={inputStyle} placeholder="Contoh: 10000000" />
+                  <input 
+                    type="number" 
+                    required 
+                    style={inputStyle} 
+                    placeholder="Contoh: 10000000" 
+                    value={financingData.amount}
+                    onChange={(e) => setFinancingData({...financingData, amount: e.target.value})}
+                  />
                 </div>
               </div>
 
@@ -1617,7 +1652,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Tujuan Penggunaan Dana (FPP)</label>
-                    <input type="text" style={inputStyle} placeholder="Contoh: Modal usaha warung sembako..." required />
+                    <input 
+                      type="text" 
+                      style={inputStyle} 
+                      placeholder="Contoh: Modal usaha warung sembako..." 
+                      required 
+                      value={financingData.purpose}
+                      onChange={(e) => setFinancingData({...financingData, purpose: e.target.value})}
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Detail Usaha / Pekerjaan Saat Ini (FPP)</label>
@@ -1699,10 +1741,39 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               {/* Submit Button */}
               <button 
                 type="button" 
-                onClick={() => setConfirmModal({ title: 'Submit Pengajuan Pembiayaan?', message: 'Apakah Anda yakin dokumen fisik nasabah sudah lengkap dan sesuai dengan aslinya? Pengajuan ini akan diteruskan ke Account Officer.', onConfirm: () => {
-                  setConfirmModal(null);
-                  setMessage({ type: 'success', text: 'Bundel pengajuan pembiayaan telah diteruskan ke Account Officer.' });
-                } })}
+                onClick={() => {
+                  if (!financingData.member_id || !financingData.amount || !financingData.purpose) {
+                    setMessage({ type: 'error', text: 'Mohon lengkapi data anggota, nominal, dan tujuan pembiayaan terlebih dahulu.' });
+                    return;
+                  }
+                  
+                  setConfirmModal({ 
+                    title: 'Submit Pengajuan Pembiayaan?', 
+                    message: 'Apakah Anda yakin dokumen fisik nasabah sudah lengkap dan sesuai dengan aslinya? Pengajuan ini akan diteruskan secara paralel ke Account Officer (AO) dan Dewan Pengawas Syariah (DPS).', 
+                    onConfirm: async () => {
+                      setConfirmModal(null);
+                      setLoading(true);
+                      try {
+                        const response = await fetch('/api/cs/submit-financing', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(financingData)
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                          setMessage({ type: 'success', text: data.message });
+                          setFinancingData({ member_id: '', name: '', phone: '', amount: '', purpose: '', type: 'murabahah' });
+                        } else {
+                          setMessage({ type: 'error', text: data.error || 'Terjadi kesalahan.' });
+                        }
+                      } catch (e: any) {
+                        setMessage({ type: 'error', text: 'Gagal terhubung ke server.' });
+                      } finally {
+                        setLoading(false);
+                      }
+                    } 
+                  });
+                }}
                 style={{
                   width: '100%',
                   background: 'var(--text-primary)',
