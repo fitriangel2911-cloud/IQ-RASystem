@@ -2,7 +2,7 @@
 
 Dokumen ini berisi standar teknis, konvensi, dan alur kerja (*workflow*) yang wajib diikuti oleh seluruh pengembang yang berkontribusi dalam repositori IQ-RA System.
 
-**Versi:** 1.2 | **Diperbarui:** 24 Mei 2026
+**Versi:** 1.3 | **Diperbarui:** 4 Juni 2026
 
 ---
 
@@ -86,6 +86,7 @@ Panel navigasi di `src/app/teller/page.tsx`:
 | `withdrawal` | Penarikan Tunai | `[4]` |
 | `payment` | Pembayaran Angsuran | `[5]` |
 | `shift` | Buka / Tutup Shift | `[6]` |
+| `disbursement` | Pencairan Dana (Disbursement) | *(akses via menu)* |
 
 **State yang di-share antar panel** (disimpan di `page.tsx`):
 - `selectedMember` — anggota yang sedang aktif dilayani

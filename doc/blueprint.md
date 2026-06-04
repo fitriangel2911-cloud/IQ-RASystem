@@ -1,7 +1,7 @@
 # Cetak Biru Sistem (Blueprint): IQ-RA System
 **Platform Keuangan Mikro Syariah Terintegrasi AI — RAG & SAK EP**
 
-**Versi:** 1.5 | **Diperbarui:** 2 Juni 2026
+**Versi:** 1.6 | **Diperbarui:** 4 Juni 2026 | **Kemajuan MVP:** ~87%
 
 4.2. Siklus Penerimaan Kas (Revenue Cycle)
 Mencakup mekanisme arus kas masuk. Sistem secara otomatis mencatat penerimaan simpanan sukarela (Wadiah Yad Dhamanah) serta merekam angsuran dari produk-produk pembiayaan anggota dengan sistem penjurnalan yang akurat.
@@ -74,7 +74,7 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 
 ### 4.2. Layanan Kasir / Teller — 6 UI Utama
 
-> Status: **✅ Selesai (Sprint 29 Mei 2026)** — 6 panel lengkap dengan keyboard shortcut [1]–[6], shared state selectedMember, cetak struk, pop-up otorisasi supervisor, kalkulator denominasi, dan form buka/tutup shift.
+> Status: **✅ Selesai** — 7 panel lengkap (Panel 7 Disbursement ditambahkan). Keyboard shortcut [1]–[6], shared state selectedMember, cetak struk, pop-up otorisasi supervisor, kalkulator denominasi, form buka/tutup shift, dan pencairan dana (Disbursement) dengan dual-ledger routing otomatis.
 
 #### Panel 1 — 🏠 Status Shift & Dasbor (Home)
 - Badge SHIFT AKTIF / TUTUP + jam mulai.
@@ -111,6 +111,13 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 - Form **rekonsiliasi akhir**: saldo sistem vs hitung fisik.
 - Kolom wajib **Keterangan Selisih** jika terjadi perbedaan.
 - Log shift hari ini.
+
+#### Panel 7 — 💳 Pencairan Dana (Disbursement)
+- Daftar kontrak pembiayaan yang disetujui Manager, siap cair.
+- Pilihan metode pencairan: **Tunai** (kredit Kas `101.01`) atau **Transfer ke Rekening Wadiah** (kredit Simpanan `201.01`).
+- **On-the-fly Account Creator:** Jika anggota belum memiliki rekening Wadiah, sistem membuatnya otomatis di background saat Teller memilih metode Transfer.
+- Double-entry otomatis: Debit akun piutang sesuai jenis akad (Murabahah, Mudharabah, dll), Kredit sesuai metode pencairan.
+- Cetak slip pencairan resmi.
 
 ### 4.3. Siklus Penerimaan Kas (Revenue Cycle)
 - Simpanan Wadiah Yad Dhamanah.
@@ -209,12 +216,14 @@ Onboarding terintegrasi anggota baru melalui formulir 4-bagian:
 | Fase | Lingkup | Status |
 |---|---|---|
 | **Fase I** | Setup Next.js, Supabase, RLS, SonarCloud | ✅ Selesai |
-| **Fase II** | Core Banking: 6 UI Teller, CS, Accounting, COA | ✅ Selesai |
+| **Fase II** | Core Banking: 7 UI Teller (+ Disbursement), CS, Accounting, COA | ✅ Selesai |
 | **Fase III** | LangChain.js RAG, pgvector ingesti riil, 6 Panel DPS, Standardisasi UI/UX | ✅ Selesai |
-| **Fase IV** | UAT, Blackbox Testing, Training, Go-Live ke Vercel | 🟡 Aktif |
-| **Fase V** | Integrasi Flip API, PPOB, Mobile Gateway, Push Notification | ⏳ Menunggu |
+| **Fase IV** | UAT, RLS Audit, Notifikasi UI, CKPN NPL, Domain Produksi, Data Migration | 🟡 Aktif (~87% MVP) |
+| **Fase V** | Integrasi Flip API, PPOB, Mobile Gateway, Push Notification, Simpanan Haji/Umrah | ⏳ Menunggu |
 
-**Sprint Aktif:** Persiapan UAT, Final RLS Audit, dan Deployment ke Vercel (Fase IV).
+**Sprint Aktif:** RLS Audit Menyeluruh, UAT Formal bersama staf KSPPS, Implementasi Notifikasi UI, Auto-Provisioning CKPN, dan Setup Domain Produksi (Fase IV).
+
+> **Lihat:** `BACKLOG.md` untuk daftar lengkap 9 item gap yang harus diselesaikan sebelum Go-Live.
 
 ---
 

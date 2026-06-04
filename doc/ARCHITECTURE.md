@@ -2,7 +2,7 @@
 
 Dokumen ini menguraikan arsitektur tingkat tinggi dari IQ-RA System.
 
-**Versi:** 1.4 | **Diperbarui:** 2 Juni 2026
+**Versi:** 1.5 | **Diperbarui:** 4 Juni 2026 | **Kemajuan MVP:** ~87%
 
 ---
 
@@ -152,10 +152,12 @@ graph LR
     Sidebar -->|[4]| P4[Penarikan Tunai]
     Sidebar -->|[5]| P5[Angsuran]
     Sidebar -->|[6]| P6[Buka/Tutup Shift]
+    Sidebar -->|[7]| P7[Pencairan Dana]
 
     P2 -.->|shared state selectedMember| P3
     P2 -.->|shared state selectedMember| P4
     P2 -.->|shared state selectedMember| P5
+    P2 -.->|shared state selectedMember| P7
 ```
 
 ---

@@ -1,7 +1,7 @@
 Product Requirements Document (PRD)
 Nama Produk: IQ-RA System (Platform Keuangan Mikro Syariah Terintegrasi AI)
-Versi: 1.3
-Tanggal Dokumen: 2 Juni 2026
+Versi: 1.4
+Tanggal Dokumen: 4 Juni 2026
 1. Ringkasan Eksekutif (Executive Summary)
 IQ-RA System adalah platform perangkat lunak komprehensif berbasis web dan mobile yang dirancang khusus untuk Koperasi Simpan Pinjam Syariah (KSPS). Sistem ini bertujuan untuk mentransformasi operasional koperasi dari sistem legacy (pihak ketiga) menuju ekosistem digital mandiri yang adaptif, stabil, transparan, dan sesuai syariah.
 Nilai jual utama (USPs) dari IQ-RA System adalah integrasi Retrieval-Augmented Generation (RAG) sebagai Smart Decision Support System untuk merekomendasikan kesesuaian akad pembiayaan, serta arsitektur akuntansi bawaan yang secara native mematuhi SAK EP dan regulasi PSAK Syariah terbaru (401-407).
@@ -123,6 +123,7 @@ Formulir pendaftaran premium 4 bagian:
 | 4 | **💸 Penarikan Tunai** | Saldo tersedia vs mengendap, verifikasi PIN/Catatan, Pop-up Otorisasi Supervisor (> Rp 5.000.000) | ✅ Selesai |
 | 5 | **🧾 Pembayaran Angsuran** | Daftar kontrak aktif, rincian tagihan (Pokok/Jasa/Denda), opsi bayar (Sesuai/Sebagian/Uang Muka) | ✅ Selesai |
 | 6 | **🔑 Buka / Tutup Shift** | Form Cash-In awal, rekonsiliasi akhir (sistem vs fisik), kolom Keterangan Selisih, log shift harian | ✅ Selesai |
+| 7 | **💳 Pencairan Dana (Disbursement)** | Daftar kontrak siap cair, metode pencairan (Tunai/Transfer), On-the-fly Account Creator, dual-ledger routing otomatis | ✅ Selesai |
 
 ### 4.3. Modul Akuntansi SAK EP & PSAK
 - Double-entry bookkeeping otomatis dari setiap transaksi Teller.
@@ -172,10 +173,12 @@ Pusat kendali tata kelola TI untuk memastikan stabilitas dan keamanan platform:
 | **Fase 1** — Fondasi & Migrasi | Setup Next.js, Supabase, RLS, SonarCloud, migrasi data awal | ✅ Selesai |
 | **Fase 2** — Core Banking & Akuntansi | Modul Teller (6 UI), CS, Accounting, COA SAK EP | ✅ Selesai |
 | **Fase 3** — RAG AI, DPS & Standarisasi | Ingesti fatwa DSN-MUI ke pgvector, LangChain, 6 Panel DPS, Standarisasi UI/UX Tema | ✅ Selesai |
-| **Fase 4** — Testing, UAT & Go-Live | UAT, Blackbox testing (menggunakan COA seeded), RLS Audit, Deploy ke Vercel | 🟡 Aktif |
-| **Fase 5** — Integrasi & Mobile | Payment Gateway (Flip API), PPOB, IQ-RA Mobile Gateway, Push Notification | ⏳ Menunggu |
+| **Fase 4** — Testing, UAT & Go-Live | UAT formal, Blackbox testing, RLS Audit, Notifikasi UI, CKPN NPL, Domain Produksi, Data Migration | 🟡 Aktif (~87% MVP) |
+| **Fase 5** — Integrasi & Mobile | Payment Gateway (Flip API), PPOB, IQ-RA Mobile Gateway, Push Notification, Simpanan Haji/Umrah | ⏳ Menunggu |
 
-**Sprint Aktif:** Pelaksanaan User Acceptance Testing (UAT), Blackbox Testing, dan Persiapan Deployment Produksi (Fase 4).
+**Sprint Aktif:** RLS Audit Menyeluruh, UAT Formal bersama staf KSPPS, Implementasi Notifikasi UI, Auto-Provisioning CKPN, dan Setup Domain Produksi (Fase 4).
+
+> **Lihat:** `BACKLOG.md` untuk daftar lengkap 9 item gap yang harus diselesaikan sebelum Go-Live.
 
 > File utama yang harus diperhatikan: `src/components/dashboard/DPSDashboard.tsx`, `src/app/globals.css`, `src/app/api/ai/audit-contract/route.ts`
 
