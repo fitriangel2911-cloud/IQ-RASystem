@@ -115,8 +115,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       boxShadow: isOpen ? '0 20px 60px var(--shadow-color)' : 'none',
       flexShrink: 0,
       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-      overflowY: 'auto',
-      overflowX: 'hidden'
+      overflow: 'hidden'
     }}>
       {/* Brand & Close Toggle Container */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', marginTop: '10px' }}>
@@ -206,7 +205,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       </div>
 
       {/* Navigation */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1, overflowY: 'auto', overflowX: 'hidden', paddingRight: '5px', paddingBottom: '20px' }}>
         {menuItems.map(item => {
           const isActive = activeTab === item.id;
           const isHovered = hoveredTab === item.id;

@@ -160,7 +160,7 @@ export default function MemberPage() {
       <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
 
       {/* 2. MAIN SCROLLABLE CONTENT AREA */}
-      <main className={`main-content-layout flex-grow h-[calc(100vh-20px)] md:h-[calc(100vh-40px)] m-2 md:m-5 p-5 md:p-12 rounded-[20px] md:rounded-[30px] overflow-y-auto relative z-10 shadow-2xl transition-all duration-500 ${isSidebarOpen ? 'ml-2 md:ml-[280px]' : 'ml-2 md:ml-[20px]'}`} style={{
+      <main className={`main-content-layout flex-grow flex flex-col h-[calc(100vh-20px)] md:h-[calc(100vh-40px)] m-2 md:m-5 p-5 md:p-12 rounded-[20px] md:rounded-[30px] overflow-hidden relative z-10 shadow-2xl transition-all duration-500 ${isSidebarOpen ? 'ml-2 md:ml-[280px]' : 'ml-2 md:ml-[20px]'}`} style={{
         background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
         backdropFilter: 'blur(20px)',
         border: '1px solid var(--border-primary)',
@@ -326,7 +326,7 @@ export default function MemberPage() {
         </header>
 
         {/* TAB CONTENT SWITCHER */}
-        <div style={{ animation: 'fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+        <div style={{ flexGrow: 1, overflowY: 'auto', overflowX: 'hidden', paddingRight: '10px', paddingBottom: '20px', animation: 'fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
           {activeTab === 'overview' && (
             <OverviewPanel 
               profile={profile}
