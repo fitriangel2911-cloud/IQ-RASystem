@@ -16,13 +16,16 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can read their own notifications
+DROP POLICY IF EXISTS "Users can read own notifications" ON public.notifications;
 CREATE POLICY "Users can read own notifications" ON public.notifications
     FOR SELECT TO authenticated USING (user_id = auth.uid());
 
 -- Policy: Users can insert their own notifications (system use)
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
 CREATE POLICY "System can insert notifications" ON public.notifications
     FOR INSERT TO authenticated WITH CHECK (true);
 
 -- Policy: Users can update read status of their notifications
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
 CREATE POLICY "Users can update own notifications" ON public.notifications
     FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());

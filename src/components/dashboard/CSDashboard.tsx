@@ -3,6 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
+const inputStyle = {
+  width: '100%',
+  background: 'var(--bg-page)',
+  border: '2px solid var(--border-primary)',
+  borderRadius: '12px',
+  padding: '14px 16px',
+  color: 'var(--text-primary)',
+  fontSize: '15px',
+  fontWeight: 600,
+  outline: 'none',
+  transition: 'border 0.2s'
+};
+
 interface CSDashboardProps {
   activeMenu: string;
   profile: any;
@@ -1135,32 +1148,70 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                       <div style={{ color: 'var(--text-primary)', fontSize: '13px' }}>Rp {item.monthly_income?.toLocaleString('id-ID')}</div>
                     </td>
                     <td style={{ padding: '20px', textAlign: 'center' }}>
-                      <span style={{ 
-                        padding: '6px 16px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
-                        background: 'var(--text-primary)',
-                        color: 'var(--bg-page)'
-                      }}>
-                        {item.status.toUpperCase()}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ 
+                          padding: '6px 16px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
+                          background: 'var(--text-primary)',
+                          color: 'var(--bg-page)'
+                        }}>
+                          {item.status.toUpperCase()}
+                        </span>
+                        {item.is_blacklisted && (
+                          <span style={{ 
+                            padding: '4px 10px', borderRadius: '6px', fontSize: '10px', fontWeight: 900,
+                            background: '#ef4444', color: '#ffffff'
+                          }}>
+                            🚫 BLACKLISTED
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td style={{ padding: '20px', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => setSelectedMemberProfile(item)}
-                        style={{
-                          background: 'rgba(218, 165, 32, 0.1)',
-                          border: '1.5px solid var(--gold-intense)',
-                          color: 'var(--text-primary)',
-                          padding: '8px 16px',
-                          borderRadius: '10px',
-                          fontSize: '12px',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        Lihat Profil
-                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <button 
+                          onClick={async () => {
+                            if (confirm(`Apakah Anda yakin ingin mengubah status blacklist anggota ${item.users?.full_name || item.id_number}?`)) {
+                              const supabase = createClient();
+                              const { error } = await supabase.from('members').update({ is_blacklisted: !item.is_blacklisted }).eq('id', item.id);
+                              if (!error) {
+                                fetchStats(); // Refresh data
+                                setMessage({ type: 'success', text: `Status blacklist berhasil diubah untuk ${item.id_number}.` });
+                              }
+                            }
+                          }}
+                          style={{
+                            background: item.is_blacklisted ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${item.is_blacklisted ? '#ef4444' : 'var(--border-primary)'}`,
+                            color: item.is_blacklisted ? '#ef4444' : 'var(--text-secondary)',
+                            padding: '8px 12px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          title={item.is_blacklisted ? "Hapus dari Blacklist" : "Tandai Blacklist (PI Checking)"}
+                        >
+                          {item.is_blacklisted ? 'Whitelist' : 'Blacklist'}
+                        </button>
+                        <button 
+                          onClick={() => setSelectedMemberProfile(item)}
+                          style={{
+                            background: 'rgba(218, 165, 32, 0.1)',
+                            border: '1.5px solid var(--gold-intense)',
+                            color: 'var(--text-primary)',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          Lihat Profil
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )) : (
@@ -1176,7 +1227,64 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
         </div>
       )}
 
-      {/* 4. AI HELP TAB */}
+      {/* 4. SPECIAL SAVINGS TAB */}
+      {activeMenu === 'special-savings' && (
+        <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(20px)', borderRadius: '32px', overflow: 'hidden', border: '1.5px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
+          <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)' }}>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>🕌 BUKA REKENING SIMPANAN BERTUJUAN</h2>
+          </div>
+          <div style={{ padding: '36px' }}>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setMessage({ type: 'success', text: 'Permintaan pembukaan rekening simpanan Haji/Umrah berhasil disubmit untuk diproses!' });
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>PILIH ANGGOTA / MEMBER ID</label>
+                <select required style={inputStyle}>
+                  <option value="">-- Pilih Anggota Terdaftar --</option>
+                  {membersList.map(m => (
+                    <option key={m.id} value={m.id}>{m.id_number} - {m.users?.full_name || m.mother_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>TIPE SIMPANAN KHUSUS</label>
+                  <select required style={inputStyle}>
+                    <option value="haji">Simpanan Haji Khusus (Mudharabah Mutlaqah)</option>
+                    <option value="umrah">Simpanan Umrah (Mudharabah Mutlaqah)</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>SETORAN AWAL (RP)</label>
+                  <input type="number" required placeholder="Minimal Rp 500.000" min="500000" style={inputStyle} />
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(204, 163, 52, 0.1)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                <h4 style={{ color: 'var(--gold-intense)', margin: '0 0 10px 0', fontSize: '14px', fontWeight: 800 }}>📝 Ketentuan Akad Mudharabah</h4>
+                <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.6 }}>
+                  <li>Rekening khusus Haji/Umrah menggunakan prinsip Mudharabah Mutlaqah.</li>
+                  <li>Dana tidak dapat ditarik sewaktu-waktu kecuali untuk pelunasan biaya perjalanan.</li>
+                  <li>Nisbah bagi hasil ditentukan di akhir bulan melalui modul EOM Accounting.</li>
+                </ul>
+              </div>
+
+              <button type="submit" style={{
+                padding: '16px', background: 'linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-intense) 100%)',
+                color: '#02130e', border: 'none', borderRadius: '16px', fontWeight: 900, fontSize: '15px',
+                cursor: 'pointer', boxShadow: '0 8px 25px rgba(204, 163, 52, 0.3)', marginTop: '10px'
+              }}>
+                ✅ Buka Rekening Simpanan Bertujuan
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. AI HELP TAB */}
       {activeMenu === 'ai-help' && (
         <div style={{ height: '70vh', background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '32px', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-primary)', boxShadow: '0 40px 80px var(--shadow-color)' }}>
           <div style={{ padding: '24px 40px', background: 'var(--bg-header)', borderBottom: '1px solid var(--border-primary)' }}>

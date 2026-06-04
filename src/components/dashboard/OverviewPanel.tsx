@@ -151,6 +151,39 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
             </div>
           )}
 
+          {/* Membership Deposit Alert if incomplete */}
+          {isProfileComplete && (!profile?.paid_principal_deposit || !profile?.paid_mandatory_deposit) && (
+            <div style={{
+              background: 'rgba(243, 198, 83, 0.1)',
+              border: '2px solid var(--gold-bright)',
+              borderRadius: '20px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: '0 15px 30px var(--shadow-color)'
+            }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ fontSize: '24px' }}>🪙</span>
+                <span style={{ fontWeight: 900, color: 'var(--gold-bright)', fontSize: '16px' }}>Setoran Awal Belum Lunas</span>
+              </div>
+              <p style={{ color: 'var(--text-primary)', fontSize: '13px', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                Untuk mengaktifkan keanggotaan penuh, Anda diwajibkan menyetor Simpanan Pokok (diawal) dan Simpanan Wajib (perbulan) secara online.
+              </p>
+              <button
+                onClick={() => setActiveTab('deposits')}
+                style={{
+                  background: 'var(--gold-gradient)', color: '#02130e', border: 'none',
+                  padding: '12px 18px', borderRadius: '12px', fontWeight: 900, fontSize: '13px',
+                  cursor: 'pointer', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+                  marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                }}
+              >
+                💳 Bayar Simpanan Online
+              </button>
+            </div>
+          )}
+
           {/* System Tips */}
           <div style={{
             background: 'var(--bg-card)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',

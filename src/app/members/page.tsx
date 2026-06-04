@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { useMemberDashboardData } from '@/hooks/useMemberDashboardData';
 import Sidebar from '@/components/dashboard/Sidebar';
 import OverviewPanel from '@/components/dashboard/OverviewPanel';
@@ -9,17 +11,42 @@ import TransactionsTable from '@/components/dashboard/TransactionsTable';
 import FinancingPanel from '@/components/dashboard/FinancingPanel';
 import ProfileForm from '@/components/dashboard/ProfileForm';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import NotificationBell from '@/components/dashboard/NotificationBell';
 import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import { useTheme } from '@/context/ThemeContext';
 import AIChatbot from '@/components/dashboard/AIChatbot';
+import Modal from '@/components/dashboard/Modal';
+import ProductsPanel from '@/components/dashboard/ProductsPanel';
+import DepositPaymentPanel from '@/components/dashboard/DepositPaymentPanel';
 
-type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile';
+type TabType = 'overview' | 'accounts' | 'transactions' | 'financing' | 'profile' | 'products' | 'deposits';
 
 export default function MemberPage() {
   const { profile, accounts, transactions, contracts, loading, error, refetch } = useMemberDashboardData();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<any>(null);
   const { theme } = useTheme();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    setIsProfileMenuOpen(false);
+    setModalConfig({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Keluar Sesi',
+      message: 'Apakah Anda yakin ingin keluar dari portal anggota IQ-RA?',
+      confirmText: 'Ya, Keluar',
+      onConfirm: async () => {
+        setModalConfig(null);
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/');
+      },
+      onCancel: () => setModalConfig(null)
+    });
+  };
 
   // Deteksi layar HP dan tutup sidebar secara otomatis
   useEffect(() => {
@@ -133,7 +160,7 @@ export default function MemberPage() {
       <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)} />
 
       {/* 2. MAIN SCROLLABLE CONTENT AREA */}
-      <main className={`main-content-layout flex-grow h-[calc(100vh-20px)] md:h-[calc(100vh-40px)] m-2 md:m-5 p-5 md:p-12 rounded-[20px] md:rounded-[30px] overflow-y-auto relative z-10 shadow-2xl transition-all duration-500 ${isSidebarOpen ? 'ml-2 md:ml-[340px]' : 'ml-2 md:ml-[20px]'}`} style={{
+      <main className={`main-content-layout flex-grow h-[calc(100vh-20px)] md:h-[calc(100vh-40px)] m-2 md:m-5 p-5 md:p-12 rounded-[20px] md:rounded-[30px] overflow-y-auto relative z-10 shadow-2xl transition-all duration-500 ${isSidebarOpen ? 'ml-2 md:ml-[280px]' : 'ml-2 md:ml-[20px]'}`} style={{
         background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
         backdropFilter: 'blur(20px)',
         border: '1px solid var(--border-primary)',
@@ -189,43 +216,111 @@ export default function MemberPage() {
                 {activeTab === 'overview' && 'Ikhtisar Ringkasan'}
                 {activeTab === 'accounts' && 'Portofolio Rekening'}
                 {activeTab === 'transactions' && 'Log Aktivitas Finansial'}
+                {activeTab === 'products' && 'Katalog Produk & Layanan'}
                 {activeTab === 'financing' && 'Layanan Pembiayaan'}
                 {activeTab === 'profile' && 'Verifikasi Kredensial Dokumen'}
+                {activeTab === 'deposits' && 'Aktivasi Keanggotaan & Pembayaran'}
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, margin: 0 }}>
                 {activeTab === 'overview' && 'Status ringkasan menyeluruh rekening & transaksi syariah Anda.'}
                 {activeTab === 'accounts' && 'Rincian dan rupa saldo dari seluruh wadiah & mudharabah Anda.'}
                 {activeTab === 'transactions' && 'Catatan terperinci mutasi debit & kredit riil tanpa jeda.'}
+                {activeTab === 'products' && 'Temukan solusi keuangan syariah terbaik untuk kebutuhan Anda.'}
                 {activeTab === 'financing' && 'Pengajuan kemitraan produktif & pemantauan akad aktif Anda.'}
                 {activeTab === 'profile' && 'Lengkapi dokumen KYC fisik untuk kelayakan penjaminan syariah.'}
+                {activeTab === 'deposits' && 'Penyelesaian simpanan pokok/wajib secara online tanpa harus ke kantor.'}
               </p>
             </div>
           </div>
 
-          {/* Dynamic Theme Switcher & Auto-Refresh Badge */}
+          {/* Dynamic Theme Switcher & Profile Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <ThemeToggle />
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <NotificationBell />
+              <ThemeToggle />
+            </div>
             
-            <div style={{
-              background: 'var(--bg-card)',
-              backdropFilter: 'blur(8px)',
-              border: '1.5px solid var(--border-primary)',
-              borderRadius: '30px',
-              padding: '8px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '12px',
-              fontWeight: 800,
-              color: 'var(--text-primary)',
-              boxShadow: '0 4px 12px var(--shadow-color)',
-              transition: 'all 0.3s ease'
-            }}>
-              <div style={{
-                width: '8px', height: '8px', borderRadius: '50%',
-                background: '#10b981', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #10b981'
-              }} />
-              <span>SINKRONISASI AKTIF (60d)</span>
+            <div style={{ position: 'relative', zIndex: 999 }}>
+              <button 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                style={{
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg-page)',
+                  border: '2px solid var(--border-primary)',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px var(--shadow-color)',
+                  transition: 'all 0.2s ease',
+                  padding: 0,
+                  position: 'relative',
+                  zIndex: 1000
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  profile?.users?.full_name ? profile.users.full_name.charAt(0).toUpperCase() : 'A'
+                )}
+              </button>
+
+              {isProfileMenuOpen && (
+                <>
+                  <div 
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 998 }} 
+                    onClick={() => setIsProfileMenuOpen(false)} 
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 10px)',
+                    right: 0,
+                    width: '180px',
+                    background: 'var(--bg-card)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1.5px solid var(--border-primary)',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 40px var(--shadow-color)',
+                    zIndex: 1001,
+                    overflow: 'hidden',
+                    animation: 'fadeIn 0.2s ease-out'
+                  }}>
+                    <button 
+                      onClick={() => { setActiveTab('profile'); setIsProfileMenuOpen(false); }}
+                      style={{
+                        width: '100%', padding: '14px 20px', textAlign: 'left', background: 'transparent',
+                        border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'var(--text-primary)',
+                        fontSize: '14px', fontWeight: 800, cursor: 'pointer', transition: 'background 0.2s ease',
+                        position: 'relative', zIndex: 1002
+                      }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(204, 163, 52, 0.1)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      ✏️ Edit Profil
+                    </button>
+                    <button 
+                      onClick={handleLogout}
+                      style={{
+                        width: '100%', padding: '14px 20px', textAlign: 'left', background: 'transparent',
+                        border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: 800, cursor: 'pointer',
+                        transition: 'background 0.2s ease',
+                        position: 'relative', zIndex: 1002
+                      }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -250,6 +345,10 @@ export default function MemberPage() {
             <TransactionsTable transactions={transactions} />
           )}
 
+          {activeTab === 'products' && (
+            <ProductsPanel />
+          )}
+
           {activeTab === 'financing' && (
             <FinancingPanel 
               contracts={contracts}
@@ -265,9 +364,20 @@ export default function MemberPage() {
               onUpdateSuccess={refetch}
             />
           )}
+
+          {activeTab === 'deposits' && (
+            <DepositPaymentPanel 
+              profile={profile}
+              accounts={accounts}
+              onPaymentSuccess={refetch}
+            />
+          )}
         </div>
 
       </main>
+
+      {/* Custom Modal Overlay */}
+      {modalConfig && <Modal {...modalConfig} />}
 
       {/* Immersive Global AI Chatbot */}
       <AIChatbot role="member" />

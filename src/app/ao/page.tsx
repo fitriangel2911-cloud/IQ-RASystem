@@ -7,6 +7,7 @@ import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import AODashboard from '@/components/dashboard/AODashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import NotificationBell from '@/components/dashboard/NotificationBell';
 import { useTheme } from '@/context/ThemeContext';
 import AIChatbot from '@/components/dashboard/AIChatbot';
 
@@ -133,6 +134,7 @@ export default function AOPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <BrandLogo size={40} fontSize="22px" textColor="var(--text-primary)" />
             <div style={{ marginRight: '35px' }}>
+              <NotificationBell />
               <ThemeToggle />
             </div>
           </div>

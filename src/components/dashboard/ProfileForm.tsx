@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import Modal from '@/components/dashboard/Modal';
 
 interface ProfileFormProps {
   profile: any;
@@ -10,10 +11,13 @@ interface ProfileFormProps {
 export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormProps) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [modalConfig, setModalConfig] = useState<any>(null);
   
   // Form states
   const [formData, setFormData] = useState({
+    fullName: '',
     nik: '',
+    kk_number: '',
     mother_name: '',
     religion: 'Islam',
     occupation: '',
@@ -29,13 +33,16 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
     funding_source: 'Gaji',
     heir_name: '',
     heir_relationship: '',
-    heir_phone: ''
+    heir_phone: '',
+    avatar_url: ''
   });
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !editing) {
       setFormData({
+        fullName: profile.users?.full_name || '',
         nik: profile.nik || '',
+        kk_number: profile.kk_number || '',
         mother_name: profile.mother_name || '',
         religion: profile.religion || 'Islam',
         occupation: profile.occupation || '',
@@ -51,10 +58,33 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         funding_source: profile.funding_source || 'Gaji',
         heir_name: profile.heir_name || '',
         heir_relationship: profile.heir_relationship || '',
-        heir_phone: profile.heir_phone || ''
+        heir_phone: profile.heir_phone || '',
+        avatar_url: profile.avatar_url || ''
       });
     }
-  }, [profile]);
+  }, [profile, editing]);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validasi ukuran max 2MB
+      if (file.size > 2 * 1024 * 1024) {
+        setModalConfig({
+          isOpen: true,
+          type: 'alert',
+          title: 'Ukuran Foto Terlalu Besar',
+          message: 'Ukuran foto maksimal adalah 2MB. Silakan pilih foto dengan ukuran yang lebih kecil.',
+          onConfirm: () => setModalConfig(null)
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, avatar_url: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const isProfileComplete = 
     formData.nik && 
@@ -76,6 +106,19 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validasi Manual
+    if (!formData.fullName || !formData.nik || !formData.kk_number || !formData.mother_name || !formData.phone_number || !formData.ktp_address || !formData.domicile_address || !formData.occupation || !formData.company_name || !formData.heir_name || !formData.heir_relationship || !formData.heir_phone) {
+      setModalConfig({
+        isOpen: true,
+        type: 'alert',
+        title: 'Data Belum Lengkap',
+        message: 'Mohon isi semua kolom formulir yang tersedia sebelum menyimpan dokumen.',
+        onConfirm: () => setModalConfig(null)
+      });
+      return;
+    }
+
     setSaving(true);
 
     const supabase = createClient();
@@ -88,6 +131,9 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         user_id: profile.user_id,
         status: 'active'
       };
+      
+      // Hapus fullName karena itu milik tabel users, bukan members
+      const { fullName, ...memberData } = submissionData;
 
       let error;
       
@@ -95,25 +141,44 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         // Update existing
         const { error: updateErr } = await supabase
           .from('members')
-          .update(submissionData)
+          .update(memberData)
           .eq('id', profile.id);
         error = updateErr;
       } else {
         // Insert new member physical file
         const { error: insertErr } = await supabase
           .from('members')
-          .insert(submissionData);
+          .insert(memberData);
         error = insertErr;
       }
 
       if (error) throw error;
 
-      alert('Profil & Dokumen Berhasil Diperbarui!');
-      setEditing(false);
-      onUpdateSuccess();
+      // Update tabel users untuk full_name
+      if (formData.fullName && formData.fullName !== profile.users?.full_name) {
+        await supabase.from('users').update({ full_name: formData.fullName }).eq('id', profile.user_id);
+      }
+
+      setModalConfig({
+        isOpen: true,
+        type: 'alert',
+        title: 'Pembaruan Berhasil',
+        message: 'Data profil dan kelengkapan dokumen KYC Anda telah berhasil diperbarui dan tersimpan di sistem.',
+        onConfirm: () => {
+          setModalConfig(null);
+          setEditing(false);
+          onUpdateSuccess();
+        }
+      });
     } catch (err: any) {
       console.error('Save Profile Error:', err);
-      alert('Gagal memperbarui profil: ' + err.message);
+      setModalConfig({
+        isOpen: true,
+        type: 'alert',
+        title: 'Gagal Menyimpan',
+        message: `Terjadi kesalahan saat memperbarui profil: ${err.message}`,
+        onConfirm: () => setModalConfig(null)
+      });
     } finally {
       setSaving(false);
     }
@@ -129,6 +194,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {modalConfig && <Modal {...modalConfig} />}
       
       {/* Status Badge Box */}
       <div style={{
@@ -213,26 +279,68 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
 
         {editing ? (
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* UPLOAD FOTO PROFIL */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '50%', border: '4px solid var(--border-primary)', overflow: 'hidden', background: 'var(--text-primary)', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 10px 25px var(--shadow-color)' }}>
+                {formData.avatar_url ? (
+                  <img src={formData.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '40px', fontWeight: 900, color: 'var(--bg-page)' }}>
+                    {formData.mother_name ? formData.mother_name.charAt(0).toUpperCase() : '👤'}
+                  </span>
+                )}
+                <label style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)',
+                  color: '#fff', fontSize: '11px', fontWeight: 800, textAlign: 'center', padding: '6px 0',
+                  cursor: 'pointer', transition: 'background 0.2s'
+                }}>
+                  Ubah Foto
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+                </label>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', fontWeight: 700 }}>Format JPG/PNG. Maksimal 2MB.</p>
+            </div>
+
             {/* A. DATA PRIBADI */}
             <div>
               <div style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px', borderLeft: '3px solid var(--text-primary)', paddingLeft: '10px' }}>
                 A. DATA PRIBADI (SESUAI KTP)
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Lengkap (Sesuai KTP)</label>
+                  <input 
+                    type="text" required={false}
+                    value={formData.fullName}
+                    onChange={e => setFormData({...formData, fullName: e.target.value})}
+                    style={inputStyle}
+                    placeholder="Nama Lengkap..."
+                  />
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Induk Kependudukan (NIK)</label>
                   <input 
-                    type="text" maxLength={16} required
+                    type="text" maxLength={16} required={false}
                     value={formData.nik}
                     onChange={e => setFormData({...formData, nik: e.target.value})}
                     style={inputStyle}
-                    placeholder="16 digit NIK..."
+                    placeholder="16 Digit NIK..."
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kartu Keluarga (KK)</label>
+                  <input 
+                    type="text" maxLength={16} required={false}
+                    value={formData.kk_number}
+                    onChange={e => setFormData({...formData, kk_number: e.target.value})}
+                    style={inputStyle}
+                    placeholder="16 Digit KK..."
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Tempat & Tanggal Lahir</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.birth_place_date}
                     onChange={e => setFormData({...formData, birth_place_date: e.target.value})}
                     style={inputStyle}
@@ -266,7 +374,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Ibu Kandung</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.mother_name}
                     onChange={e => setFormData({...formData, mother_name: e.target.value})}
                     style={inputStyle}
@@ -312,7 +420,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor WhatsApp Aktif</label>
                   <input 
-                    type="tel" required
+                    type="tel" required={false}
                     value={formData.phone_number}
                     onChange={e => setFormData({...formData, phone_number: e.target.value})}
                     style={inputStyle}
@@ -322,7 +430,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Sesuai KTP</label>
                   <textarea 
-                    required rows={2}
+                    required={false} rows={2}
                     value={formData.ktp_address}
                     onChange={e => setFormData({...formData, ktp_address: e.target.value})}
                     style={{ ...inputStyle, resize: 'vertical' } as any}
@@ -332,7 +440,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Alamat Domisili Sekarang</label>
                   <textarea 
-                    required rows={2}
+                    required={false} rows={2}
                     value={formData.domicile_address}
                     onChange={e => setFormData({...formData, domicile_address: e.target.value})}
                     style={{ ...inputStyle, resize: 'vertical' } as any}
@@ -351,7 +459,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Profesi / Pekerjaan</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.occupation}
                     onChange={e => setFormData({...formData, occupation: e.target.value})}
                     style={inputStyle}
@@ -361,7 +469,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Perusahaan / Bidang Usaha</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.company_name}
                     onChange={e => setFormData({...formData, company_name: e.target.value})}
                     style={inputStyle}
@@ -371,7 +479,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Estimasi Pendapatan Rata-rata (Rp)</label>
                   <input 
-                    type="number" min={0} required
+                    type="number" min={0} required={false}
                     value={formData.monthly_income}
                     onChange={e => setFormData({...formData, monthly_income: Number(e.target.value)})}
                     style={inputStyle}
@@ -404,7 +512,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nama Lengkap Ahli Waris</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.heir_name}
                     onChange={e => setFormData({...formData, heir_name: e.target.value})}
                     style={inputStyle}
@@ -414,7 +522,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Hubungan Keluarga</label>
                   <input 
-                    type="text" required
+                    type="text" required={false}
                     value={formData.heir_relationship}
                     onChange={e => setFormData({...formData, heir_relationship: e.target.value})}
                     style={inputStyle}
@@ -424,7 +532,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', gridColumn: 'span 2' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Nomor Kontak Ahli Waris</label>
                   <input 
-                    type="tel" required
+                    type="tel" required={false}
                     value={formData.heir_phone}
                     onChange={e => setFormData({...formData, heir_phone: e.target.value})}
                     style={inputStyle}
@@ -482,6 +590,28 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         ) : (
           /* READ-ONLY DISPLAY */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            {/* Foto & Status Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', paddingBottom: '20px', borderBottom: '1px dashed var(--border-primary)' }}>
+              <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '3px solid var(--gold-intense)', overflow: 'hidden', background: 'var(--text-primary)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '36px', fontWeight: 900, color: 'var(--bg-page)' }}>
+                    {profile?.users?.full_name ? profile.users.full_name.charAt(0).toUpperCase() : '👤'}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h2 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                  {profile?.users?.full_name || 'Tanpa Nama'}
+                </h2>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '4px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  Anggota Resmi IQ-RA
+                </div>
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
               
               {/* Group A: Data Pribadi */}
@@ -491,8 +621,8 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-page)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
                   <div>
-                    <div style={labelStyle}>NOMOR KTP (NIK)</div>
-                    <div style={valueStyle}>{profile?.nik || '— Belum Diisi —'}</div>
+                    <div style={labelStyle}>NOMOR KTP (NIK) & NOMOR KK</div>
+                    <div style={valueStyle}>{profile?.nik || '—'} / {profile?.kk_number || '—'}</div>
                   </div>
                   <div>
                     <div style={labelStyle}>TEMPAT & TANGGAL LAHIR</div>

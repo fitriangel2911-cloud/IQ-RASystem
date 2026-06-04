@@ -1455,6 +1455,71 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
         </div>
       )}
 
+      {/* ======================================= */}
+      {/* 🛡️ TAB 4: PROVISIONING CKPN (NPL)     */}
+      {/* ======================================= */}
+      {activeMenu === 'provisioning' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+          <div style={{ 
+            background: 'var(--bg-card)', 
+            backdropFilter: 'blur(20px)', 
+            borderRadius: '32px', 
+            overflow: 'hidden', 
+            border: '1.5px solid var(--border-primary)',
+            boxShadow: '0 40px 80px var(--shadow-color)'
+          }}>
+            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>🛡️ PENYISIHAN CKPN OTOMATIS (NPL &gt; 90 HARI)</h2>
+              <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', fontWeight: 900, fontSize: '12px', padding: '6px 14px', borderRadius: '20px' }}>SAK EP COMPLIANT</span>
+            </div>
+            
+            <div style={{ padding: '36px' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '20px', borderRadius: '16px', marginBottom: '30px' }}>
+                <h4 style={{ color: '#ef4444', margin: '0 0 10px 0', fontSize: '16px', fontWeight: 800 }}>Informasi Modul Pencadangan</h4>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
+                  Modul ini memindai seluruh akad pembiayaan aktif. Jika ditemukan fasilitas yang telah menunggak atau berusia lebih dari 90 hari tanpa penyelesaian (NPL), sistem akan otomatis membentuk <strong>Cadangan Kerugian Penurunan Nilai (CKPN)</strong> melalui mekanisme Jurnal Penyesuaian ke akun <strong>Beban CKPN (710002)</strong> dan <strong>CKPN Piutang (- Aset) (190002)</strong>.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button 
+                  onClick={async () => {
+                    if (confirm('Jalankan pemindaian otomatis untuk membentuk pencadangan CKPN? Operasi ini akan menjurnal transaksi penyesuaian untuk setiap NPL yang ditemukan.')) {
+                      try {
+                        setLoading(true);
+                        const res = await fetch('/api/accounting/provisioning', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                          setMessage({ type: 'success', text: data.message });
+                          fetchJournals();
+                        } else {
+                          setMessage({ type: 'error', text: 'Error: ' + data.error });
+                        }
+                      } catch (err: any) {
+                        setMessage({ type: 'error', text: 'Gagal menjalankan provisioning: ' + err.message });
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  }}
+                  disabled={loading}
+                  style={{
+                    padding: '18px 40px', background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                    color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, fontSize: '16px',
+                    cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
+                    transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '10px'
+                  }}
+                  onMouseOver={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseOut={e => { if(!loading) e.currentTarget.style.transform = 'translateY(0)' }}
+                >
+                  {loading ? '⏳ MEMINDAI DATABASE...' : '🔍 JALANKAN PEMINDAIAN NPL & BENTUK CKPN'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }

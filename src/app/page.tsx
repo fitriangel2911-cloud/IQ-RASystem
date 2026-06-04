@@ -227,12 +227,12 @@ function ProfilSection() {
 
 function ProdukSection() {
   const products = [
-    { name: 'Murabahah', icon: '🤝', desc: 'Jual beli transparan dengan margin yang disepakati kedua pihak.', tag: 'Populer' },
-    { name: 'Mudharabah', icon: '🌱', desc: 'Kerjasama bagi hasil dimana modal sepenuhnya dari pemilik dana.', tag: 'Investasi' },
-    { name: 'Musyarakah', icon: '💼', desc: 'Kemitraan penggabungan modal untuk usaha produktif bersama.', tag: 'Bisnis' },
-    { name: 'Ijarah', icon: '🏠', desc: 'Sewa manfaat atas aset produktif untuk menunjang kebutuhan.', tag: 'Fasilitas' },
-    { name: 'Istishna', icon: '🏗️', desc: 'Pemesanan pembuatan barang atau infrastruktur tertentu.', tag: 'Konstruksi' },
-    { name: 'Qardhul Hasan', icon: '❤️', desc: 'Pinjaman kebajikan sosial tanpa beban imbalan sama sekali.', tag: 'Sosial' }
+    { name: 'Simpanan Wadiah', icon: '💼', desc: 'Simpanan amanah tanpa risiko, bebas biaya admin bulanan, dan dapat ditarik sewaktu-waktu.', tag: 'Simpanan' },
+    { name: 'Simpanan Mudharabah', icon: '📈', desc: 'Investasi syariah dengan nisbah bagi hasil yang adil untuk usaha produktif.', tag: 'Investasi' },
+    { name: 'Simpanan Haji & Umrah', icon: '🕋', desc: 'Perencanaan keuangan terarah untuk ibadah suci Anda dengan porsi haji prioritas.', tag: 'Terencana' },
+    { name: 'Pembiayaan Murabahah', icon: '🛍️', desc: 'Kepemilikan barang (kendaraan/properti) dengan akad jual beli syariah ber-margin tetap.', tag: 'Populer' },
+    { name: 'Pembiayaan Ijarah', icon: '🏠', desc: 'Sewa manfaat aset produktif atau multijasa (pendidikan/kesehatan) dengan ujrah tetap.', tag: 'Sewa Jasa' },
+    { name: 'Pembiayaan Modal Kerja', icon: '🤝', desc: 'Kemitraan produktif (Mudharabah/Musyarakah) untuk ekspansi dan pertumbuhan UMKM.', tag: 'Kemitraan' }
   ];
 
   return (
@@ -240,7 +240,7 @@ function ProdukSection() {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }} className="reveal">
           <SectionBadge text="PILIHAN PRODUK" />
-          <h2 className="gold-text-gradient" style={{ fontSize: 'clamp(2rem, 6vw, 2.6rem)', fontWeight: 900 }}>6 Pilihan Akad Syariah Utama</h2>
+          <h2 className="gold-text-gradient" style={{ fontSize: 'clamp(2rem, 6vw, 2.6rem)', fontWeight: 900 }}>6 Pilihan Layanan Syariah Utama</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {products.map((p, i) => (

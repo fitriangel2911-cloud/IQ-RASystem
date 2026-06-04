@@ -14,17 +14,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onClose }: SidebarProps) {
-  const router = useRouter();
   const { theme } = useTheme();
-
-  const handleLogout = async () => {
-    const confirmSignOut = window.confirm('Apakah Anda yakin ingin keluar dari akun Anda?');
-    if (!confirmSignOut) return;
-    
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/');
-  };
 
   const menuItems = [
     {
@@ -54,6 +44,26 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      )
+    },
+    {
+      id: 'deposits',
+      label: 'Pembayaran Simpanan',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      )
+    },
+    {
+      id: 'products',
+      label: 'Produk & Layanan',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
         </svg>
       )
     },
@@ -88,7 +98,7 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
 
   return (
     <aside style={{
-      width: isOpen ? '320px' : '0px',
+      width: isOpen ? '260px' : '0px',
       opacity: isOpen ? 1 : 0,
       background: theme === 'light' ? 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(243, 198, 83, 0.25) 100%)' : 'rgba(4, 49, 33, 0.65)',
       backdropFilter: 'blur(25px)',
@@ -108,10 +118,10 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
       overflow: 'hidden'
     }}>
       {/* Brand & Close Toggle Container */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', marginTop: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', marginTop: '10px' }}>
         <div>
-          <BrandLogo size={42} fontSize="20px" textColor="var(--text-primary)" />
-          <div style={{ fontSize: '10px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '6px', marginLeft: '54px' }}>PORTAL ANGGOTA</div>
+          <BrandLogo size={36} fontSize="18px" textColor="var(--text-primary)" />
+          <div style={{ fontSize: '10px', color: 'var(--text-primary)', opacity: 0.8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '6px', marginLeft: '45px' }}>PORTAL ANGGOTA</div>
         </div>
 
         {/* Modern Close Sidebar Button */}
@@ -172,7 +182,11 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '18px', fontWeight: 900
         }}>
-          {profile?.users?.full_name ? profile.users.full_name.charAt(0).toUpperCase() : 'A'}
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} />
+          ) : (
+            profile?.users?.full_name ? profile.users.full_name.charAt(0).toUpperCase() : 'A'
+          )}
         </div>
         <div style={{ overflow: 'hidden' }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -208,15 +222,15 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
                   : (isHovered ? 'var(--border-primary)' : 'transparent'),
                 border: 'none',
                 textAlign: 'left',
-                padding: '16px 20px',
+                padding: '12px 16px',
                 borderRadius: '16px',
                 color: isActive ? 'var(--bg-page)' : 'var(--text-primary)',
                 fontWeight: 800,
-                fontSize: '15px',
+                fontSize: '14px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '15px',
+                gap: '10px',
                 transform: !isActive && isHovered ? 'translateX(6px)' : 'translateX(0)',
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                 boxShadow: isActive ? '0 10px 20px var(--shadow-color)' : 'none'
@@ -229,43 +243,6 @@ export default function Sidebar({ activeTab, setActiveTab, profile, isOpen, onCl
         })}
       </nav>
 
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        style={{
-          background: 'rgba(0, 0, 0, 0.1)',
-          border: '1.5px solid var(--text-primary)',
-          color: 'var(--text-primary)',
-          padding: '16px',
-          borderRadius: '16px',
-          fontWeight: 900,
-          fontSize: '14px',
-          cursor: 'pointer',
-          transition: 'all 0.3s',
-          marginTop: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px'
-        }}
-        onMouseOver={(e) => { 
-          e.currentTarget.style.background = '#ef4444'; 
-          e.currentTarget.style.borderColor = '#ef4444';
-          e.currentTarget.style.color = '#fff';
-        }}
-        onMouseOut={(e) => { 
-          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)'; 
-          e.currentTarget.style.borderColor = 'var(--text-primary)';
-          e.currentTarget.style.color = 'var(--text-primary)';
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-        Keluar Sesi
-      </button>
     </aside>
   );
 }

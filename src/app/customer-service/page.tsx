@@ -7,6 +7,7 @@ import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import CSDashboard from '../../components/dashboard/CSDashboard';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import NotificationBell from '@/components/dashboard/NotificationBell';
 import { useTheme } from '@/context/ThemeContext';
 
 export default function CustomerServicePage() {
@@ -118,6 +119,7 @@ export default function CustomerServicePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <BrandLogo size={42} fontSize="22px" textColor="var(--text-primary)" />
             <div style={{ marginRight: '45px' }}>
+              <NotificationBell />
               <ThemeToggle />
             </div>
           </div>
@@ -127,6 +129,8 @@ export default function CustomerServicePage() {
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
           <CSMenuButton active={activeMenu === 'onboarding'} onClick={() => setActiveMenu('onboarding')} icon="📝" label="Registrasi Anggota" />
           <CSMenuButton active={activeMenu === 'kyc'} onClick={() => setActiveMenu('kyc')} icon="📂" label="Verifikasi KYC" />
+          <CSMenuButton active={activeMenu === 'members'} onClick={() => setActiveMenu('members')} icon="👥" label="Database Anggota" />
+          <CSMenuButton active={activeMenu === 'special-savings'} onClick={() => setActiveMenu('special-savings')} icon="🕌" label="Simpanan Bertujuan (Haji/Umrah)" />
           <CSMenuButton active={activeMenu === 'ai-help'} onClick={() => setActiveMenu('ai-help')} icon="💬" label="AI Sharia Assistant" />
         </nav>
 

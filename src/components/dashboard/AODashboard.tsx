@@ -156,6 +156,20 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     const supabase = createClient();
     
     try {
+      if (formData.member_id) {
+        const { data: memberCheck } = await supabase
+          .from('members')
+          .select('is_blacklisted')
+          .eq('id', formData.member_id)
+          .single();
+          
+        if (memberCheck && memberCheck.is_blacklisted) {
+          setMessage({ type: 'error', text: '⛔ PENGAJUAN DITOLAK OTOMATIS: Sistem PI Checking (Prinsip Kehati-hatian) mendeteksi Anggota ini masuk dalam Blacklist Internal Koperasi. Risiko tinggi, pengajuan pembiayaan dibatalkan.' });
+          setLoading(false);
+          return;
+        }
+      }
+
       let finalPurpose = formData.purpose;
       if (finalPurpose === 'Lainnya' && customPurpose.trim() !== '') {
         finalPurpose = customPurpose.trim();

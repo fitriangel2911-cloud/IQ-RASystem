@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import TellerTerminal from '@/components/dashboard/TellerTerminal';
 import BrandLogo from '@/components/brand/BrandLogo';
 import ThemeToggle from '@/components/dashboard/ThemeToggle';
+import NotificationBell from '@/components/dashboard/NotificationBell';
 import { useTheme } from '@/context/ThemeContext';
 import AIChatbot from '@/components/dashboard/AIChatbot';
 
@@ -91,7 +92,7 @@ export default function TellerPage() {
         <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <BrandLogo size={46} fontSize="24px" textColor="var(--text-primary)" />
-            <div style={{ marginRight: '45px' }}><ThemeToggle /></div>
+            <div style={{ marginRight: '45px', display: 'flex', gap: '15px' }}><NotificationBell /><ThemeToggle /></div>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginLeft: '56px', opacity: 0.9 }}>
             Layanan Kasir
