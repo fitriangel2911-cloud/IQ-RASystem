@@ -53,7 +53,12 @@ export async function POST(req: Request) {
     }
 
     // 3. Perform RAG query
-    const queryForEmbed = `Akad: ${contract.type}. Tujuan: ${prospect?.purpose || 'Modal Usaha'}. Nominal: Rp ${contract.amount}.`;
+    const realPurpose = contract.collateral_metadata?.purpose || prospect?.purpose || 'Pembiayaan Syariah';
+    const realIncome = contract.collateral_metadata?.income || 'Tidak diisi';
+    const realNotes = contract.collateral_metadata?.notes || 'Tidak ada catatan tambahan';
+    const realAddress = contract.collateral_metadata?.address || 'Tidak diisi';
+
+    const queryForEmbed = `Akad: ${contract.type}. Tujuan: ${realPurpose}. Nominal: Rp ${contract.amount}.`;
     let contextDocs: any[] = [];
     try {
       const vector1536 = await AIService.getGeminiEmbedding(queryForEmbed);
@@ -89,29 +94,29 @@ export async function POST(req: Request) {
 
     // 4. Construct prompt for gemini-3.5-flash
     const prompt = `Anda adalah Dewan Pengawas Syariah (DPS) AI untuk KSPPS IQ-RA, sebuah platform keuangan syariah mikro berkelas dunia.
-Tugas Anda adalah melakukan audit syariah menyeluruh atas berkas pembiayaan nasabah secara dinamis dan riil.
+Tugas Anda adalah melakukan audit syariah menyeluruh atas berkas pembiayaan nasabah berdasarkan DATA AKTUAL yang dikirimkan. DILARANG KERAS MENGARANG/HALUSINASI JAMINAN ATAU TUJUAN YANG TIDAK ADA DALAM DATA!
 
-INFORMASI KONTRAK PEMBIAYAAN:
+INFORMASI KONTRAK PEMBIAYAAN (DATA AKTUAL NASABAH):
 - Nama Anggota/Nasabah: ${contract.member_name || contract.users?.full_name || 'Nasabah'}
 - Jenis Akad: ${contract.type}
 - Plafon Pembiayaan: Rp ${Number(contract.amount || 0).toLocaleString('id-ID')}
 - Tanggal Pengajuan: ${contract.created_at}
 
-INFORMASI PROSPEK/DOKUMEN PENGAJUAN (Kebutuhan & Prospek):
-- Tujuan/Kebutuhan: ${prospect?.purpose || 'Modal Usaha / Pembiayaan'}
-- Telepon/WhatsApp: ${prospect?.phone || 'Tidak tercatat'}
-- Status Prospek Terakhir: ${prospect?.status || 'Menunggu Analisis'}
-- Tanggal Prospek: ${prospect?.created_at || 'Baru-baru ini'}
+DATA LAPANGAN & KEBUTUHAN (DARI FORM / SURVEI AO):
+- Tujuan/Kebutuhan Sebenarnya: ${realPurpose}
+- Pendapatan Bulanan: ${realIncome}
+- Catatan Jaminan / Agunan / Prospek Asli: ${realNotes}
+- Alamat/Lokasi Usaha: ${realAddress}
 
 RUJUKAN FATWA / KEBIJAKAN SYARIAH (Hasil RAG):
 ${contextText}
 
-Silakan susun dossier audit syariah terperinci. Anda harus menganalisis:
-1. Pengajuan Pembiayaan: validasi akad terhadap nasabah.
-2. Jaminan (Collateral): tentukan jaminan yang logis, realistis, dan syariah-compliant yang cocok untuk nominal Rp ${Number(contract.amount || 0).toLocaleString('id-ID')} (misal: emas, sertifikat tanah, BPKB kendaraan, dll., dengan detail deskripsi yang meyakinkan).
-3. Kebutuhan (Needs): rincian apa saja yang dibutuhkan nasabah untuk penggunaan dana ini secara syariah.
-4. Prospek Kelayakan Usaha: hitung estimasi omset bulanan yang realistis berdasarkan nominal pengajuan, tentukan rasio DSCR (Debt Service Coverage Ratio), and beri skor kelayakan.
-5. Opini Syariah Resmi: pastikan tidak ada unsur Riba, Gharar, Maysir, dan kutip fatwa DSN-MUI yang relevan dengan detail.
+Silakan susun dossier audit syariah terperinci berdasarkan DATA AKTUAL di atas. Anda harus menganalisis:
+1. Pengajuan Pembiayaan: validasi kesesuaian akad ${contract.type} dengan Tujuan/Kebutuhan Sebenarnya (${realPurpose}).
+2. Jaminan (Collateral): JIKA TIDAK ADA JAMINAN (misal: Qardhul Hasan tanpa agunan), SEBUTKAN BAHWA TIDAK ADA JAMINAN ATAU SESUAI CATATAN. JANGAN MENGARANG EMAS/BPKB JIKA TIDAK DITULIS!
+3. Kebutuhan (Needs): evaluasi kebutuhan nasabah sesuai "Tujuan/Kebutuhan Sebenarnya" di atas, BUKAN modal usaha jika tujuannya adalah pendidikan/konsumtif.
+4. Prospek Kelayakan: evaluasi berdasarkan Pendapatan Bulanan aktual (${realIncome}) dan catatan survei (${realNotes}). Jika pendapatan kosong, sebutkan bahwa data belum lengkap. Dilarang mengarang omset fiktif. Jika akad Qardhul Hasan (kebajikan), jangan hitung margin/nisbah, hanya pengembalian pokok!
+5. Opini Syariah Resmi: pastikan akad sesuai dengan sifatnya (misal: Qardhul hasan dilarang ada persenan imbal hasil/margin/nisbah). Kutip fatwa DSN-MUI yang relevan dari dokumen RAG.
 
 Kembalikan jawaban Anda dalam format JSON persis seperti berikut (tanpa tambahan markdown, tanpa petik tiga \`\`\`json, murni kode JSON):
 {

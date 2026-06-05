@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { member_id, purpose, amount, name, phone } = body;
+    const { member_id, purpose, amount, name, phone, type } = body;
 
     if (!amount || !name) {
       return NextResponse.json({ error: 'Data pengajuan tidak lengkap.' }, { status: 400 });
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         member_id: member_id || null, // Jika belum ada CIF
         member_name: name,
         amount: Number(amount),
-        type: 'mudharabah', // Default awal, akan direvisi AI atau DPS
+        type: type || 'murabahah', // Gunakan type dari body, fallback murabahah
         status: 'pending',
         collateral_metadata: { purpose, phone }
       })

@@ -38,14 +38,14 @@ export default function RAGPipelineView() {
         addLog('fatwa_dsn_112_wakalah.pdf terbaca.');
         addLog('psaak_101_penyajian_keuangan.pdf terbaca.');
         setStatus('chunking');
-      }, 1500);
+      }, 300);
     } else if (status === 'chunking') {
       timer = setTimeout(() => {
         setProgress(50);
         addLog('Membagi dokumen menjadi potongan teks (RecursiveCharacterTextSplitter)...');
         addLog('Menghasilkan 84 pecahan teks (Chunks) dengan overlap 200 karakter.');
         setStatus('embedding');
-      }, 2000);
+      }, 400);
     } else if (status === 'embedding') {
       timer = setTimeout(() => {
         setProgress(85);

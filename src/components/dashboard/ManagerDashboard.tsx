@@ -74,7 +74,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
             id: `mock-contract-${p.id}`,
             prospect_id: p.id,
             amount: p.amount,
-            type: p.ai_contract_type || 'mudharabah',
+            type: p.type || p.ai_contract_type || 'murabahah',
             status: contractStatus,
             created_at: p.created_at,
             users: { full_name: p.name, email: p.phone || '-' }
@@ -100,7 +100,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
               id: `mock-contract-${p.id}`,
               prospect_id: p.id,
               amount: p.amount,
-              type: p.ai_contract_type || 'mudharabah',
+              type: p.type || p.ai_contract_type || 'murabahah',
               status: contractStatus,
               created_at: p.created_at,
               users: { full_name: p.name, email: p.phone || '-' }

@@ -1,0 +1,5 @@
+__tests__/supabase_migration.test.ts(14,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+__tests__/supabase_migration.test.ts(17,5): error TS2582: Cannot find name 'test'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+__tests__/supabase_migration.test.ts(23,7): error TS2304: Cannot find name 'expect'.
+__tests__/supabase_migration.test.ts(24,7): error TS2304: Cannot find name 'expect'.
+src/app/dps/page.tsx(322,20): error TS7006: Parameter 'newProfile' implicitly has an 'any' type.

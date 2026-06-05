@@ -28,7 +28,8 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
     name: '',
     phone: '',
     amount: '',
-    purpose: 'Modal Usaha'
+    purpose: 'Modal Usaha',
+    contractType: 'murabahah'
   });
   const [customPurpose, setCustomPurpose] = useState('');
 
@@ -114,7 +115,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         const mockPortfolios = approvedLocal.map((p: any) => ({
           id: `mock-contract-${p.id}`,
           amount: p.amount,
-          type: p.ai_contract_type || 'mudharabah',
+          type: p.type || p.ai_contract_type || 'murabahah',
           status: 'approved',
           users: { full_name: p.name }
         }));
@@ -184,7 +185,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
         member_id: formData.member_id || null,
         member_name: formData.name,
         amount: Number(formData.amount),
-        type: 'mudharabah',
+        type: formData.contractType,
         status: 'pending',
         collateral_metadata: { purpose: finalPurpose, phone: formData.phone }
       };
@@ -194,7 +195,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       if (error) throw error;
 
       setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline (financing_contracts)!' });
-      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha', contractType: 'murabahah' });
       setCustomPurpose('');
       fetchAOData();
     } catch (err: any) {
@@ -222,7 +223,7 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       };
       setProspects([newMockProspect, ...prospects]);
       setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
-      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha' });
+      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha', contractType: 'murabahah' });
       setCustomPurpose('');
     } finally {
       setLoading(false);
@@ -357,13 +358,15 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   const handleProceedToSurvey = async () => {
     setLoading(true);
     if (selectedProspect?.id && !selectedProspect.id.toString().startsWith('mock-')) {
+      // Kita TIDAK menimpa 'type' dengan hasil AI agar pilihan nasabah (misal: Murabahah) tetap sinkron.
+      // Hanya update status atau biarkan saja (karena status diurus di client side untuk demo, atau bisa diupdate ke DB jika perlu)
       const supabase = createClient();
-      await supabase.from('financing_contracts').update({ type: aiResult?.contract?.toLowerCase() || 'mudharabah' }).eq('id', selectedProspect.id);
+      await supabase.from('financing_contracts').update({ is_surveyed_by_ao: false }).eq('id', selectedProspect.id); // sekadar trigger update, atau dihapus saja
     }
     setTimeout(() => {
       setMessage({ type: 'success', text: `Analisis AI Selesai! Prospek ${selectedProspect?.name} diteruskan ke tahap Survei Lapangan.` });
       const updatedProspects = prospects.map(p => 
-        p.id === selectedProspect.id ? { ...p, status: 'Menunggu Survei', ai_contract_type: aiResult?.contract || 'Mudharabah' } : p
+        p.id === selectedProspect.id ? { ...p, status: 'Menunggu Survei' } : p
       );
       setProspects(updatedProspects);
       setLoading(false);
@@ -458,8 +461,8 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
           .from('financing_contracts')
           .update({ 
             is_surveyed_by_ao: true,
-            collateral_metadata: collateralData,
-            type: contractType
+            collateral_metadata: collateralData
+            // Kita TIDAK meng-overwrite type dengan hasil AI agar data tetap sinkron
           })
           .eq('id', selectedSurveyProspect.id);
       }
@@ -614,6 +617,20 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', outline: 'none' }}
               />
             </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: '8px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Pilih Akad Syariah</label>
+            <select 
+              value={formData.contractType}
+              onChange={(e) => setFormData({...formData, contractType: e.target.value})}
+              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
+            >
+              <option value="murabahah">Murabahah (Jual Beli)</option>
+              <option value="ijarah">Ijarah (Sewa/Multijasa)</option>
+              <option value="mudharabah">Mudharabah (Bagi Hasil / Modal Kerja)</option>
+              <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
+            </select>
           </div>
 
           <div style={{ display: 'grid', gap: '8px' }}>
