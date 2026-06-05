@@ -152,9 +152,9 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {/* Tab Navigation Bar */}
       <div style={{
-        display: 'flex', gap: '8px', padding: '18px 24px',
+        display: 'flex', gap: '8px', padding: '12px 16px',
         background: 'var(--bg-header)', backdropFilter: 'blur(16px)',
-        borderRadius: '20px', marginBottom: '24px',
+        borderRadius: '20px', marginBottom: '16px',
         border: '1px solid var(--border-primary)',
         boxShadow: '0 8px 24px var(--shadow-color)',
         overflowX: 'auto',
@@ -168,11 +168,11 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               onClick={() => setActivePanel(panel.key)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '12px 18px', borderRadius: '12px', border: 'none',
+                padding: '8px 12px', borderRadius: '12px', border: 'none',
                 background: isActive ? 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)' : 'transparent',
                 color: isActive ? '#02130e' : 'var(--text-secondary)',
                 fontWeight: isActive ? 900 : 700,
-                fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s',
+                fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
                 whiteSpace: 'nowrap', flexShrink: 0,
                 boxShadow: isActive ? '0 4px 15px rgba(243,198,83,0.35)' : 'none',
               }}
@@ -180,12 +180,6 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
               onMouseOut={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
             >
               <span>{panel.label}</span>
-              <span style={{
-                fontFamily: 'monospace', fontSize: '12px', fontWeight: 900,
-                background: isActive ? 'rgba(2,19,14,0.2)' : 'rgba(243,198,83,0.1)',
-                color: isActive ? '#02130e' : '#f3c653',
-                padding: '2px 8px', borderRadius: '5px'
-              }}>[{panel.shortcut}]</span>
             </button>
           );
         })}
@@ -205,13 +199,13 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
       </div>
 
       {/* Panel Title */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
           {PANEL_TITLES[activePanel]}
         </h2>
         {activePanel !== 'dashboard' && activePanel !== 'member' && activePanel !== 'shift' && !selectedMember && (
-          <p style={{ margin: '8px 0 0', fontSize: '15px', color: 'rgba(252,165,165,0.8)', fontWeight: 600 }}>
-            Belum ada anggota terpilih — Silakan cari anggota di panel [2] terlebih dahulu.
+          <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'rgba(252,165,165,0.8)', fontWeight: 600 }}>
+            Belum ada anggota terpilih — Silakan cari anggota terlebih dahulu.
           </p>
         )}
       </div>

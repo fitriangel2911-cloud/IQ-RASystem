@@ -268,6 +268,15 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
         }]);
       if (txErr) throw txErr;
 
+      // 4. Notify the member
+      await supabase.from('notifications').insert({
+        user_id: selectedMember.user_id,
+        title: 'Setoran Tunai Berhasil',
+        message: `Setoran tunai sebesar ${fmt(totalAmountToPay)} berhasil diproses oleh teller. Saldo Anda telah diperbarui. No Ref: ${refNo}`,
+        type: 'success',
+        is_read: false
+      });
+
       if (printSlip) {
         if (typeof window !== 'undefined') {
           const win = window.open('', '_blank', 'width=380,height=600');

@@ -11,6 +11,14 @@ import NotificationBell from '@/components/dashboard/NotificationBell';
 import { useTheme } from '@/context/ThemeContext';
 import AIChatbot from '@/components/dashboard/AIChatbot';
 
+// SVG Icons
+const IconDashboard = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>;
+const IconUsers = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IconDeposit = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>;
+const IconWithdraw = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v14"/><path d="m5 10 7-7 7 7"/><path d="M19 21H5"/></svg>;
+const IconReceipt = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></svg>;
+const IconShift = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+
 export default function TellerPage() {
   const router = useRouter();
   const { theme } = useTheme();
@@ -18,6 +26,10 @@ export default function TellerPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState('1');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -58,6 +70,48 @@ export default function TellerPage() {
       overflow: 'hidden'
     }}>
       
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--bg-page)', padding: '32px', borderRadius: '24px', width: '400px', border: '1px solid var(--border-primary)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', position: 'relative' }}>
+            <button onClick={() => setShowEditProfile(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px' }}>✕</button>
+            <h3 style={{ margin: '0 0 24px 0', color: 'var(--text-primary)', fontSize: '20px' }}>Edit Profil Petugas</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gold-intense)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 900, color: '#02130e', border: '4px solid var(--bg-page)', position: 'relative', cursor: 'pointer' }}
+                >
+                  {profile?.full_name?.charAt(0) || 'T'}
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#000', color: '#f3c653', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>✏️</div>
+                </div>
+                <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} />
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Nama Lengkap</label>
+                <input type="text" defaultValue={profile?.full_name} style={{ background: 'var(--bg-header)', border: '1px solid var(--border-primary)', padding: '12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }} />
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Nomor Telepon</label>
+                <input type="text" defaultValue={profile?.phone || ''} placeholder="Contoh: 08123456789" style={{ background: 'var(--bg-header)', border: '1px solid var(--border-primary)', padding: '12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Email</label>
+                <input type="email" defaultValue={user?.email} disabled style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-primary)', padding: '12px', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '14px', cursor: 'not-allowed' }} />
+              </div>
+
+              <button onClick={() => setShowEditProfile(false)} style={{ background: 'var(--gold-intense)', color: '#000', padding: '12px', borderRadius: '8px', fontWeight: 800, border: 'none', cursor: 'pointer', marginTop: '12px' }}>
+                Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SIDEBAR EMERALD */}
       <aside style={{
         width: isSidebarOpen ? '320px' : '0px',
@@ -67,7 +121,7 @@ export default function TellerPage() {
         borderRight: isSidebarOpen ? '2px solid var(--gold-bright)' : 'none',
         display: 'flex',
         flexDirection: 'column',
-        padding: isSidebarOpen ? '36px 24px' : '0px',
+        padding: isSidebarOpen ? '20px 20px' : '0px',
         position: 'fixed',
         top: 0,
         left: 0,
@@ -85,102 +139,90 @@ export default function TellerPage() {
             background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
             border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
             borderRadius: '8px', color: theme === 'light' ? '#000000' : '#ffffff',
-            cursor: 'pointer', padding: '6px 12px', fontWeight: 900, fontSize: '14px', transition: 'all 0.3s'
+            cursor: 'pointer', padding: '6px 12px', fontWeight: 900, fontSize: '14px', transition: 'all 0.3s',
+            zIndex: 110
           }}
         >✕</button>
 
-        <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <BrandLogo size={46} fontSize="24px" textColor="var(--text-primary)" />
-            <div style={{ marginRight: '45px', display: 'flex', gap: '15px' }}><NotificationBell /><ThemeToggle /></div>
-          </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginLeft: '56px', opacity: 0.9 }}>
+        {/* SIDEBAR HEADER */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px', paddingRight: '40px' }}>
+          <BrandLogo size={56} fontSize="28px" textColor="var(--text-primary)" />
+          <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px', marginLeft: '65px', opacity: 0.9 }}>
             Layanan Kasir
           </div>
         </div>
+        
+        <div style={{ marginBottom: '16px', padding: '10px 12px', background: 'var(--border-primary)', borderRadius: '12px', border: '1px solid var(--border-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--bg-page)' }}>
+            {profile?.full_name?.charAt(0) || 'T'}
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '13px' }}>{profile?.full_name}</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 600 }}>Petugas Aktif</div>
+          </div>
+        </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+        {/* SIDEBAR NAV */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1, overflowY: 'auto', paddingRight: '4px' }}>
           {[
-            { key: '1', label: 'Status & Dasbor' },
-            { key: '2', label: 'Cari Anggota' },
-            { key: '3', label: 'Setoran Tunai' },
-            { key: '4', label: 'Penarikan Tunai' },
-            { key: '5', label: 'Bayar Angsuran' },
-            { key: '6', label: 'Buka/Tutup Shift' },
+            { key: '1', label: 'Status & Dasbor', icon: <IconDashboard /> },
+            { key: '2', label: 'Cari Anggota', icon: <IconUsers /> },
+            { key: '3', label: 'Setoran Tunai', icon: <IconDeposit /> },
+            { key: '4', label: 'Penarikan Tunai', icon: <IconWithdraw /> },
+            { key: '5', label: 'Bayar Angsuran', icon: <IconReceipt /> },
+            { key: '6', label: 'Buka/Tutup Shift', icon: <IconShift /> },
           ].map(item => (
-            <a key={item.key}
-              href="#"
-              onClick={e => {
-                e.preventDefault();
+            <TellerMenuButton 
+              key={item.key}
+              active={activeTab === item.key} 
+              onClick={() => {
+                setActiveTab(item.key);
                 const tabId = `teller-tab-${item.key}`;
                 document.getElementById(tabId)?.click();
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '14px 16px', borderRadius: '12px', textDecoration: 'none',
-                color: 'var(--text-primary)', fontWeight: 700, fontSize: '15px',
-                transition: 'all 0.2s', cursor: 'pointer',
-              }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(243,198,83,0.1)'; (e.currentTarget as HTMLElement).style.color = '#f3c653'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
-            >
-              <span style={{ flex: 1 }}>{item.label}</span>
-              <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 900, background: 'rgba(243,198,83,0.1)', color: '#f3c653', padding: '2px 8px', borderRadius: '5px' }}>[{item.key}]</span>
-            </a>
+              }} 
+              icon={item.icon} 
+              label={item.label} 
+            />
           ))}
         </nav>
-
-        <div style={{ marginTop: 'auto', padding: '18px', background: 'var(--border-primary)', borderRadius: '18px', border: '1px solid var(--gold-bright)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'var(--gold-intense)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 900, color: '#02130e' }}>
-              {profile?.full_name?.charAt(0) || 'T'}
-            </div>
-            <div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Petugas Aktif</div>
-              <div style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '15px' }}>{profile?.full_name}</div>
-            </div>
-          </div>
-          <button onClick={handleLogout} style={{ width: '100%', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--text-primary)', border: '2px solid #fca5a5', padding: '12px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', fontSize: '14px' }}>
-            Keluar Sistem
-          </button>
-        </div>
       </aside>
-
 
       {/* MAIN CONTENT AREA */}
       <main style={{ 
         flexGrow: 1, 
-        padding: '40px 60px', 
         marginLeft: isSidebarOpen ? '320px' : '0px',
         zIndex: 20, 
         overflowY: 'auto',
         height: '100vh',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        {/* Header Content */}
+        {/* MAIN HEADER */}
         <header style={{ 
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
-          marginBottom: '44px',
           background: 'var(--bg-header)',
           backdropFilter: 'blur(16px)',
-          padding: '24px 36px',
-          borderRadius: '24px',
-          border: '1px solid var(--border-primary)',
-          borderLeft: '6px solid var(--gold-intense)',
-          boxShadow: '0 20px 40px var(--shadow-color)'
+          padding: '16px 24px',
+          borderBottom: '1px solid var(--border-primary)',
+          boxShadow: '0 4px 20px var(--shadow-color)',
+          minHeight: '80px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {!isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
                 style={{
                   background: theme === 'light' ? '#ffffff' : 'var(--bg-sidebar)',
-                  border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
-                  borderRadius: '12px',
+                  border: theme === 'light' ? '2px solid #000000' : '2px solid #ffffff',
+                  borderRadius: '10px',
                   color: theme === 'light' ? '#000000' : '#ffffff',
-                  padding: '12px 18px',
+                  padding: '8px 14px',
                   cursor: 'pointer',
                   fontWeight: 900,
                   boxShadow: '0 4px 15px var(--shadow-color)',
@@ -190,21 +232,55 @@ export default function TellerPage() {
                   transition: 'all 0.3s'
                 }}
               >
-                <span style={{ fontSize: '14px' }}>MENU</span>
+                <span style={{ fontSize: '13px' }}>MENU</span>
               </button>
             )}
-            <div>
-              <div style={{ background: 'var(--border-primary)', color: 'var(--gold-intense)', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 900, letterSpacing: '1px', display: 'inline-block', marginBottom: '8px', textTransform: 'uppercase' }}>Terminal Operasional Kas</div>
-              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '28px', fontWeight: 900 }}>Operasional Teller — Navigasi [1]–[6]</h2>
+            <div style={{ borderLeft: '4px solid var(--gold-intense)', paddingLeft: '12px' }}>
+              <div style={{ color: 'var(--gold-intense)', fontSize: '11px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '2px' }}>Terminal Operasional Kas</div>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900 }}>Operasional Teller</h2>
             </div>
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '16px', fontWeight: 600, textAlign: 'right' }}>
-            <div style={{ color: '#34d399', fontSize: '14px', fontWeight: 800, marginBottom: '4px' }}>KONEKSI LIVE</div>
-            {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ textAlign: 'right', marginRight: '10px' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', position: 'relative' }}>
+              <NotificationBell />
+              <ThemeToggle />
+              <div 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gold-intense)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: '#02130e', border: '2px solid var(--border-primary)', cursor: 'pointer' }}>
+                {profile?.full_name?.charAt(0) || 'T'}
+              </div>
+
+              {/* Profile Menu Dropdown */}
+              {showProfileMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '45px',
+                  right: '0',
+                  background: 'var(--bg-sidebar)',
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: '12px',
+                  padding: '8px',
+                  width: '180px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                  zIndex: 100,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <button onClick={() => { setShowEditProfile(true); setShowProfileMenu(false); }} style={{ textAlign: 'left', padding: '10px 12px', background: 'transparent', border: 'none', color: '#ffffff', fontWeight: 600, cursor: 'pointer', borderRadius: '8px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>Edit Profil</button>
+                  <button onClick={handleLogout} style={{ textAlign: 'left', padding: '10px 12px', background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', borderRadius: '8px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>Keluar (Logout)</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <div>
+        <div style={{ padding: '24px 32px', flexGrow: 1 }} onClick={() => setShowProfileMenu(false)}>
           <TellerTerminal userId={user?.id} />
         </div>
 
@@ -222,3 +298,39 @@ export default function TellerPage() {
     </div>
   );
 }
+
+function TellerMenuButton({ active, onClick, icon, label }: any) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button 
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px',
+        background: active 
+          ? 'var(--text-primary)' 
+          : (isHovered ? 'var(--border-primary)' : 'transparent'),
+        color: active ? 'var(--bg-page)' : 'var(--text-primary)',
+        border: active ? 'none' : '1px solid var(--border-primary)',
+        borderRadius: '14px', fontSize: '13px', fontWeight: 900, textAlign: 'left',
+        cursor: 'pointer', transition: 'all 0.3s',
+        transform: !active && isHovered ? 'translateX(6px)' : 'scale(1)',
+        boxShadow: active ? '0 4px 12px var(--shadow-color)' : 'none',
+        width: '100%',
+        whiteSpace: 'normal',
+        lineHeight: '1.4'
+      }}
+    >
+      <span style={{ 
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+        transition: 'transform 0.2s ease',
+        color: active ? 'var(--bg-page)' : 'var(--text-primary)'
+      }}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+

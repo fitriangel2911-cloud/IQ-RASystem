@@ -108,9 +108,7 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
       ];
 
       if (marginPortion > 0) {
-        // COA 501.xx / 502.xx for Margin Income. Let's use 500001 or 501.01 (Pendapatan Margin Murabahah)
-        // If your COA has a specific one, using '501001' or similar. We'll use '501001' as standard.
-        entries.push({ account_code: '501001', debit: 0, credit: marginPortion });
+        entries.push({ account_code: COA.INCOME_MURABAHAH_MARGIN, debit: 0, credit: marginPortion });
       }
 
       if (adminFee > 0) {
@@ -134,6 +132,16 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal mencatat transaksi');
+
+      const supabase = createClient();
+      // Notify the member
+      await supabase.from('notifications').insert({
+        user_id: selectedMember.user_id,
+        title: 'Pembayaran Angsuran Diterima',
+        message: `Pembayaran angsuran sebesar ${fmt(totalAmount)} berhasil diproses oleh teller. No Ref: ${refNo}`,
+        type: 'success',
+        is_read: false
+      });
 
       if (printSlip) {
         const win = window.open('', '_blank', 'width=380,height=700');

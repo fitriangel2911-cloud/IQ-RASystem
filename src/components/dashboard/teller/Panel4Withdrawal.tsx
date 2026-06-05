@@ -167,6 +167,15 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
         }]);
       if (txErr) throw txErr;
 
+      // 4. Notify the member
+      await supabase.from('notifications').insert({
+        user_id: selectedMember!.user_id,
+        title: 'Penarikan Tunai Berhasil',
+        message: `Penarikan tunai sebesar ${fmt(amount)} berhasil diproses oleh teller. Saldo Anda telah diperbarui. No Ref: ${refNo}`,
+        type: 'info',
+        is_read: false
+      });
+
       if (printSlip) {
         printReceipt({
           memberName,
