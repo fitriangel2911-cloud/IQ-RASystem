@@ -298,7 +298,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         <div style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-primary)', borderRadius: '16px' }}>
           <div style={{ fontSize: '32px', marginBottom: '10px' }}>📁</div>
           <div style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 700 }}>
-            Tidak ada kontrak dengan status 'Approved' yang menunggu pencairan untuk anggota ini.
+            Tidak ada kontrak dengan status &apos;Approved&apos; yang menunggu pencairan untuk anggota ini.
           </div>
         </div>
       ) : (

@@ -13,6 +13,7 @@ import Panel7Disbursement from './teller/Panel7Disbursement';
 
 interface TellerTerminalProps {
   userId: string;
+  activeMenu?: string;
 }
 
 type PanelKey = 'dashboard' | 'member' | 'deposit' | 'withdrawal' | 'payment' | 'disbursement' | 'shift';
@@ -37,8 +38,16 @@ const PANEL_TITLES: Record<PanelKey, string> = {
   shift:      'Buka / Tutup Shift Kas',
 };
 
-export default function TellerTerminal({ userId }: TellerTerminalProps) {
+export default function TellerTerminal({ userId, activeMenu }: TellerTerminalProps) {
   const [activePanel, setActivePanel] = useState<PanelKey>('dashboard');
+
+  // Synchronize internal activePanel with parent activeMenu prop
+  useEffect(() => {
+    if (activeMenu && ['dashboard', 'member', 'deposit', 'withdrawal', 'payment', 'disbursement', 'shift'].includes(activeMenu)) {
+      setActivePanel(activeMenu as PanelKey);
+    }
+  }, [activeMenu]);
+
   const [tellerName, setTellerName] = useState('');
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [shiftStatus, setShiftStatus] = useState<ShiftData>({ status: 'tutup' });
@@ -82,7 +91,7 @@ export default function TellerTerminal({ userId }: TellerTerminalProps) {
     init();
   }, [userId, refreshKey]);
 
-  const loadDashboardData = async () => {
+  async function loadDashboardData() {
     const supabase = createClient();
     // Cash on Hand (COA 101.01): sum(debit) - sum(credit)
     const { data: cashData } = await supabase

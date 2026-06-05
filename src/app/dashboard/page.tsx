@@ -185,7 +185,10 @@ export default function DashboardPage() {
   const fetchTasks = async () => {
     setLoadingTasks(true);
     const supabase = createClient();
-    const { data } = await supabase.from('system_tasks').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from('system_tasks')
+      .select('*, users!system_tasks_assigned_to_fkey(full_name, email)')
+      .order('created_at', { ascending: false });
     if (data) setSystemTasks(data);
     setLoadingTasks(false);
   };
@@ -289,17 +292,20 @@ export default function DashboardPage() {
     }
     setIsSavingTask(true);
     const supabase = createClient();
+    const selectedStaff = usersList.find(u => u.id === newTaskAssignee);
     const payload = {
       title: newTaskTitle,
       description: newTaskDescription,
-      assignee_name: newTaskAssignee,
+      assigned_to: newTaskAssignee,
+      assigned_to_email: selectedStaff?.email || null,
       due_date: newTaskDueDate || null,
-      status: 'PENDING'
+      status: 'PENDING',
+      created_by: user?.id || null
     };
     try {
       const { error } = await supabase.from('system_tasks').insert([payload]);
       if (!error) {
-        await logSuperAdminAction('TASK_CREATE', newTaskAssignee, `Membuat penugasan tugas baru: ${newTaskTitle}`);
+        await logSuperAdminAction('TASK_CREATE', selectedStaff?.email || newTaskAssignee, `Membuat penugasan tugas baru: "${newTaskTitle}" kepada ${selectedStaff?.full_name || newTaskAssignee}`);
         await fetchTasks();
         setIsTaskModalOpen(false);
         setNewTaskTitle('');
@@ -314,6 +320,41 @@ export default function DashboardPage() {
       showToast('Gagal menyimpan tugas: ' + err.message, 'error');
     }
     setIsSavingTask(false);
+  };
+
+  const handleUpdateTaskStatus = async (taskId: string, newStatus: string, taskTitle: string, assigneeEmail: string) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('system_tasks')
+      .update({ status: newStatus })
+      .eq('id', taskId);
+    if (!error) {
+      await logSuperAdminAction('TASK_STATUS_UPDATE', assigneeEmail || taskId, `Memperbarui status tugas "${taskTitle}" menjadi ${newStatus}`);
+      await fetchTasks();
+      showToast('Status tugas berhasil diperbarui', 'success');
+    } else {
+      showToast('Gagal memperbarui status tugas: ' + error.message, 'error');
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string, taskTitle: string, assigneeEmail: string) => {
+    setConfirmAction({
+      message: `Apakah Anda yakin ingin menghapus penugasan "${taskTitle}"?`,
+      onConfirm: async () => {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('system_tasks')
+          .delete()
+          .eq('id', taskId);
+        if (!error) {
+          await logSuperAdminAction('TASK_DELETE', assigneeEmail || taskId, `Menghapus penugasan tugas: ${taskTitle}`);
+          await fetchTasks();
+          showToast('Penugasan berhasil dihapus', 'success');
+        } else {
+          showToast('Gagal menghapus tugas: ' + error.message, 'error');
+        }
+      }
+    });
   };
 
   useEffect(() => {
@@ -370,39 +411,33 @@ export default function DashboardPage() {
 
       setProfile(finalProfile);
       
-      // 1. PRIORITAS REDIRECT: Cek role staff khusus dulu
+      // 1. PRIORITAS REDIRECT: Hanya redirect member ke /members portal
       const role = finalProfile.role;
-      
-      if (role === 'customer_service') {
-        router.push('/customer-service');
-        return;
-      }
-      if (role === 'teller') {
-        router.push('/teller');
-        return;
-      }
-      if (role === 'accounting') {
-        router.push('/accounting');
-        return;
-      }
-      if (role === 'manager') {
-        router.push('/manager');
-        return;
-      }
-      if (role === 'dps') {
-        router.push('/dps');
-        return;
-      }
       if (role === 'member') {
         router.push('/members');
         return;
       }
-      if (role === 'account_officer' || role === 'ao') {
-        router.push('/ao');
-        return;
+
+      // Determine default tab for non-super-admin staff roles
+      if (role !== 'super_admin') {
+        const primaryTabMap: Record<string, { tab: any; subTab: string }> = {
+          'customer_service': { tab: 'cs', subTab: 'onboarding' },
+          'cs': { tab: 'cs', subTab: 'onboarding' },
+          'teller': { tab: 'teller', subTab: 'dashboard' },
+          'accounting': { tab: 'accounting', subTab: 'overview' },
+          'manager': { tab: 'manager', subTab: 'overview' },
+          'dps': { tab: 'dps', subTab: 'overview' },
+          'account_officer': { tab: 'ao', subTab: 'leads' },
+          'ao': { tab: 'ao', subTab: 'leads' }
+        };
+        const primary = primaryTabMap[role];
+        if (primary) {
+          setActiveTab(primary.tab);
+          setActiveSubMenu(primary.subTab);
+        }
       }
     
-      const isStaffRole = ['super_admin', 'manager', 'account_officer', 'ao', 'accounting', 'dps'].includes(role);
+      const isStaffRole = ['super_admin', 'manager', 'account_officer', 'ao', 'accounting', 'dps', 'customer_service', 'cs', 'teller'].includes(role);
       if (isStaffRole) {
         fetchUsersList();
       }
@@ -623,10 +658,95 @@ export default function DashboardPage() {
     );
   }
 
+  // Access control checking helpers
+  const roleMap: Record<string, string> = {
+    'super_admin': 'SUPER ADMIN',
+    'teller': 'TELLER',
+    'customer_service': 'CUSTOMER SERVICE',
+    'cs': 'CUSTOMER SERVICE',
+    'account_officer': 'ACCOUNT OFFICER',
+    'ao': 'ACCOUNT OFFICER',
+    'accounting': 'ACCOUNTING',
+    'manager': 'MANAGER',
+    'dps': 'DEWAN PENGAWAS SYARIAH'
+  };
+
+  const getRequiredScopes = (tab: string, subTab?: string): string[] => {
+    if (tab === 'cs') {
+      return ['Registrasi Anggota & Profil KYC (CS)'];
+    }
+    if (tab === 'teller') {
+      if (subTab === 'disbursement' || subTab === 'shift') {
+        return ['Pencairan Pembiayaan & Shift Kasir (Teller)'];
+      }
+      return ['Kas Masuk, Penarikan & Angsuran (Teller)'];
+    }
+    if (tab === 'ao') {
+      if (subTab === 'leads' || subTab === 'overview' || subTab === 'portfolio') {
+        return ['Pengajuan Pembiayaan & Agunan (AO)'];
+      }
+      return ['Survei Kelayakan Pembiayaan (AO)'];
+    }
+    if (tab === 'accounting') {
+      if (subTab === 'overview' || subTab === 'reports') {
+        return ['Pengaturan COA & Neraca Percobaan (Accounting)'];
+      }
+      return ['Pencatatan Jurnal Akuntansi SAK EP (Accounting)'];
+    }
+    if (tab === 'manager') {
+      return ['Otorisasi & Approval Transaksi (Manager)'];
+    }
+    if (tab === 'dps') {
+      if (subTab === 'products' || subTab === 'rag') {
+        return ['Validasi Akad & Fatwa DSN-MUI (DPS)'];
+      }
+      return ['Audit Kepatuhan Syariah Otomatis (DPS)'];
+    }
+    if (tab === 'users' || tab === 'rules' || tab === 'tasks' || tab === 'coa') {
+      return ['Promosi Peran & Manajemen Pengguna (Admin)'];
+    }
+    if (tab === 'settings' || tab === 'ai_knowledge') {
+      return ['Konfigurasi Parameter & RAG AI Brain (Admin)'];
+    }
+    if (tab === 'audit_logs' || tab === 'diagnostics') {
+      return ['Pelacakan Log Audit Keamanan IT (Admin)'];
+    }
+    if (tab === 'backup') {
+      return ['Pencadangan & Pemulihan Sistem (Admin)'];
+    }
+    return [];
+  };
+
+  const hasPermission = (tab: string, subTab?: string) => {
+    const userRole = profile?.role;
+    if (userRole === 'super_admin') return true;
+
+    const userRoleName = roleMap[userRole || ''] || '';
+    if (!userRoleName) return false;
+
+    const requiredScopes = getRequiredScopes(tab, subTab);
+    if (requiredScopes.length === 0) return true;
+
+    const rulesForUser = accessRules.filter(rule => {
+      if (!rule.role_name) return false;
+      const rolesInRule = rule.role_name.split(',').map((r: string) => r.trim().toUpperCase());
+      return rolesInRule.includes(userRoleName.toUpperCase());
+    });
+
+    const userScopes = new Set<string>();
+    rulesForUser.forEach(rule => {
+      if (rule.authority_scope) {
+        rule.authority_scope.split(',').forEach((s: string) => userScopes.add(s.trim()));
+      }
+    });
+
+    return requiredScopes.some(scope => userScopes.has(scope));
+  };
+
   // ==============================================================
   // 👑 INTERNAL STAFF VIEW: (SUPER ADMIN, TELLER, MANAGER, ETC)
   // ==============================================================
-  const isStaff = ['super_admin', 'teller', 'manager', 'account_officer', 'accounting'].includes(profile?.role);
+  const isStaff = ['super_admin', 'teller', 'manager', 'account_officer', 'ao', 'accounting', 'dps', 'customer_service', 'cs'].includes(profile?.role);
   
   if (isStaff) {
 
@@ -683,56 +803,121 @@ export default function DashboardPage() {
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px', marginTop: '10px' }}>CORE BANKING</div>
               
-              <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="⊞" label="Ringkasan Eksekutif" />
+              {hasPermission('overview') && (
+                <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="⊞" label="Ringkasan Eksekutif" />
+              )}
 
-              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'onboarding'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="⚑" label="Pendaftaran Anggota (CIF)" />
-              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'members'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} icon="☰" label="Database Anggota Aktif" />
+              {/* Customer Service Submenu */}
+              {hasPermission('cs') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Customer Service</div>
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'onboarding'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="⚑" label="Pendaftaran Anggota (CIF)" />
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'members'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} icon="☰" label="Database Anggota Aktif" />
+                </>
+              )}
 
-              <DashboardMenuButton active={activeTab === 'teller'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} icon="⚖" label="Layanan Kasir / Teller" />
+              {/* Teller Submenu */}
+              {hasPermission('teller') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Layanan Teller</div>
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'dashboard'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('dashboard'); }} icon="⚖" label="Status Shift & Dasbor" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'member'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('member'); }} icon="🔍" label="Cari Anggota" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'deposit'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('deposit'); }} icon="📥" label="Setoran Tunai" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'withdrawal'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('withdrawal'); }} icon="📤" label="Penarikan Tunai" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'payment'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('payment'); }} icon="💳" label="Bayar Angsuran" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'disbursement'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('disbursement'); }} icon="💵" label="Pencairan Pembiayaan" />
+                  <DashboardMenuButton active={activeTab === 'teller' && activeSubMenu === 'shift'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('shift'); }} icon="🔄" label="Shift Kas" />
+                </>
+              )}
 
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="✎" label="Input Prospek Baru" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="⚲" label="Pipeline Nasabah" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="⚛" label="Analisis Akad & AI" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="⌖" label="Verifikasi Lapangan" />
+              {/* Account Officer Submenu */}
+              {hasPermission('ao') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Account Officer</div>
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="✎" label="Input Prospek Baru" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="⚲" label="Pipeline Nasabah" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="⚛" label="Analisis Akad & AI" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="⌖" label="Verifikasi Lapangan" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'portfolio'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('portfolio'); }} icon="▤" label="Portofolio Anggota" />
+                </>
+              )}
 
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="⊞" label="Ikhtisar Keuangan" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="☷" label="Manajemen Jurnal" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="▤" label="Laporan SAK EP" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="⛨" label="Pencadangan CKPN" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="◒" label="Bagi Hasil (EOM)" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="✖" label="Tutup Buku (EOD)" />
+              {/* Accounting Submenu */}
+              {hasPermission('accounting') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Accounting & Pembukuan</div>
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="⊞" label="Ikhtisar Keuangan" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="☷" label="Manajemen Jurnal" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="▤" label="Laporan SAK EP" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="⛨" label="Pencadangan CKPN" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="◒" label="Bagi Hasil (EOM)" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="✖" label="Tutup Buku (EOD)" />
+                </>
+              )}
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>PENGAWASAN & OTO</div>
 
-              <DashboardMenuButton active={activeTab === 'manager'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="⚿" label="Otorisasi Manager" />
+              {/* Manager Submenu */}
+              {hasPermission('manager') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Manager</div>
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="⚿" label="Otorisasi Manager" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'approvals'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('approvals'); }} icon="⚙" label="Antrian Otorisasi" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'contracts'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('contracts'); }} icon="▤" label="Riwayat Otorisasi" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('rag'); }} icon="⚛" label="RAG Ingestion" />
+                </>
+              )}
               
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="⚖" label="Ringkasan Kepatuhan" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'audit'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('audit'); }} icon="⌕" label="Audit Akad Pembiayaan" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'products'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('products'); }} icon="☆" label="Reviu Produk Baru" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'purification'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('purification'); }} icon="⛆" label="Pembersihan Dana (ZISWAF)" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'report'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('report'); }} icon="▤" label="Cetak Laporan LHPS" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('rag'); }} icon="⚙" label="Ingesti Basis Data RAG" />
+              {/* DPS Submenu */}
+              {hasPermission('dps') && (
+                <>
+                  <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Dewan Pengawas Syariah</div>
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="⚖" label="Ringkasan Kepatuhan" />
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'audit'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('audit'); }} icon="⌕" label="Audit Akad Pembiayaan" />
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'products'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('products'); }} icon="☆" label="Reviu Produk Baru" />
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'purification'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('purification'); }} icon="⛆" label="Pembersihan Dana (ZISWAF)" />
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'report'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('report'); }} icon="▤" label="Cetak Laporan LHPS" />
+                  <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('rag'); }} icon="⚙" label="Ingesti Basis Data RAG" />
+                </>
+              )}
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>KECERDASAN BUATAN</div>
-              <DashboardMenuButton active={activeTab === 'ai_knowledge'} onClick={() => { setActiveTab('ai_knowledge'); setActiveSubMenu('overview'); }} icon="⚛" label="Knowledge Base (RAG)" />
+              {hasPermission('ai_knowledge') && (
+                <DashboardMenuButton active={activeTab === 'ai_knowledge'} onClick={() => { setActiveTab('ai_knowledge'); setActiveSubMenu('overview'); }} icon="⚛" label="Knowledge Base (RAG)" />
+              )}
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
 
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>ADMINISTRASI IT</div>
               
-              <DashboardMenuButton active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setActiveSubMenu('overview'); }} icon="⚇" label="Manajemen User" />
-              <DashboardMenuButton active={activeTab === 'rules'} onClick={() => { setActiveTab('rules'); setActiveSubMenu('overview'); }} icon="⛨" label="Aturan Akses (RBAC)" />
-              <DashboardMenuButton active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setActiveSubMenu('overview'); }} icon="⚙" label="Konfigurasi Sistem" />
-              
-              <DashboardMenuButton active={activeTab === 'audit_logs'} onClick={() => { setActiveTab('audit_logs'); setActiveSubMenu('overview'); }} icon="☷" label="Log Audit Keamanan" />
-              <DashboardMenuButton active={activeTab === 'coa'} onClick={() => { setActiveTab('coa'); setActiveSubMenu('overview'); }} icon="▤" label="Manajemen COA" />
-              <DashboardMenuButton active={activeTab === 'tasks'} onClick={() => { setActiveTab('tasks'); setActiveSubMenu('overview'); }} icon="☑" label="Penugasan Staf" />
-              <DashboardMenuButton active={activeTab === 'diagnostics'} onClick={() => { setActiveTab('diagnostics'); setActiveSubMenu('overview'); }} icon="⚡" label="Diagnostik & Latensi" />
-              <DashboardMenuButton active={activeTab === 'backup'} onClick={() => { setActiveTab('backup'); setActiveSubMenu('overview'); }} icon="⛁" label="Pencadangan Data" />
+              {hasPermission('users') && (
+                <DashboardMenuButton active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setActiveSubMenu('overview'); }} icon="⚇" label="Manajemen User" />
+              )}
+              {hasPermission('rules') && (
+                <DashboardMenuButton active={activeTab === 'rules'} onClick={() => { setActiveTab('rules'); setActiveSubMenu('overview'); }} icon="⛨" label="Aturan Akses (RBAC)" />
+              )}
+              {hasPermission('settings') && (
+                <DashboardMenuButton active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setActiveSubMenu('overview'); }} icon="⚙" label="Konfigurasi Sistem" />
+              )}
+              {hasPermission('audit_logs') && (
+                <DashboardMenuButton active={activeTab === 'audit_logs'} onClick={() => { setActiveTab('audit_logs'); setActiveSubMenu('overview'); }} icon="☷" label="Log Audit Keamanan" />
+              )}
+              {hasPermission('coa') && (
+                <DashboardMenuButton active={activeTab === 'coa'} onClick={() => { setActiveTab('coa'); setActiveSubMenu('overview'); }} icon="▤" label="Manajemen COA" />
+              )}
+              {hasPermission('tasks') && (
+                <DashboardMenuButton active={activeTab === 'tasks'} onClick={() => { setActiveTab('tasks'); setActiveSubMenu('overview'); }} icon="☑" label="Penugasan Staf" />
+              )}
+              {hasPermission('diagnostics') && (
+                <DashboardMenuButton active={activeTab === 'diagnostics'} onClick={() => { setActiveTab('diagnostics'); setActiveSubMenu('overview'); }} icon="⚡" label="Diagnostik & Latensi" />
+              )}
+              {hasPermission('backup') && (
+                <DashboardMenuButton active={activeTab === 'backup'} onClick={() => { setActiveTab('backup'); setActiveSubMenu('overview'); }} icon="⛁" label="Pencadangan Data" />
+              )}
             </nav>
           </aside>
         )}
@@ -767,6 +952,12 @@ export default function DashboardPage() {
                  activeTab === 'cs' ? 'Layanan Customer Service' :
                  activeTab === 'rules' ? 'Aturan & Konfigurasi Izin Akses' :
                  activeTab === 'settings' ? 'Konfigurasi Sistem' :
+                 activeTab === 'tasks' ? 'Pusat Penugasan Staf' :
+                 activeTab === 'coa' ? 'Daftar Bagan Perkiraan (COA)' :
+                 activeTab === 'audit_logs' ? 'Log Aktivitas Keamanan IT' :
+                 activeTab === 'diagnostics' ? 'Diagnostik & Latensi Sistem' :
+                 activeTab === 'backup' ? 'Manajemen Cadangan Database' :
+                 activeTab === 'ai_knowledge' ? 'Basis Data Kecerdasan Syariah' :
                  'Direktori CIF & Data Fisik Anggota'}
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500 }}>
@@ -788,6 +979,18 @@ export default function DashboardPage() {
                   ? 'Definisi Role-Based Access Control (RBAC) dan batasan otoritas per kriteria jabatan.'
                   : activeTab === 'teller'
                   ? 'Pusat pemrosesan setoran, penarikan, dan pembayaran angsuran anggota.'
+                  : activeTab === 'tasks'
+                  ? 'Delegasi tugas tata kelola dan pemantauan status penyelesaian oleh staff.'
+                  : activeTab === 'coa'
+                  ? 'Manajemen kode perkiraan untuk pelaporan SAK EP.'
+                  : activeTab === 'audit_logs'
+                  ? 'Audit trail log forensik administrasi superadmin secara kronologis.'
+                  : activeTab === 'diagnostics'
+                  ? 'Pengukuran latency server dan status integrasi cloud API.'
+                  : activeTab === 'backup'
+                  ? 'Ekspor dan impor cadangan database postgres terenkripsi.'
+                  : activeTab === 'ai_knowledge'
+                  ? 'Pusat pembelajaran AI RAG untuk analisis hukum fatwa MUI.'
                   : 'Pusat pengawasan berkas perbankan KYC, NIK, KK, Ibu Kandung, & Profil Finansial.'}
               </p>
             </div>
@@ -833,6 +1036,15 @@ export default function DashboardPage() {
               </div>
             </div>
           </header>
+
+          {!hasPermission(activeTab, activeSubMenu) ? (
+            <div style={{ padding: '80px', textAlign: 'center', background: 'var(--bg-card)', border: '3px solid #ef4444', borderRadius: '24px', color: 'var(--text-primary)', animation: 'fadeIn 0.3s ease-out', boxShadow: '0 20px 50px var(--shadow-color)', marginTop: '20px' }}>
+              <div style={{ fontSize: '56px', marginBottom: '20px' }}>⚠️</div>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#ef4444', marginBottom: '10px' }}>Akses Ditolak (Unauthorized Access)</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: 600, maxWidth: '500px', margin: '0 auto', lineHeight: 1.6 }}>Anda tidak memiliki hak wewenang akses (authority scope) yang terdaftar di sistem untuk mengakses modul ini. Silakan hubungi Administrator IT untuk memperbarui matriks RBAC Anda.</p>
+            </div>
+          ) : (
+            <>
 
           {/* ==================================== */}
           {/* TAB A: OVERVIEW VIEW                 */}
@@ -985,7 +1197,7 @@ export default function DashboardPage() {
           {/* ==================================== */}
           {activeTab === 'teller' && (
             <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-              <TellerTerminal userId={user?.id} />
+              <TellerTerminal userId={user?.id} activeMenu={activeSubMenu} />
             </div>
           )}
 
@@ -1727,27 +1939,75 @@ export default function DashboardPage() {
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                   {systemTasks.map((task: any) => (
-                    <div key={task.id} style={{ background: 'var(--bg-card)', border: '2px solid #cca334', borderRadius: '20px', padding: '24px', position: 'relative' }}>
-                      <span style={{
-                        position: 'absolute', top: '20px', right: '20px',
-                        background: task.status === 'COMPLETED' ? 'rgba(52,211,153,0.1)' : 'rgba(243,198,83,0.1)',
-                        border: task.status === 'COMPLETED' ? '1px solid #34d399' : '1px solid #f3c653',
-                        color: task.status === 'COMPLETED' ? 'var(--text-success)' : 'var(--gold-intense)',
-                        padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900
-                      }}>
-                        {task.status}
-                      </span>
-                      <h4 style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 800, paddingRight: '70px', marginBottom: '8px' }}>{task.title}</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '13px', minHeight: '40px', marginBottom: '16px', lineHeight: 1.5 }}>{task.description || 'Tanpa deskripsi'}</p>
-                      
-                      <div style={{ borderTop: '1px solid var(--bg-track)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <div>
-                          <span style={{ color: 'var(--text-secondary)', display: 'block' }}>PENERIMA TUGAS</span>
-                          <strong style={{ color: 'var(--text-primary)' }}>👤 {task.assignee_name}</strong>
+                    <div key={task.id} style={{ background: 'var(--bg-card)', border: '2px solid #cca334', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '220px' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                          <h4 style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 800, margin: 0, paddingRight: '10px' }}>{task.title}</h4>
+                          <span style={{
+                            background: task.status === 'COMPLETED' ? 'rgba(52,211,153,0.1)' : 'rgba(243,198,83,0.1)',
+                            border: task.status === 'COMPLETED' ? '1px solid #34d399' : '1px solid #f3c653',
+                            color: task.status === 'COMPLETED' ? 'var(--text-success)' : 'var(--gold-intense)',
+                            padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {task.status}
+                          </span>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ color: 'var(--text-secondary)', display: 'block' }}>TENGGAT WAKTU</span>
-                          <strong style={{ color: 'var(--gold-intense)' }}>📅 {task.due_date ? new Date(task.due_date).toLocaleDateString('id-ID') : '—'}</strong>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '16px', lineHeight: 1.5 }}>{task.description || 'Tanpa deskripsi'}</p>
+                      </div>
+                      
+                      <div>
+                        <div style={{ borderTop: '1px solid var(--bg-track)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '16px' }}>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block' }}>PENERIMA TUGAS</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>👤 {task.users?.full_name || task.assigned_to_email || '—'}</strong>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block' }}>TENGGAT WAKTU</span>
+                            <strong style={{ color: 'var(--gold-intense)' }}>📅 {task.due_date ? new Date(task.due_date).toLocaleDateString('id-ID') : '—'}</strong>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', alignItems: 'center' }}>
+                          <select 
+                            value={task.status}
+                            onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value, task.title, task.users?.email || task.assigned_to_email)}
+                            style={{
+                              background: 'var(--bg-dark-box)',
+                              border: '1px solid var(--border-primary)',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              color: 'var(--text-primary)',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              outline: 'none'
+                            }}
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="IN_PROGRESS">IN PROGRESS</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                          </select>
+                          
+                          <button
+                            onClick={() => handleDeleteTask(task.id, task.title, task.users?.email || task.assigned_to_email)}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid #ef4444',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              color: '#ef4444',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              marginLeft: 'auto',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            Hapus
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1932,6 +2192,8 @@ export default function DashboardPage() {
           {/* EXTERNAL DASHBOARDS ALREADY RENDERED ABOVE     */}
           {/* ============================================== */}
 
+            </>
+          )}
         </main>
 
         {/* 3. MODAL POPUP: High Contrast Opaque Box */}
@@ -2648,11 +2910,30 @@ export default function DashboardPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>PENERIMA TUGAS</label>
-                    <input 
-                      type="text" required placeholder="Contoh: Ahmad Kasir" 
-                      value={newTaskAssignee} onChange={(e) => setNewTaskAssignee(e.target.value)} 
-                      style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 600 }} 
-                    />
+                    <select
+                      required
+                      value={newTaskAssignee}
+                      onChange={(e) => setNewTaskAssignee(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'var(--bg-dark-box)',
+                        border: '2px solid rgba(255,255,255,0.2)',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        color: 'var(--text-primary)',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="" style={{ color: '#02130e' }}>Pilih Staf...</option>
+                      {usersList
+                        .filter(u => u.role !== 'member')
+                        .map(u => (
+                          <option key={u.id} value={u.id} style={{ color: '#02130e' }}>
+                            {u.full_name} ({u.role.toUpperCase()})
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>TENGGAT WAKTU</label>
