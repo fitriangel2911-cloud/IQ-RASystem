@@ -319,7 +319,7 @@ export default function DPSPage() {
         isOpen={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
         profile={profile} 
-        onUpdate={(newProfile) => {
+        onUpdate={(newProfile: any) => {
           setProfile(newProfile);
           showToast('Profil berhasil diperbarui', 'success');
         }} 
