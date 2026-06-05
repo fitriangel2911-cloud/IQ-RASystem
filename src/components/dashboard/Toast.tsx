@@ -30,10 +30,15 @@ export default function Toast({ message, type, isVisible, onClose, duration = 35
 
   const getTheme = () => {
     switch (type) {
-      case 'success': return { bg: 'rgba(16, 185, 129, 0.95)', border: '#059669', icon: '✅' };
-      case 'error': return { bg: 'rgba(239, 68, 68, 0.95)', border: '#b91c1c', icon: '❌' };
-      case 'warning': return { bg: 'rgba(245, 158, 11, 0.95)', border: '#d97706', icon: '⚠️' };
-      default: return { bg: 'rgba(59, 130, 246, 0.95)', border: '#2563eb', icon: 'ℹ️' };
+      case 'success': return { bg: 'rgba(16, 185, 129, 0.95)', border: '#059669', icon: '✅', text: '#ffffff' };
+      case 'error': return { bg: 'rgba(239, 68, 68, 0.95)', border: '#b91c1c', icon: '❌', text: '#ffffff' };
+      case 'warning': return { 
+        bg: 'rgba(245, 158, 11, 0.95)', 
+        border: '#d97706', 
+        icon: <div style={{ background: '#02130e', color: '#f59e0b', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: 900 }}>!</div>, 
+        text: '#02130e' 
+      };
+      default: return { bg: 'rgba(59, 130, 246, 0.95)', border: '#2563eb', icon: 'ℹ️', text: '#ffffff' };
     }
   };
 
@@ -52,7 +57,7 @@ export default function Toast({ message, type, isVisible, onClose, duration = 35
         border: `1px solid ${theme.border}`,
         borderRadius: '16px',
         padding: '16px 24px',
-        color: '#ffffff',
+        color: theme.text,
         display: 'flex',
         alignItems: 'center',
         gap: '12px',

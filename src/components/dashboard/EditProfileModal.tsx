@@ -6,6 +6,7 @@ export default function EditProfileModal({ isOpen, onClose, profile, onUpdate }:
   const [email, setEmail] = useState(profile?.email || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -15,17 +16,14 @@ export default function EditProfileModal({ isOpen, onClose, profile, onUpdate }:
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Limit file size to 2MB
       if (file.size > 2 * 1024 * 1024) {
         alert('Ukuran file maksimal 2MB');
         return;
       }
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
-        // Note: For full implementation, this file should be uploaded to Supabase Storage 
-        // and the resulting public URL saved to avatarUrl. 
-        // For now, we'll store the data URL in preview state to give immediate visual feedback.
       };
       reader.readAsDataURL(file);
     }
@@ -35,19 +33,32 @@ export default function EditProfileModal({ isOpen, onClose, profile, onUpdate }:
     setLoading(true);
     const supabase = createClient();
     
-    // In a real app, you would upload the file to Supabase Storage here and get the URL
-    // const uploadedUrl = await uploadToStorage(file);
-    // For this prototype, we'll just save the text fields
+    let finalAvatarUrl = avatarUrl;
+
+    if (selectedFile) {
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${profile?.id}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, selectedFile, { upsert: true });
+        
+      if (!uploadError) {
+        const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+        finalAvatarUrl = data.publicUrl;
+      } else {
+        alert('Gagal mengunggah foto profil: ' + uploadError.message);
+      }
+    }
     
     const { error } = await supabase
       .from('users')
-      .update({ phone, email })
+      .update({ phone, email, avatar_url: finalAvatarUrl })
       .eq('id', profile?.id);
 
     setLoading(false);
     if (!error) {
-      // Pass the preview image back to update the UI immediately
-      if (onUpdate) onUpdate({ ...profile, phone, email, _preview_avatar: previewImage });
+      if (onUpdate) onUpdate({ ...profile, phone, email, avatar_url: finalAvatarUrl, _preview_avatar: previewImage });
       onClose();
     } else {
       alert('Gagal memperbarui profil: ' + error.message);

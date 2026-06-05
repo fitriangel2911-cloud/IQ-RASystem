@@ -12,11 +12,12 @@ import AODashboard from '@/components/dashboard/AODashboard';
 import AccountingDashboard from '@/components/dashboard/AccountingDashboard';
 import CSDashboard from '@/components/dashboard/CSDashboard';
 import AIKnowledgeManager from '@/components/dashboard/AIKnowledgeManager';
+import Toast, { ToastProps } from '@/components/dashboard/Toast';
 
 
 
 // Intensely styled menu button for the dashboard sidebar
-function DashboardMenuButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: string, label: string }) {
+function DashboardMenuButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
   return (
     <button 
       onClick={onClick}
@@ -99,6 +100,7 @@ export default function DashboardPage() {
   const [loadingRules, setLoadingRules] = useState(false);
   const [editingRule, setEditingRule] = useState<any>(null);
   const [isCreatingRule, setIsCreatingRule] = useState(false);
+  const [editingParam, setEditingParam] = useState<any>(null);
   
   // Role modal
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -116,9 +118,22 @@ export default function DashboardPage() {
   
   // Audit mask
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
+  // Popups & Notifications
+  const [toast, setToast] = useState<{message: string, type: ToastProps['type'], isVisible: boolean}>({ message: '', type: 'info', isVisible: false });
+  const [confirmAction, setConfirmAction] = useState<{message: string, onConfirm: () => void} | null>(null);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [editFullName, setEditFullName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const showToast = (message: string, type: ToastProps['type']) => {
+    setToast({ message, type, isVisible: true });
+  };
   
   // Real-time Search Query & Real Membership count states
   const [searchQuery, setSearchQuery] = useState('');
+  const [auditSearchQuery, setAuditSearchQuery] = useState('');
   const [totalApprovedMembers, setTotalApprovedMembers] = useState(0);
   
   // CIF / Physical Membership data states
@@ -128,15 +143,17 @@ export default function DashboardPage() {
   // SUPER ADMIN RESTORED FUNCTIONS
   const logSuperAdminAction = async (actionType: string, targetId: string, details: string) => {
     try {
-      const supabase = createClient();
-      await supabase.from('audit_logs').insert([
-        {
-          action_type: actionType,
-          target_id: targetId,
-          description: details,
-          created_at: new Date().toISOString()
-        }
-      ]);
+      await fetch('/api/audit-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: actionType, 
+          target_user: targetId, 
+          details: details,
+          actor_id: profile?.id,
+          actor_name: profile?.full_name || 'System / Unknown'
+        })
+      });
     } catch (err) {
       console.error('Failed to log admin action:', err);
     }
@@ -144,10 +161,17 @@ export default function DashboardPage() {
 
   const fetchAuditLogs = async () => {
     setLoadingAuditLogs(true);
-    const supabase = createClient();
-    const { data } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50);
-    if (data) setAuditLogs(data);
-    setLoadingAuditLogs(false);
+    try {
+      const res = await fetch('/api/audit-logs');
+      if (res.ok) {
+        const data = await res.json();
+        setAuditLogs(data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch audit logs', err);
+    } finally {
+      setLoadingAuditLogs(false);
+    }
   };
 
   const fetchCoaAccounts = async () => {
@@ -228,34 +252,39 @@ export default function DashboardPage() {
         }
       }
       if (error) {
-        alert('Gagal menyimpan COA: ' + error.message);
+        showToast('Gagal menyimpan COA: ' + error.message, 'error');
       } else {
         await fetchCoaAccounts();
         setIsCoaModalOpen(false);
+        showToast('Akun COA berhasil disimpan', 'success');
       }
     } catch (err: any) {
-      alert('Gagal menyimpan COA: ' + err.message);
+      showToast('Gagal menyimpan COA: ' + err.message, 'error');
     }
     setIsSavingCoa(false);
   };
 
   const handleDeleteCoa = async (id: string, code: string, name: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus akun COA ${code} - ${name}?`)) {
-      const supabase = createClient();
-      const { error } = await supabase.from('coa_accounts').delete().eq('id', id);
-      if (!error) {
-        await logSuperAdminAction('COA_DELETE', code, `Menghapus akun COA: ${name}`);
-        await fetchCoaAccounts();
-      } else {
-        alert('Gagal menghapus COA: ' + error.message);
+    setConfirmAction({
+      message: `Apakah Anda yakin ingin menghapus akun COA ${code} - ${name}?`,
+      onConfirm: async () => {
+        const supabase = createClient();
+        const { error } = await supabase.from('coa_accounts').delete().eq('id', id);
+        if (!error) {
+          await logSuperAdminAction('COA_DELETE', code, `Menghapus akun COA: ${name}`);
+          await fetchCoaAccounts();
+          showToast('Akun COA berhasil dihapus', 'success');
+        } else {
+          showToast('Gagal menghapus COA: ' + error.message, 'error');
+        }
       }
-    }
+    });
   };
 
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle || !newTaskAssignee) {
-      alert('Judul tugas dan penerima wajib diisi.');
+      showToast('Judul tugas dan penerima wajib diisi.', 'warning');
       return;
     }
     setIsSavingTask(true);
@@ -277,11 +306,12 @@ export default function DashboardPage() {
         setNewTaskDescription('');
         setNewTaskAssignee('');
         setNewTaskDueDate('');
+        showToast('Penugasan berhasil dibuat', 'success');
       } else {
-        alert('Gagal menyimpan tugas: ' + error.message);
+        showToast('Gagal menyimpan tugas: ' + error.message, 'error');
       }
     } catch (err: any) {
-      alert('Gagal menyimpan tugas: ' + err.message);
+      showToast('Gagal menyimpan tugas: ' + err.message, 'error');
     }
     setIsSavingTask(false);
   };
@@ -447,10 +477,15 @@ export default function DashboardPage() {
     fetchAccessRules();
   }, [router]);
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/');
+  const handleLogout = () => {
+    setConfirmAction({
+      message: 'Apakah Anda yakin ingin keluar dari sesi operasional sistem?',
+      onConfirm: async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/');
+      }
+    });
   };
 
   const handleOpenEditRole = (usr: any) => {
@@ -471,8 +506,9 @@ export default function DashboardPage() {
       await logSuperAdminAction('USER_ROLE_PROMOTION', editingUser.id, `Promosi peran akun ${editingUser.full_name} menjadi ${selectedRole}`);
       await fetchUsersList();
       setEditingUser(null);
+      showToast('Peran pengguna berhasil diperbarui', 'success');
     } else {
-      alert('Gagal memperbarui: ' + error.message);
+      showToast('Gagal memperbarui: ' + error.message, 'error');
     }
     setIsSavingRole(false);
   };
@@ -512,7 +548,7 @@ export default function DashboardPage() {
       }
       
       await logSuperAdminAction('USER_CREATE', data.user?.id || newEmail, `Mendaftarkan akun staf baru: ${newFullName} (${newRole})`);
-      alert('🎉 PENDAFTARAN BERHASIL!\nUser atau Staf baru telah berhasil dimasukkan ke dalam sistem.');
+      showToast('🎉 PENDAFTARAN BERHASIL! User atau Staf baru telah berhasil dimasukkan ke dalam sistem.', 'success');
       
       // Reset Form States
       setNewFullName('');
@@ -537,40 +573,42 @@ export default function DashboardPage() {
     const targetCandidate = usersList.find(u => !registeredUserIds.has(u.id));
     
     if (!targetCandidate) {
-      alert('Pemberitahuan Sistem:\nSemua user yang terdaftar saat ini SUDAH memiliki berkas fisik CIF di database! Silakan buat registrasi akun baru terlebih dahulu.');
+      showToast('Pemberitahuan Sistem: Semua user terdaftar SUDAH memiliki berkas fisik CIF! Buat akun baru dahulu.', 'warning');
       return;
     }
     
-    const confirmSim = window.confirm(`SUNTIK DATA UJI COBA?\n\nApakah Anda ingin mensimulasikan pengajuan data fisik CIF Bank lengkap untuk pengguna: "${targetCandidate.full_name}"?\n\nData simulasi NIK, KK, Ibu Kandung, dan Penghasilan akan dimasukkan langsung ke tabel Supabase Anda.`);
-    if (!confirmSim) return;
-
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('members')
-      .insert({
-        user_id: targetCandidate.id,
-        nik: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000), // Valid length NIK
-        kk_number: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000),
-        mother_name: 'Siti Aminah',
-        religion: 'Islam',
-        ktp_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
-        domicile_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
-        occupation: 'Wirausaha Mikro Kuliner',
-        monthly_income: 9200000,
-        phone_number: '0812' + Math.floor(10000000 + Math.random() * 90000000),
-        status: 'active'
-      });
-      
-    if (!error) {
-      alert(`⚡ SIMULASI SUKSES!\nBerkas CIF resmi atas nama "${targetCandidate.full_name}" telah berhasil disuntikkan aktif ke tabel members!`);
-      await fetchUsersList();
-    } else {
-      alert('Error menyuntikkan simulasi: ' + error.message);
-    }
+    setConfirmAction({
+      message: `SUNTIK DATA UJI COBA? Apakah Anda mensimulasikan CIF lengkap untuk: "${targetCandidate.full_name}"?`,
+      onConfirm: async () => {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('members')
+          .insert({
+            user_id: targetCandidate.id,
+            nik: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000), // Valid length NIK
+            kk_number: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000),
+            mother_name: 'Siti Aminah',
+            religion: 'Islam',
+            ktp_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
+            domicile_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
+            occupation: 'Wirausaha Mikro Kuliner',
+            monthly_income: 9200000,
+            phone_number: '0812' + Math.floor(10000000 + Math.random() * 90000000),
+            status: 'active'
+          });
+          
+        if (!error) {
+          showToast(`⚡ SIMULASI SUKSES! Berkas CIF resmi "${targetCandidate.full_name}" disuntikkan!`, 'success');
+          await fetchUsersList();
+        } else {
+          showToast('Error menyuntikkan simulasi: ' + error.message, 'error');
+        }
+      }
+    });
   };
 
   const togglePasswordVisibility = (userId: string) => {
-    setVisiblePasswords(prev => ({ ...prev, [userId]: !prev[userId] }));
+    showToast('Sandi terenkripsi ketat (Bcrypt). Hubungi admin IT untuk proses reset sandi manual jika diperlukan.', 'warning');
   };
 
   if (loading) {
@@ -617,12 +655,12 @@ export default function DashboardPage() {
         {/* 1. SIDEBAR: Solid, Bold, Premium Dark Emerald */}
         {isSidebarOpen && (
           <aside style={{
-            width: '300px',
+            width: '280px',
             background: 'var(--bg-sidebar)', // Deep saturated Emerald
             borderRight: '2px solid #cca334', // Rich gold divider
             display: 'flex',
             flexDirection: 'column',
-            padding: '24px 18px',
+            padding: '20px 24px',
             position: 'sticky',
             top: 0,
             height: '100vh',
@@ -630,14 +668,14 @@ export default function DashboardPage() {
             boxShadow: '8px 0 25px var(--shadow-color)'
           }}>
             {/* Sidebar Brand */}
-            <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ marginTop: '-10px' }}>
-                  <BrandLogo size={50} fontSize="22px" textColor="var(--sidebar-heading)" />
+                <div style={{ marginTop: '0px' }}>
+                  <BrandLogo size={42} fontSize="20px" textColor="var(--sidebar-heading)" />
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '4px', marginLeft: '62px' }}>IT Administrator</div>
+                <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '4px', marginLeft: '52px' }}>IT Administrator</div>
               </div>
-              <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '20px', cursor: 'pointer', padding: '4px', marginTop: '-5px' }}>✖</button>
+              <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '18px', cursor: 'pointer', padding: '4px' }}>✖</button>
             </div>
 
             {/* Sidebar Nav */}
@@ -645,56 +683,56 @@ export default function DashboardPage() {
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px', marginTop: '10px' }}>CORE BANKING</div>
               
-              <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="📊" label="Ringkasan Eksekutif" />
+              <DashboardMenuButton active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setActiveSubMenu('overview'); }} icon="⊞" label="Ringkasan Eksekutif" />
 
-              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'onboarding'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="🎧" label="Pendaftaran Anggota (CIF)" />
-              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'members'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} icon="📁" label="Database Anggota Aktif" />
+              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'onboarding'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="⚑" label="Pendaftaran Anggota (CIF)" />
+              <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'members'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} icon="☰" label="Database Anggota Aktif" />
 
-              <DashboardMenuButton active={activeTab === 'teller'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} icon="🏪" label="Layanan Kasir / Teller" />
+              <DashboardMenuButton active={activeTab === 'teller'} onClick={() => { setActiveTab('teller'); setActiveSubMenu('overview'); }} icon="⚖" label="Layanan Kasir / Teller" />
 
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="📝" label="Input Prospek Baru" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="🤝" label="Pipeline Nasabah" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="📋" label="Analisis Akad & AI" />
-              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="📍" label="Verifikasi Lapangan" />
+              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="✎" label="Input Prospek Baru" />
+              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="⚲" label="Pipeline Nasabah" />
+              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="⚛" label="Analisis Akad & AI" />
+              <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="⌖" label="Verifikasi Lapangan" />
 
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="📊" label="Ikhtisar Keuangan" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="✒️" label="Manajemen Jurnal" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="📑" label="Laporan SAK EP" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="🛡️" label="Pencadangan CKPN" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="💰" label="Bagi Hasil (EOM)" />
-              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="🔒" label="Tutup Buku (EOD)" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }} icon="⊞" label="Ikhtisar Keuangan" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="☷" label="Manajemen Jurnal" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="▤" label="Laporan SAK EP" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="⛨" label="Pencadangan CKPN" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="◒" label="Bagi Hasil (EOM)" />
+              <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="✖" label="Tutup Buku (EOD)" />
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>PENGAWASAN & OTO</div>
 
-              <DashboardMenuButton active={activeTab === 'manager'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="🏢" label="Otorisasi Manager" />
+              <DashboardMenuButton active={activeTab === 'manager'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="⚿" label="Otorisasi Manager" />
               
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="🕌" label="Ringkasan Kepatuhan" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'audit'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('audit'); }} icon="🔍" label="Audit Akad Pembiayaan" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'products'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('products'); }} icon="🏷️" label="Reviu Produk Baru" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'purification'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('purification'); }} icon="💧" label="Pembersihan Dana (ZISWAF)" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'report'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('report'); }} icon="📑" label="Cetak Laporan LHPS" />
-              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('rag'); }} icon="🤖" label="Ingesti Basis Data RAG" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }} icon="⚖" label="Ringkasan Kepatuhan" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'audit'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('audit'); }} icon="⌕" label="Audit Akad Pembiayaan" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'products'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('products'); }} icon="☆" label="Reviu Produk Baru" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'purification'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('purification'); }} icon="⛆" label="Pembersihan Dana (ZISWAF)" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'report'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('report'); }} icon="▤" label="Cetak Laporan LHPS" />
+              <DashboardMenuButton active={activeTab === 'dps' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('dps'); setActiveSubMenu('rag'); }} icon="⚙" label="Ingesti Basis Data RAG" />
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
               
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>KECERDASAN BUATAN</div>
-              <DashboardMenuButton active={activeTab === 'ai_knowledge'} onClick={() => { setActiveTab('ai_knowledge'); setActiveSubMenu('overview'); }} icon="🧠" label="Knowledge Base (RAG)" />
+              <DashboardMenuButton active={activeTab === 'ai_knowledge'} onClick={() => { setActiveTab('ai_knowledge'); setActiveSubMenu('overview'); }} icon="⚛" label="Knowledge Base (RAG)" />
 
               <div style={{ height: '1px', background: 'var(--border-primary)', margin: '12px 0' }} />
 
               <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px' }}>ADMINISTRASI IT</div>
               
-              <DashboardMenuButton active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setActiveSubMenu('overview'); }} icon="👥" label="Manajemen User" />
-              <DashboardMenuButton active={activeTab === 'rules'} onClick={() => { setActiveTab('rules'); setActiveSubMenu('overview'); }} icon="🛡️" label="Aturan Akses (RBAC)" />
-              <DashboardMenuButton active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setActiveSubMenu('overview'); }} icon="🛠️" label="Konfigurasi Sistem" />
+              <DashboardMenuButton active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setActiveSubMenu('overview'); }} icon="⚇" label="Manajemen User" />
+              <DashboardMenuButton active={activeTab === 'rules'} onClick={() => { setActiveTab('rules'); setActiveSubMenu('overview'); }} icon="⛨" label="Aturan Akses (RBAC)" />
+              <DashboardMenuButton active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setActiveSubMenu('overview'); }} icon="⚙" label="Konfigurasi Sistem" />
               
-              <DashboardMenuButton active={activeTab === 'audit_logs'} onClick={() => { setActiveTab('audit_logs'); setActiveSubMenu('overview'); }} icon="📋" label="Log Audit Keamanan" />
-              <DashboardMenuButton active={activeTab === 'coa'} onClick={() => { setActiveTab('coa'); setActiveSubMenu('overview'); }} icon="📒" label="Manajemen COA" />
-              <DashboardMenuButton active={activeTab === 'tasks'} onClick={() => { setActiveTab('tasks'); setActiveSubMenu('overview'); }} icon="✅" label="Penugasan Staf" />
-              <DashboardMenuButton active={activeTab === 'diagnostics'} onClick={() => { setActiveTab('diagnostics'); setActiveSubMenu('overview'); }} icon="🩺" label="Diagnostik & Latensi" />
-              <DashboardMenuButton active={activeTab === 'backup'} onClick={() => { setActiveTab('backup'); setActiveSubMenu('overview'); }} icon="📦" label="Pencadangan Data" />
+              <DashboardMenuButton active={activeTab === 'audit_logs'} onClick={() => { setActiveTab('audit_logs'); setActiveSubMenu('overview'); }} icon="☷" label="Log Audit Keamanan" />
+              <DashboardMenuButton active={activeTab === 'coa'} onClick={() => { setActiveTab('coa'); setActiveSubMenu('overview'); }} icon="▤" label="Manajemen COA" />
+              <DashboardMenuButton active={activeTab === 'tasks'} onClick={() => { setActiveTab('tasks'); setActiveSubMenu('overview'); }} icon="☑" label="Penugasan Staf" />
+              <DashboardMenuButton active={activeTab === 'diagnostics'} onClick={() => { setActiveTab('diagnostics'); setActiveSubMenu('overview'); }} icon="⚡" label="Diagnostik & Latensi" />
+              <DashboardMenuButton active={activeTab === 'backup'} onClick={() => { setActiveTab('backup'); setActiveSubMenu('overview'); }} icon="⛁" label="Pencadangan Data" />
             </nav>
           </aside>
         )}
@@ -702,7 +740,7 @@ export default function DashboardPage() {
         {/* 2. MAIN CONTENT AREA: Crystal Clear High Contrast */}
         <main style={{
           flexGrow: 1,
-          padding: '48px',
+          padding: '24px 40px',
           overflowY: 'auto',
           height: '100vh',
           position: 'relative',
@@ -710,7 +748,7 @@ export default function DashboardPage() {
         }}>
           
           {/* Header */}
-          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '44px' }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'sticky', top: '-24px', paddingTop: '24px', paddingBottom: '16px', background: 'var(--bg-card)', zIndex: 20, borderBottom: '1px solid var(--border-primary)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
               {!isSidebarOpen && (
                 <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--gold-intense)', fontSize: '28px', cursor: 'pointer', marginTop: '-2px' }}>
@@ -718,7 +756,7 @@ export default function DashboardPage() {
                 </button>
               )}
               <div>
-                <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px var(--shadow-color)' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px var(--shadow-color)' }}>
                 {activeTab === 'overview' ? 'Ikhtisar Operasi Sistem' : 
                  activeTab === 'users' ? 'Master Direktori User & Peran' : 
                  activeTab === 'teller' ? 'Layanan Kasir Syariah' :
@@ -731,7 +769,7 @@ export default function DashboardPage() {
                  activeTab === 'settings' ? 'Konfigurasi Sistem' :
                  'Direktori CIF & Data Fisik Anggota'}
               </h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 500 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500 }}>
                 {activeTab === 'overview' 
                   ? 'Statistik operasi infrastruktur backend IQ-RA System.' 
                   : activeTab === 'users'
@@ -788,8 +826,8 @@ export default function DashboardPage() {
 
                 {isProfileMenuOpen && (
                   <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '10px', background: 'var(--bg-card)', border: '1px solid rgba(243, 198, 83, 0.3)', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 15px 35px var(--shadow-color)', zIndex: 100, minWidth: '180px' }}>
-                    <button style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '14px 20px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>✏️ Edit Profil</button>
-                    <button onClick={handleLogout} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '14px 20px', color: 'var(--text-danger)', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>🔌 Keluar</button>
+                    <button onClick={() => { setIsProfileMenuOpen(false); setEditFullName(profile?.full_name || ''); setIsEditProfileOpen(true); }} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '14px 20px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }}>✏️ Edit Profil</button>
+                    <button onClick={() => { setIsProfileMenuOpen(false); handleLogout(); }} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '14px 20px', color: 'var(--text-danger)', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>🔌 Keluar</button>
                   </div>
                 )}
               </div>
@@ -808,7 +846,7 @@ export default function DashboardPage() {
                 {/* Metric Card 1 */}
                 <div style={{ background: 'var(--bg-card)', border: '2px solid #cca334', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px var(--shadow-color)' }}>
                   <div style={{ color: 'var(--gold-intense)', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    Total Rekam Akun 👥
+                    Total Rekam Akun
                   </div>
                   <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
                     {totalAccounts} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)' }}>Akun</span>
@@ -822,7 +860,7 @@ export default function DashboardPage() {
                 {/* Metric Card 2 */}
                 <div className="gradient-border-card" style={{ padding: "32px" }}>
                   <div style={{ color: 'var(--text-info)', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    Pegawai Koperasi Aktif 👔
+                    Pegawai Koperasi Aktif
                   </div>
                   <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
                     {totalStaff} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)' }}>Staf</span>
@@ -836,7 +874,7 @@ export default function DashboardPage() {
                 {/* Metric Card 3: Tied strictly to physical MEMBERS applications table */}
                 <div style={{ background: 'var(--bg-card)', border: '2px solid #34d399', borderRadius: '24px', padding: '32px', boxShadow: '0 15px 35px var(--shadow-color)' }}>
                   <div style={{ color: 'var(--text-success)', fontSize: '14px', fontWeight: 800, marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    Anggota Resmi Terdaftar 💳
+                    Anggota Resmi Terdaftar
                   </div>
                   <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--text-primary)' }}>
                     {totalApprovedMembers} <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)' }}>Jiwa</span>
@@ -969,7 +1007,7 @@ export default function DashboardPage() {
                 <div style={{ padding: '32px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'linear-gradient(90deg, #021c13 0%, #032419 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h3 style={{ color: 'var(--gold-intense)', fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>Matriks Otoritas Keamanan (RBAC)</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Definisi kriteria akses sistem berdasarkan standar prosedur operasional IQ-RA.</p>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }}>Definisi kriteria akses sistem berdasarkan standar prosedur operasional IQ-RA.</p>
                   </div>
                   <button 
                     onClick={() => setIsCreatingRule(true)}
@@ -991,12 +1029,12 @@ export default function DashboardPage() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: 'var(--bg-dark-box)', borderBottom: '2px solid rgba(204,163,52,0.3)' }}>
-                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase' }}>Kriteria Jabatan</th>
-                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase' }}>Tanggung Jawab Utama</th>
-                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase' }}>Cakupan Otoritas</th>
-                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase' }}>Batasan Akses</th>
-                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-bright)', textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
+                      <tr style={{ borderBottom: '2px solid #cca334' }}>
+                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Kriteria Jabatan</th>
+                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Tanggung Jawab Utama</th>
+                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Cakupan Otoritas</th>
+                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Batasan Akses</th>
+                        <th style={{ padding: '20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1004,12 +1042,12 @@ export default function DashboardPage() {
                         <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Memuat aturan akses...</td></tr>
                       ) : (
                         accessRules.map((r, i) => (
-                          <tr key={r.id} style={{ borderBottom: '1px solid var(--bg-dark-box)', background: i % 2 === 0 ? 'transparent' : 'transparent' }}>
+                          <tr key={r.id} style={{ borderBottom: '1px solid rgba(204,163,52,0.15)', background: i % 2 === 0 ? 'transparent' : 'var(--bg-dark-box)' }}>
                             <td style={{ padding: '20px' }}>
                               <span style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '14px', background: 'rgba(243, 198, 83, 0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(243, 198, 83, 0.2)' }}>{r.role_name}</span>
                             </td>
                             <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{r.responsibility}</td>
-                            <td style={{ padding: '20px', color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.5' }}>{r.authority_scope}</td>
+                            <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.5' }}>{r.authority_scope}</td>
                             <td style={{ padding: '20px' }}>
                               <span style={{ color: 'var(--text-danger)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>🚫 {r.limitations}</span>
                             </td>
@@ -1249,7 +1287,7 @@ export default function DashboardPage() {
                                     <code style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', padding: '6px 10px', borderRadius: '6px', fontSize: '13px', color: 'var(--gold-intense)', fontFamily: 'monospace' }}>
                                       {isPassVisible ? u.password : '••••••••'}
                                     </code>
-                                    <button onClick={() => togglePasswordVisibility(u.id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-info)', fontSize: '12px', cursor: 'pointer', fontWeight: 800 }}>{isPassVisible ? '🙈' : '👁️'}</button>
+                                    <button onClick={() => togglePasswordVisibility(u.id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-info)', fontSize: '14px', cursor: 'pointer', fontWeight: 800 }}>{isPassVisible ? '✖' : '👁'}</button>
                                   </div>
                                 </td>
 
@@ -1446,18 +1484,38 @@ export default function DashboardPage() {
           {/* ============================================== */}
           {activeTab === 'audit_logs' && (
             <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '20px' }}>
                 <h3 style={{ color: 'var(--gold-intense)', fontSize: '20px', fontWeight: 900 }}>📋 Log Audit Keamanan</h3>
-                <button 
-                  onClick={fetchAuditLogs}
-                  disabled={loadingAuditLogs}
-                  style={{
-                    background: 'var(--bg-card)', border: '2px solid #cca334', color: 'var(--gold-intense)',
-                    padding: '10px 20px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer'
-                  }}
-                >
-                  🔄 {loadingAuditLogs ? 'Memuat...' : 'Segarkan'}
-                </button>
+                
+                <div style={{ display: 'flex', gap: '12px', flexGrow: 1, justifyContent: 'flex-end' }}>
+                  <input 
+                    type="text"
+                    placeholder="🔍 Cari berdasarkan jenis aksi, target ID, atau deskripsi..."
+                    value={auditSearchQuery}
+                    onChange={(e) => setAuditSearchQuery(e.target.value)}
+                    style={{
+                      background: 'var(--bg-card)',
+                      border: '2px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-primary)',
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      width: '100%',
+                      maxWidth: '350px',
+                      outline: 'none',
+                      fontSize: '13px'
+                    }}
+                  />
+                  <button 
+                    onClick={fetchAuditLogs}
+                    disabled={loadingAuditLogs}
+                    style={{
+                      background: 'var(--bg-card)', border: '2px solid #cca334', color: 'var(--gold-intense)',
+                      padding: '10px 20px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', flexShrink: 0
+                    }}
+                  >
+                    🔄 {loadingAuditLogs ? 'Memuat...' : 'Segarkan'}
+                  </button>
+                </div>
               </div>
 
               <div style={{ background: 'var(--bg-card)', border: '3px solid #cca334', borderRadius: '24px', overflow: 'hidden' }}>
@@ -1466,32 +1524,43 @@ export default function DashboardPage() {
                     <thead>
                       <tr style={{ background: 'var(--bg-card)', borderBottom: '3px solid #cca334' }}>
                         <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Waktu Kejadian</th>
+                        <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Pelaku</th>
                         <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Jenis Aksi</th>
-                        <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Target ID</th>
+                        <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Target</th>
                         <th style={{ padding: '16px 20px', fontSize: '13px', fontWeight: 900, color: 'var(--gold-intense)', textTransform: 'uppercase' }}>Deskripsi Aktivitas</th>
                       </tr>
                     </thead>
                     <tbody>
                       {loadingAuditLogs ? (
-                        <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Mengunduh log audit...</td></tr>
+                        <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Mengunduh log audit...</td></tr>
                       ) : auditLogs.length === 0 ? (
-                        <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada log audit yang terekam.</td></tr>
+                        <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada log audit yang terekam.</td></tr>
                       ) : (
-                        auditLogs.map((log: any, idx: number) => (
+                        auditLogs
+                          .filter((log: any) => 
+                            (log.action || '').toLowerCase().includes(auditSearchQuery.toLowerCase()) ||
+                            (log.target_user || '').toLowerCase().includes(auditSearchQuery.toLowerCase()) ||
+                            (log.details || '').toLowerCase().includes(auditSearchQuery.toLowerCase()) ||
+                            (log.actor_name || '').toLowerCase().includes(auditSearchQuery.toLowerCase())
+                          )
+                          .map((log: any, idx: number) => (
                           <tr key={log.id} style={{ borderBottom: '1px solid rgba(204,163,52,0.15)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg-dark-box)' }}>
                             <td style={{ padding: '16px 20px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                               {new Date(log.created_at).toLocaleString('id-ID')}
                             </td>
+                            <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700 }}>
+                              {log.actor_name || 'System'}
+                            </td>
                             <td style={{ padding: '16px 20px' }}>
                               <span style={{ background: 'rgba(243,198,83,0.1)', border: '1px solid #f3c653', color: 'var(--gold-intense)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
-                                {log.action_type}
+                                {log.action}
                               </span>
                             </td>
                             <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'monospace' }}>
-                              {log.target_id}
+                              {log.target_user || '-'}
                             </td>
                             <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>
-                              {log.description}
+                              {log.details}
                             </td>
                           </tr>
                         ))
@@ -1771,6 +1840,97 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+
+
+
+          {/* ============================================== */}
+          {/* TAB J: KONFIGURASI SISTEM                      */}
+          {/* ============================================== */}
+          {activeTab === 'settings' && (
+            <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h3 style={{ color: 'var(--gold-intense)', fontSize: '20px', fontWeight: 900 }}>⚙ Konfigurasi Sistem (System Parameters)</h3>
+                <button onClick={fetchSystemParams} style={{ background: 'var(--bg-card)', border: '2px solid #cca334', color: 'var(--gold-intense)', padding: '10px 20px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>
+                  🔄 Segarkan
+                </button>
+              </div>
+              <div style={{ background: 'var(--bg-card)', border: '3px solid #cca334', borderRadius: '24px', padding: '24px', overflowX: 'auto' }}>
+                 <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Parameter global sistem untuk mengatur threshold, limit transaksi, dan variabel AI.</p>
+                 {loadingParams ? <div style={{color: 'var(--text-primary)'}}>Memuat parameter...</div> : systemParams.length === 0 ? <div style={{color: 'var(--text-secondary)'}}>Parameter sistem belum tersedia.</div> : (
+                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #cca334' }}>
+                        <th style={{ padding: '12px', color: 'var(--gold-intense)' }}>Parameter Key</th>
+                        <th style={{ padding: '12px', color: 'var(--gold-intense)' }}>Value (Nilai)</th>
+                        <th style={{ padding: '12px', color: 'var(--gold-intense)' }}>Deskripsi Global</th>
+                        <th style={{ padding: '12px', color: 'var(--gold-intense)', textAlign: 'center' }}>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {systemParams.map((p, idx) => (
+                        <tr key={p.id} style={{ borderBottom: '1px solid rgba(204,163,52,0.15)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg-dark-box)' }}>
+                          <td style={{ padding: '16px', fontWeight: 900, color: 'var(--text-primary)', fontFamily: 'monospace' }}>{p.key}</td>
+                          <td style={{ padding: '16px', color: 'var(--text-success)', fontWeight: 900, fontSize: '15px' }}>{p.value}</td>
+                          <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px' }}>{p.description}</td>
+                          <td style={{ padding: '16px', textAlign: 'center' }}>
+                            <button onClick={() => setEditingParam(p)} style={{ background: 'rgba(243, 198, 83, 0.1)', border: '2px solid #f3c653', color: 'var(--gold-intense)', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                   </table>
+                 )}
+              </div>
+            </div>
+          )}
+
+          {editingParam && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(1, 10, 7, 0.9)', backdropFilter: 'blur(8px)',
+              zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+            }}>
+              <div style={{ background: 'var(--bg-card)', border: '4px solid #cca334', borderRadius: '28px', width: '100%', maxWidth: '500px', padding: '36px', boxShadow: '0 30px 80px var(--shadow-color)' }}>
+                <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '8px' }}>
+                  ✏️ Edit Parameter Sistem
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '24px' }}>Modifikasi nilai untuk <strong style={{ color: 'var(--text-primary)' }}>{editingParam.key}</strong>.</p>
+                
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const newValue = formData.get('value');
+                  
+                  const supabase = createClient();
+                  const { error } = await supabase.from('system_parameters').update({ value: newValue }).eq('key', editingParam.key);
+                  
+                  if (!error) {
+                    fetchSystemParams();
+                    setEditingParam(null);
+                    showToast('Parameter berhasil diperbarui', 'success');
+                    logSuperAdminAction('UPDATE_SYSTEM_PARAM', editingParam.key, `Mengubah parameter menjadi ${newValue}`);
+                  } else {
+                    showToast('Gagal menyimpan: ' + error.message, 'error');
+                  }
+                }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '8px' }}>NILAI BARU (VALUE)</label>
+                    <input name="value" defaultValue={editingParam.value} required style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15px' }} />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
+                    <button type="button" onClick={() => setEditingParam(null)} style={{ flexGrow: 1, background: 'transparent', border: '2px solid var(--border-primary)', color: 'var(--text-primary)', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
+                    <button type="submit" style={{ flexGrow: 2, background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', border: 'none', color: '#02130e', padding: '16px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', cursor: 'pointer' }}>Simpan Perubahan</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================== */}
+          {/* EXTERNAL DASHBOARDS ALREADY RENDERED ABOVE     */}
+          {/* ============================================== */}
 
         </main>
 
@@ -2224,13 +2384,31 @@ export default function DashboardPage() {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
+                
+                const processMulti = (name: string) => {
+                   const checks = formData.getAll(name).filter(Boolean) as string[];
+                   const manual = formData.get(`${name}_manual`) as string;
+                   if (manual && manual.trim() !== '') {
+                     // Split by comma in case they entered multiple manual items
+                     manual.split(',').forEach(item => {
+                       if (item.trim()) checks.push(item.trim());
+                     });
+                   }
+                   return checks.join(', ');
+                };
+
                 const payload = {
-                  role_name: formData.get('role_name'),
-                  responsibility: formData.get('responsibility'),
-                  authority_scope: formData.get('authority_scope'),
-                  limitations: formData.get('limitations')
+                  role_name: processMulti('role_name'),
+                  responsibility: processMulti('responsibility'),
+                  authority_scope: processMulti('authority_scope'),
+                  limitations: processMulti('limitations')
                 };
                 
+                if (!payload.role_name) {
+                  showToast("Mohon pilih atau ketik minimal satu Nama Jabatan / Role.", 'warning');
+                  return;
+                }
+
                 const supabase = createClient();
                 const { error } = editingRule 
                   ? await supabase.from('access_rules').update(payload).eq('id', editingRule.id)
@@ -2240,32 +2418,117 @@ export default function DashboardPage() {
                   fetchAccessRules();
                   setIsCreatingRule(false);
                   setEditingRule(null);
+                  showToast('Aturan akses berhasil disimpan!', 'success');
+                  logSuperAdminAction(
+                    editingRule ? 'RBAC_RULE_UPDATE' : 'RBAC_RULE_CREATE',
+                    payload.role_name,
+                    `${editingRule ? 'Memperbarui' : 'Membuat'} aturan akses untuk jabatan: ${payload.role_name}`
+                  );
                 } else {
-                  alert('Gagal menyimpan: ' + error.message);
+                  showToast('Gagal menyimpan: ' + error.message, 'error');
                 }
-              }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              }} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '75vh', overflowY: 'auto', paddingRight: '8px' }}>
                 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '8px' }}>NAMA JABATAN / ROLE</label>
-                  <input name="role_name" defaultValue={editingRule?.role_name} required style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)', fontWeight: 600 }} />
-                </div>
+                {(() => {
+                  const getManualValue = (dbValue: string, options: string[]) => {
+                     if (!dbValue) return '';
+                     const parts = dbValue.split(',').map(p => p.trim());
+                     const manualParts = parts.filter(p => p && !options.includes(p));
+                     return manualParts.join(', ');
+                  };
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '8px' }}>TANGGUNG JAWAB UTAMA</label>
-                  <input name="responsibility" defaultValue={editingRule?.responsibility} placeholder="Contoh: Operasional Kas & Pelayanan" style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
-                </div>
+                  return (
+                    <>
+                      <div style={{ background: 'var(--bg-dark-box)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(204,163,52,0.1)' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px', textTransform: 'uppercase' }}>NAMA JABATAN / ROLE (Bisa Pilih Lebih Dari 1)</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          {['TELLER', 'CUSTOMER SERVICE', 'ACCOUNT OFFICER', 'ACCOUNTING', 'MANAGER', 'DEWAN PENGAWAS SYARIAH', 'SUPER ADMIN'].map(opt => (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer', lineHeight: '1.4' }}>
+                              <input type="checkbox" name="role_name" value={opt} defaultChecked={editingRule?.role_name?.includes(opt)} style={{ marginTop: '2px', accentColor: '#cca334' }} />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        <input name="role_name_manual" defaultValue={editingRule ? getManualValue(editingRule.role_name, ['TELLER', 'CUSTOMER SERVICE', 'ACCOUNT OFFICER', 'ACCOUNTING', 'MANAGER', 'DEWAN PENGAWAS SYARIAH', 'SUPER ADMIN']) : ''} placeholder="Ketik manual role tambahan (pisahkan koma jika banyak)..." style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '8px' }}>CAKUPAN OTORITAS</label>
-                  <textarea name="authority_scope" defaultValue={editingRule?.authority_scope} rows={3} style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
-                </div>
+                      <div style={{ background: 'var(--bg-dark-box)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(204,163,52,0.1)' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px', textTransform: 'uppercase' }}>TANGGUNG JAWAB UTAMA (Bisa Pilih Lebih Dari 1)</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          {['Operasional Kas & Pelayanan Tunai', 'Manajemen CIF & Layanan Informasi', 'Survei & Analisis Kelayakan Pembiayaan', 'Pembukuan & Pelaporan SAK EP', 'Otorisasi & Pengambilan Keputusan', 'Pengawasan Kepatuhan & Audit Syariah', 'Administrasi Server & Keamanan IT'].map(opt => (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer', lineHeight: '1.4' }}>
+                              <input type="checkbox" name="responsibility" value={opt} defaultChecked={editingRule?.responsibility?.includes(opt)} style={{ marginTop: '2px', accentColor: '#cca334' }} />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        <input name="responsibility_manual" defaultValue={editingRule ? getManualValue(editingRule.responsibility, ['Operasional Kas & Pelayanan Tunai', 'Manajemen CIF & Layanan Informasi', 'Survei & Analisis Kelayakan Pembiayaan', 'Pembukuan & Pelaporan SAK EP', 'Otorisasi & Pengambilan Keputusan', 'Pengawasan Kepatuhan & Audit Syariah', 'Administrasi Server & Keamanan IT']) : ''} placeholder="Ketik manual tanggung jawab lainnya..." style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '8px' }}>BATASAN AKSES</label>
-                  <input name="limitations" defaultValue={editingRule?.limitations} placeholder="Contoh: Tidak bisa menghapus jurnal" style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '14px', color: 'var(--text-primary)' }} />
-                </div>
+                      <div style={{ background: 'var(--bg-dark-box)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(204,163,52,0.1)' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px', textTransform: 'uppercase' }}>CAKUPAN OTORITAS (Bisa Pilih Lebih Dari 1)</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          {[
+                            'Kas Masuk, Penarikan & Angsuran (Teller)',
+                            'Pencairan Pembiayaan & Shift Kasir (Teller)',
+                            'Registrasi Anggota & Profil KYC (CS)',
+                            'Verifikasi Deposit Online (CS)',
+                            'Pengajuan Pembiayaan & Agunan (AO)',
+                            'Survei Kelayakan Pembiayaan (AO)',
+                            'Pencatatan Jurnal Akuntansi SAK EP (Accounting)',
+                            'Pengaturan COA & Neraca Percobaan (Accounting)',
+                            'Otorisasi & Approval Transaksi (Manager)',
+                            'Persetujuan Limit Penarikan (Manager)',
+                            'Audit Kepatuhan Syariah Otomatis (DPS)',
+                            'Validasi Akad & Fatwa DSN-MUI (DPS)',
+                            'Promosi Peran & Manajemen Pengguna (Admin)',
+                            'Konfigurasi Parameter & RAG AI Brain (Admin)',
+                            'Pelacakan Log Audit Keamanan IT (Admin)',
+                            'Pencadangan & Pemulihan Sistem (Admin)'
+                          ].map(opt => (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer', lineHeight: '1.4' }}>
+                              <input type="checkbox" name="authority_scope" value={opt} defaultChecked={editingRule?.authority_scope?.includes(opt)} style={{ marginTop: '2px', accentColor: '#cca334' }} />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        <input name="authority_scope_manual" defaultValue={editingRule ? getManualValue(editingRule.authority_scope, [
+                          'Kas Masuk, Penarikan & Angsuran (Teller)',
+                          'Pencairan Pembiayaan & Shift Kasir (Teller)',
+                          'Registrasi Anggota & Profil KYC (CS)',
+                          'Verifikasi Deposit Online (CS)',
+                          'Pengajuan Pembiayaan & Agunan (AO)',
+                          'Survei Kelayakan Pembiayaan (AO)',
+                          'Pencatatan Jurnal Akuntansi SAK EP (Accounting)',
+                          'Pengaturan COA & Neraca Percobaan (Accounting)',
+                          'Otorisasi & Approval Transaksi (Manager)',
+                          'Persetujuan Limit Penarikan (Manager)',
+                          'Audit Kepatuhan Syariah Otomatis (DPS)',
+                          'Validasi Akad & Fatwa DSN-MUI (DPS)',
+                          'Promosi Peran & Manajemen Pengguna (Admin)',
+                          'Konfigurasi Parameter & RAG AI Brain (Admin)',
+                          'Pelacakan Log Audit Keamanan IT (Admin)',
+                          'Pencadangan & Pemulihan Sistem (Admin)'
+                        ]) : ''} placeholder="Ketik manual otoritas tambahan..." style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      </div>
 
-                <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
+                      <div style={{ background: 'var(--bg-dark-box)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(204,163,52,0.1)' }}>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '12px', textTransform: 'uppercase' }}>BATASAN AKSES (Bisa Pilih Lebih Dari 1)</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          {['Tidak dapat menghapus jurnal', 'Tidak dapat modifikasi suku bunga', 'Tidak memiliki hak approval pencairan', 'Tidak dapat mengubah status anggota', 'Hanya dapat melihat data fisik', 'Tidak dapat override keamanan'].map(opt => (
+                            <label key={opt} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer', lineHeight: '1.4' }}>
+                              <input type="checkbox" name="limitations" value={opt} defaultChecked={editingRule?.limitations?.includes(opt)} style={{ marginTop: '2px', accentColor: '#cca334' }} />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        <input name="limitations_manual" defaultValue={editingRule ? getManualValue(editingRule.limitations, ['Tidak dapat menghapus jurnal', 'Tidak dapat modifikasi suku bunga', 'Tidak memiliki hak approval pencairan', 'Tidak dapat mengubah status anggota', 'Hanya dapat melihat data fisik', 'Tidak dapat override keamanan']) : ''} placeholder="Ketik manual batasan tambahan..." style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', color: 'var(--text-primary)', fontSize: '13px' }} />
+                      </div>
+                    </>
+                  );
+                })()}
+
+                <div style={{ display: 'flex', gap: '14px', marginTop: '4px', position: 'sticky', bottom: '-4px', background: 'var(--bg-card)', padding: '12px 0', borderTop: '1px solid var(--bg-dark-box)' }}>
                   <button type="button" onClick={() => { setIsCreatingRule(false); setEditingRule(null); }} style={{ flexGrow: 1, background: 'transparent', border: '2px solid var(--border-primary)', color: 'var(--text-primary)', padding: '16px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
                   <button type="submit" style={{ flexGrow: 2, background: 'linear-gradient(135deg, #f3c653 0%, #cca334 100%)', border: 'none', color: '#02130e', padding: '16px', borderRadius: '12px', fontWeight: 900, fontSize: '15px', cursor: 'pointer' }}>Simpan Aturan</button>
                 </div>
@@ -2281,61 +2544,61 @@ export default function DashboardPage() {
             zIndex: 210, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
           }}>
             <div style={{ background: 'var(--bg-card)', border: '4px solid #cca334', borderRadius: '28px', width: '100%', maxWidth: '500px', padding: '36px', boxShadow: '0 30px 80px var(--shadow-color)' }}>
-              <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--gold-intense)', marginBottom: '8px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-gold)', marginBottom: '8px' }}>
                 {editingCoa ? '✏️ Edit Akun COA' : '➕ Tambah Akun COA Baru'}
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '24px' }}>Konfigurasi detail akun akuntansi untuk pembukuan koperasi.</p>
               
               <form onSubmit={handleSaveCoa} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>KODE AKUN</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '6px', letterSpacing: '0.5px' }}>KODE AKUN</label>
                   <input 
                     type="text" required placeholder="Contoh: 10101" 
                     value={newCoaCode} onChange={(e) => setNewCoaCode(e.target.value)} 
-                    style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 600 }} 
+                    style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 600, outline: 'none' }} 
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>NAMA AKUN</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '6px', letterSpacing: '0.5px' }}>NAMA AKUN</label>
                   <input 
                     type="text" required placeholder="Contoh: Kas Utama Teller" 
                     value={newCoaName} onChange={(e) => setNewCoaName(e.target.value)} 
-                    style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 600 }} 
+                    style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 600, outline: 'none' }} 
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>KATEGORI</label>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '6px', letterSpacing: '0.5px' }}>KATEGORI</label>
                     <select 
                       value={newCoaCategory} onChange={(e) => setNewCoaCategory(e.target.value)} 
-                      style={{ width: '100%', background: 'var(--text-primary)', border: '2px solid #cca334', borderRadius: '12px', padding: '12px', color: '#02130e', fontWeight: 800, cursor: 'pointer' }}
+                      style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 700, cursor: 'pointer', outline: 'none' }}
                     >
-                      <option value="ASSET">ASSET</option>
-                      <option value="LIABILITY">LIABILITY</option>
-                      <option value="EQUITY">EQUITY</option>
-                      <option value="REVENUE">REVENUE</option>
-                      <option value="EXPENSE">EXPENSE</option>
+                      <option value="ASSET" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>ASSET</option>
+                      <option value="LIABILITY" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>LIABILITY</option>
+                      <option value="EQUITY" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>EQUITY</option>
+                      <option value="REVENUE" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>REVENUE</option>
+                      <option value="EXPENSE" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>EXPENSE</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>SALDO NORMAL</label>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '6px', letterSpacing: '0.5px' }}>SALDO NORMAL</label>
                     <select 
                       value={newCoaNormalBalance} onChange={(e) => setNewCoaNormalBalance(e.target.value)} 
-                      style={{ width: '100%', background: 'var(--text-primary)', border: '2px solid #cca334', borderRadius: '12px', padding: '12px', color: '#02130e', fontWeight: 800, cursor: 'pointer' }}
+                      style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', fontWeight: 700, cursor: 'pointer', outline: 'none' }}
                     >
-                      <option value="DEBIT">DEBIT</option>
-                      <option value="CREDIT">CREDIT</option>
+                      <option value="DEBIT" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>DEBIT</option>
+                      <option value="CREDIT" style={{ background: theme === 'light' ? '#ffffff' : '#043121', color: 'var(--text-primary)' }}>CREDIT</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--gold-intense)', marginBottom: '6px' }}>DESKRIPSI / KETERANGAN</label>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '6px', letterSpacing: '0.5px' }}>DESKRIPSI / KETERANGAN</label>
                   <textarea 
                     value={newCoaDescription} onChange={(e) => setNewCoaDescription(e.target.value)} rows={2} 
-                    style={{ width: '100%', background: 'var(--bg-card)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)' }} 
+                    style={{ width: '100%', background: 'var(--bg-dark-box)', border: '2px solid var(--border-primary)', borderRadius: '12px', padding: '12px', color: 'var(--text-primary)', outline: 'none' }} 
                   />
                 </div>
 
@@ -2408,6 +2671,65 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* TOAST NOTIFICATION */}
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          isVisible={toast.isVisible} 
+          onClose={() => setToast(prev => ({ ...prev, isVisible: false }))} 
+        />
+
+        {/* CONFIRMATION MODAL */}
+        {confirmAction && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: 'var(--bg-card)', padding: '32px', borderRadius: '24px', border: '3px solid #cca334', maxWidth: '400px', textAlign: 'center' }}>
+              <div style={{ fontSize: '36px', marginBottom: '16px' }}>⚠️</div>
+              <h3 style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 800, marginBottom: '24px' }}>{confirmAction.message}</h3>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                <button onClick={() => setConfirmAction(null)} style={{ background: 'transparent', border: '2px solid var(--border-primary)', color: 'var(--text-primary)', padding: '10px 24px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
+                <button onClick={() => { confirmAction.onConfirm(); setConfirmAction(null); }} style={{ background: 'var(--gold-intense)', border: 'none', color: '#02130e', padding: '12px 24px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>Lanjutkan</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT PROFILE MODAL */}
+        {isEditProfileOpen && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: 'var(--bg-card)', padding: '36px', borderRadius: '24px', border: '3px solid #cca334', width: '100%', maxWidth: '450px' }}>
+              <h2 style={{ color: 'var(--gold-intense)', fontSize: '22px', fontWeight: 900, marginBottom: '24px' }}>✏️ Edit Profil Staf</h2>
+              
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--bg-dark-box)', border: '2px dashed var(--gold-intense)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center', cursor: 'not-allowed' }}>
+                  Upload Foto<br/>(Coming Soon)
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)' }}>Nama Lengkap</label>
+                <input value={editFullName} onChange={e => setEditFullName(e.target.value)} style={{ width: '100%', padding: '12px', background: 'var(--bg-dark-box)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', borderRadius: '10px', marginTop: '6px' }} />
+              </div>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)' }}>Nomor Telepon</label>
+                <input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="0812xxxx" style={{ width: '100%', padding: '12px', background: 'var(--bg-dark-box)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', borderRadius: '10px', marginTop: '6px' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <button onClick={() => setIsEditProfileOpen(false)} style={{ flex: 1, background: 'transparent', border: '2px solid var(--border-primary)', color: 'var(--text-primary)', padding: '12px', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}>Batal</button>
+                <button onClick={async () => {
+                  setIsSavingProfile(true);
+                  const supabase = createClient();
+                  await supabase.from('users').update({ full_name: editFullName }).eq('id', user.id);
+                  setProfile({...profile, full_name: editFullName});
+                  setIsSavingProfile(false);
+                  setIsEditProfileOpen(false);
+                  showToast('Profil berhasil diperbarui', 'success');
+                }} style={{ flex: 1, background: 'var(--gold-intense)', border: 'none', color: '#02130e', padding: '12px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>{isSavingProfile ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+              </div>
             </div>
           </div>
         )}
