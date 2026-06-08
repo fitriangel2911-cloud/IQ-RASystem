@@ -232,7 +232,8 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
               </div>
             ) : (
               previewTx.map(tx => {
-                const isOut = tx.type.toLowerCase().includes('withdrawal') || tx.type.toLowerCase().includes('out');
+                const txType = tx.type || '';
+                const isOut = txType.toLowerCase().includes('withdrawal') || txType.toLowerCase().includes('out');
                 return (
                   <div key={tx.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -260,7 +261,7 @@ export default function OverviewPanel({ profile, accounts, transactions, contrac
                       </div>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                          {tx.type.toLowerCase().includes('deposit') ? 'Setoran Masuk' : isOut ? 'Penarikan Tunai' : 'Transaksi Buku'}
+                          {txType.toLowerCase().includes('deposit') ? 'Setoran Masuk' : isOut ? 'Penarikan Tunai' : 'Transaksi Buku'}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                           {new Date(tx.created_at).toLocaleDateString('id-ID')}

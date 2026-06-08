@@ -834,11 +834,10 @@ export default function DashboardPage() {
               {hasPermission('ao') && (
                 <>
                   <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Account Officer</div>
-                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'leads'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('leads'); }} icon="✎" label="Input Prospek Baru" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="⚲" label="Pipeline Nasabah" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="⚛" label="Analisis Akad & AI" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="⌖" label="Verifikasi Lapangan" />
-                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'portfolio'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('portfolio'); }} icon="▤" label="Portofolio Anggota" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'history'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('history'); }} icon="📜" label="Riwayat Proses AO" />
                 </>
               )}
 
@@ -1179,7 +1178,7 @@ export default function DashboardPage() {
           {/* ==================================== */}
           {activeTab === 'ao' && (
             <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-              <AODashboard activeMenu={activeSubMenu} profile={profile} />
+              <AODashboard activeMenu={activeSubMenu} setActiveMenu={setActiveSubMenu} profile={profile} />
             </div>
           )}
 

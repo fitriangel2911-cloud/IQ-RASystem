@@ -4,12 +4,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { jsPDF } from 'jspdf';
 
+const parseMetadata = (metadata: any) => {
+  if (!metadata) return {};
+  if (typeof metadata === 'object') return metadata;
+  try {
+    return JSON.parse(metadata);
+  } catch (e) {
+    return {};
+  }
+};
+
+const getVal = (val: any, fallback: string) => {
+  if (!val) return fallback;
+  const s = String(val).trim();
+  if (s === '' || s === '-' || s === 'undefined' || s === 'null') return fallback;
+  return s;
+};
+
 interface AODashboardProps {
   activeMenu: string;
+  setActiveMenu?: (menu: string) => void;
   profile: any;
 }
 
-export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
+export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODashboardProps) {
   const [stats, setStats] = useState({
     activePortfolio: 0,
     pendingApps: 0,
@@ -18,9 +36,11 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   });
   const [prospects, setProspects] = useState<any[]>([]);
   const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [historyList, setHistoryList] = useState<any[]>([]);
   const [membersList, setMembersList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [selectedCIFProspect, setSelectedCIFProspect] = useState<any>(null);
 
   // Form State for New Prospect
   const [formData, setFormData] = useState({
@@ -77,16 +97,20 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       if (prospectList && prospectList.length > 0) {
         // Murni dari database Production!
         // Format to match UI expectations
-        const formattedList = prospectList.map((c: any) => ({
-          id: c.id,
-          member_id: c.member_id,
-          name: c.member_name || c.users?.full_name,
-          amount: c.amount,
-          purpose: c.collateral_metadata?.purpose || 'Pembiayaan Umum',
-          status: 'Menunggu Survei',
-          ai_contract_type: c.type,
-          created_at: c.created_at
-        }));
+        const formattedList = prospectList.map((c: any) => {
+          const meta = parseMetadata(c.collateral_metadata);
+          return {
+            id: c.id,
+            member_id: c.member_id,
+            name: c.member_name || c.users?.full_name,
+            amount: c.amount,
+            purpose: meta?.purpose || 'Pembiayaan Umum',
+            status: meta?.ai_status === 'completed' ? 'Menunggu Survei' : 'Menunggu Analisis',
+            ai_contract_type: c.type,
+            collateral_metadata: meta,
+            created_at: c.created_at
+          };
+        });
         setProspects(formattedList);
       } else {
         setProspects([]);
@@ -124,6 +148,16 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       }
 
       setPortfolio(finalPortfolio);
+
+      // 5. Fetch History (All financing contracts)
+      const { data: allContracts } = await supabase
+        .from('financing_contracts')
+        .select('*, users:member_id (full_name, email)')
+        .order('created_at', { ascending: false });
+
+      if (allContracts) {
+        setHistoryList(allContracts);
+      }
 
     } catch (err) {
       console.error('Error fetching AO data:', err);
@@ -239,6 +273,10 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   const [surveyData, setSurveyData] = useState({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
   const [surveyLoading, setSurveyLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // History Module Filter States
+  const [historySearch, setHistorySearch] = useState('');
+  const [historyFilterStatus, setHistoryFilterStatus] = useState('all');
 
   const runAIAnalysis = async (prospect: any) => {
     setAnalyzing(true);
@@ -358,20 +396,34 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
   const handleProceedToSurvey = async () => {
     setLoading(true);
     if (selectedProspect?.id && !selectedProspect.id.toString().startsWith('mock-')) {
-      // Kita TIDAK menimpa 'type' dengan hasil AI agar pilihan nasabah (misal: Murabahah) tetap sinkron.
-      // Hanya update status atau biarkan saja (karena status diurus di client side untuk demo, atau bisa diupdate ke DB jika perlu)
       const supabase = createClient();
-      await supabase.from('financing_contracts').update({ is_surveyed_by_ao: false }).eq('id', selectedProspect.id); // sekadar trigger update, atau dihapus saja
+      const updatedMetadata = {
+        ...(selectedProspect.collateral_metadata || {}),
+        ai_status: 'completed',
+        ai_result: aiResult
+      };
+      await supabase
+        .from('financing_contracts')
+        .update({ collateral_metadata: updatedMetadata })
+        .eq('id', selectedProspect.id);
     }
+    
+    // Refresh prospects from DB so they have the updated status 'Menunggu Survei'
+    await fetchAOData();
+
     setTimeout(() => {
       setMessage({ type: 'success', text: `Analisis AI Selesai! Prospek ${selectedProspect?.name} diteruskan ke tahap Survei Lapangan.` });
-      const updatedProspects = prospects.map(p => 
-        p.id === selectedProspect.id ? { ...p, status: 'Menunggu Survei' } : p
-      );
-      setProspects(updatedProspects);
       setLoading(false);
+      
+      // Auto transition to survey tab
+      const targetProspect = prospects.find(p => p.id === selectedProspect?.id) || { ...selectedProspect, status: 'Menunggu Survei' };
+      setSelectedSurveyProspect(targetProspect);
+      setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
       setAiResult(null);
       setSelectedProspect(null);
+      if (setActiveMenu) {
+        setActiveMenu('survey');
+      }
     }, 1000);
   };
 
@@ -477,6 +529,9 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       setSelectedSurveyProspect(null);
       setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
       await fetchAOData();
+      if (setActiveMenu) {
+        setActiveMenu('overview');
+      }
     } catch (err: any) {
       const updatedProspects = prospects.map(p => 
         p.id === selectedSurveyProspect.id ? { ...p, status: 'Menunggu Approval Manajer' } : p
@@ -485,9 +540,249 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
       setMessage({ type: 'success', text: `BERHASIL! Berkas pengajuan ${selectedSurveyProspect.name} telah diteruskan ke Manajer / Komite Pembiayaan untuk otorisasi akhir.` });
       setSelectedSurveyProspect(null);
       setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
+      if (setActiveMenu) {
+        setActiveMenu('overview');
+      }
     } finally {
       setSurveyLoading(false);
     }
+  };
+
+  const renderHistory = () => {
+    // 1. Filter historyList by historySearch and historyFilterStatus
+    const filteredHistory = historyList.filter(item => {
+      const nameMatch = (item.member_name || item.users?.full_name || '')
+        .toLowerCase()
+        .includes(historySearch.toLowerCase());
+      
+      if (historyFilterStatus === 'all') return nameMatch;
+      if (historyFilterStatus === 'pending') return nameMatch && item.status === 'pending';
+      if (historyFilterStatus === 'approved') return nameMatch && item.status === 'approved';
+      if (historyFilterStatus === 'rejected') return nameMatch && item.status === 'rejected';
+      if (historyFilterStatus === 'active') return nameMatch && item.status === 'active';
+      return nameMatch;
+    });
+
+    // Compute stats
+    const totalCount = historyList.length;
+    const pendingCount = historyList.filter(i => i.status === 'pending').length;
+    const approvedActiveCount = historyList.filter(i => i.status === 'approved' || i.status === 'active').length;
+    const rejectedCount = historyList.filter(i => i.status === 'rejected').length;
+
+    return (
+      <div style={{ animation: 'fadeInUp 0.6s ease-out', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Stats Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-primary)', boxShadow: '0 4px 20px var(--shadow-color)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Proses AO</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>{totalCount} <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>Pengajuan</span></div>
+          </div>
+          <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-primary)', boxShadow: '0 4px 20px var(--shadow-color)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Dalam Proses</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--gold-intense)', marginTop: '8px' }}>{pendingCount}</div>
+          </div>
+          <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-primary)', boxShadow: '0 4px 20px var(--shadow-color)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Disetujui / Aktif</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#10b981', marginTop: '8px' }}>{approvedActiveCount}</div>
+          </div>
+          <div style={{ background: 'var(--bg-card)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-primary)', boxShadow: '0 4px 20px var(--shadow-color)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Ditolak</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#ef4444', marginTop: '8px' }}>{rejectedCount}</div>
+          </div>
+        </div>
+
+        {/* Filter Bar */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', padding: '16px 24px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {['all', 'pending', 'approved', 'active', 'rejected'].map((status) => {
+              const isActive = historyFilterStatus === status;
+              let label = 'Semua';
+              if (status === 'pending') label = 'Pending';
+              if (status === 'approved') label = 'Disetujui';
+              if (status === 'active') label = 'Aktif';
+              if (status === 'rejected') label = 'Ditolak';
+
+              return (
+                <button
+                  key={status}
+                  onClick={() => setHistoryFilterStatus(status)}
+                  style={{
+                    background: isActive ? 'var(--text-primary)' : 'rgba(255, 255, 255, 0.04)',
+                    color: isActive ? 'var(--bg-page)' : 'var(--text-primary)',
+                    border: isActive ? 'none' : '1px solid var(--border-primary)',
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <input
+            type="text"
+            placeholder="Cari nama anggota..."
+            value={historySearch}
+            onChange={(e) => setHistorySearch(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--border-primary)',
+              borderRadius: '10px',
+              padding: '8px 16px',
+              color: 'var(--text-primary)',
+              fontSize: '13px',
+              outline: 'none',
+              minWidth: '240px'
+            }}
+          />
+        </div>
+
+        {/* History Table */}
+        <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '30px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
+          {filteredHistory.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Nama Anggota</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Plafon</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Akad</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Analisis AI</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Survei AO</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Status</th>
+                    <th style={{ padding: '15px', textAlign: 'left', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Tanggal Diajukan</th>
+                    <th style={{ padding: '15px', textAlign: 'right', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, fontSize: '12px', textTransform: 'uppercase' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHistory.map((item) => {
+                    const hasAiResult = item.collateral_metadata?.ai_status === 'completed';
+                    const hasSurvey = item.is_surveyed_by_ao;
+
+                    let statusText = 'Pending';
+                    let statusColor = 'var(--gold-intense)';
+                    let statusBg = 'rgba(218, 165, 32, 0.1)';
+
+                    if (item.status === 'approved') {
+                      statusText = 'Disetujui';
+                      statusColor = '#10b981';
+                      statusBg = 'rgba(16, 185, 129, 0.1)';
+                    } else if (item.status === 'active') {
+                      statusText = 'Cair / Aktif';
+                      statusColor = '#10b981';
+                      statusBg = 'rgba(16, 185, 129, 0.15)';
+                    } else if (item.status === 'rejected') {
+                      statusText = 'Ditolak';
+                      statusColor = '#ef4444';
+                      statusBg = 'rgba(239, 68, 68, 0.1)';
+                    }
+
+                    return (
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border-primary)', opacity: 0.9 }}>
+                        <td style={{ padding: '20px 15px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {item.member_name || item.users?.full_name || 'Tidak Diketahui'}
+                        </td>
+                        <td style={{ padding: '20px 15px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                          Rp {Number(item.amount || 0).toLocaleString('id-ID')}
+                        </td>
+                        <td style={{ padding: '20px 15px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 700, fontSize: '12px' }}>
+                          {item.type || 'murabahah'}
+                        </td>
+                        <td style={{ padding: '20px 15px' }}>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: 800, 
+                            color: hasAiResult ? '#10b981' : 'var(--text-secondary)',
+                            background: hasAiResult ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)',
+                            padding: '4px 8px',
+                            borderRadius: '6px'
+                          }}>
+                            {hasAiResult ? '✓ Selesai' : 'Belum'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '20px 15px' }}>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: 800, 
+                            color: hasSurvey ? '#10b981' : 'var(--text-secondary)',
+                            background: hasSurvey ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)',
+                            padding: '4px 8px',
+                            borderRadius: '6px'
+                          }}>
+                            {hasSurvey ? '✓ Selesai' : 'Belum'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '20px 15px' }}>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: 800, 
+                            color: statusColor,
+                            background: statusBg,
+                            padding: '6px 12px',
+                            borderRadius: '8px'
+                          }}>
+                            {statusText}
+                          </span>
+                        </td>
+                        <td style={{ padding: '20px 15px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                          {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td style={{ padding: '20px 15px', textAlign: 'right' }}>
+                          <button
+                            onClick={() => {
+                              const cif = membersList.find(m => m.user_id === item.member_id || m.id === item.member_id);
+                              const parsedMeta = parseMetadata(item.collateral_metadata);
+                              setSelectedCIFProspect({ 
+                                prospect: { 
+                                  ...item, 
+                                  name: item.member_name || item.users?.full_name,
+                                  collateral_metadata: parsedMeta
+                                }, 
+                                cif 
+                              });
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: '1.5px solid var(--gold-intense)',
+                              color: 'var(--gold-intense)',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              fontWeight: 800,
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseOver={e => {
+                              e.currentTarget.style.background = 'var(--gold-intense)';
+                              e.currentTarget.style.color = '#02130e';
+                            }}
+                            onMouseOut={e => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'var(--gold-intense)';
+                            }}
+                          >
+                            👁️ Berkas
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+              Tidak ada data riwayat proses pembiayaan.
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderAIAnalysis = () => (
@@ -553,12 +848,26 @@ export default function AODashboard({ activeMenu, profile }: AODashboardProps) {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={() => runAIAnalysis(selectedProspect)}
-                style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px var(--shadow-color)' }}
-              >
-                JALANKAN ANALISIS AI SEKARANG
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+                <div style={{ textAlign: 'left', background: 'var(--border-primary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--gold-intense)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '10px' }}>📂 BUNDEL BERKAS PENGAJUAN (DIKONFIRMASI UNIT CS)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px', fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                    <div style={{ color: '#10b981' }}>✓ FPP (Formulir Pengajuan)</div>
+                    <div style={{ color: '#10b981' }}>✓ KTP & Kartu Keluarga</div>
+                    <div style={{ color: '#10b981' }}>✓ Slip Gaji / Nota Usaha</div>
+                    <div style={{ color: '#10b981' }}>✓ SKU / NIB (Legalitas)</div>
+                    <div style={{ color: '#10b981' }}>✓ Berkas Agunan / Jaminan</div>
+                    <div style={{ color: '#10b981' }}>✓ Surat Persetujuan Pasangan</div>
+                    <div style={{ color: '#10b981', gridColumn: 'span 2' }}>✓ Lembar Otorisasi & Hasil SLIK OJK (Lolos PI Checking)</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => runAIAnalysis(selectedProspect)}
+                  style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '16px 32px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px var(--shadow-color)' }}
+                >
+                  JALANKAN ANALISIS AI SEKARANG
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -906,6 +1215,7 @@ DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau pe
                       <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Calon Anggota</th>
                       <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Plafon</th>
                       <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px' }}>Tahapan</th>
+                      <th style={{ padding: '15px', color: 'var(--text-primary)', opacity: 0.7, fontWeight: 700, textTransform: 'uppercase', fontSize: '12px', textAlign: 'right' }}>Berkas CIF</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -914,6 +1224,103 @@ DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau pe
                         <td style={{ padding: '20px 15px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</td>
                         <td style={{ padding: '20px 15px', color: 'var(--text-primary)', fontWeight: 700 }}>Rp {p.amount.toLocaleString('id-ID')}</td>
                         <td style={{ padding: '20px 15px', color: 'var(--text-secondary)' }}>{p.status}</td>
+                        <td style={{ padding: '20px 15px', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            <button
+                              onClick={() => {
+                                const cif = membersList.find(m => m.user_id === p.member_id || m.id === p.member_id);
+                                setSelectedCIFProspect({ prospect: p, cif });
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: '1.5px solid var(--gold-intense)',
+                                color: 'var(--gold-intense)',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontWeight: 800,
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseOver={e => {
+                                e.currentTarget.style.background = 'var(--gold-intense)';
+                                e.currentTarget.style.color = '#02130e';
+                              }}
+                              onMouseOut={e => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--gold-intense)';
+                              }}
+                            >
+                              👁️ Berkas
+                            </button>
+
+                            {p.status === 'Menunggu Analisis' && (
+                              <button
+                                onClick={() => {
+                                  setSelectedProspect(p);
+                                  setAiResult(null);
+                                  if (setActiveMenu) {
+                                    setActiveMenu('prospects');
+                                  }
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: '1.5px solid var(--text-primary)',
+                                  color: 'var(--text-primary)',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontWeight: 800,
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => {
+                                  e.currentTarget.style.background = 'var(--text-primary)';
+                                  e.currentTarget.style.color = 'var(--bg-page)';
+                                }}
+                                onMouseOut={e => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = 'var(--text-primary)';
+                                }}
+                              >
+                                🤖 Analisis AI
+                              </button>
+                            )}
+
+                            {p.status === 'Menunggu Survei' && (
+                              <button
+                                onClick={() => {
+                                  setSelectedSurveyProspect(p);
+                                  setSurveyData({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
+                                  if (setActiveMenu) {
+                                    setActiveMenu('survey');
+                                  }
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: '1.5px solid #10b981',
+                                  color: '#10b981',
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontWeight: 800,
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => {
+                                  e.currentTarget.style.background = '#10b981';
+                                  e.currentTarget.style.color = '#fff';
+                                }}
+                                onMouseOut={e => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = '#10b981';
+                                }}
+                              >
+                                🗺️ Survei
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -924,10 +1331,11 @@ DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau pe
         </>
       )}
 
-      {activeMenu === 'leads' && renderAddForm()}
       {activeMenu === 'prospects' && renderAIAnalysis()}
       
       {activeMenu === 'survey' && renderSurvey()}
+      
+      {activeMenu === 'history' && renderHistory()}
 
       {activeMenu === 'portfolio' && (
         <div style={{ animation: 'fadeInUp 0.8s ease-out' }}>
@@ -976,6 +1384,243 @@ DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau pe
       <style jsx>{`
         @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
+
+      {/* CIF Document Modal */}
+      {selectedCIFProspect && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 99999
+        }}>
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '2.5px solid var(--gold-intense)',
+            borderRadius: '24px',
+            width: '600px',
+            maxWidth: '90%',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8)'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #043121 0%, #084b35 100%)',
+              borderBottom: '2.5px solid var(--gold-intense)',
+              padding: '20px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: 'var(--gold-intense)', letterSpacing: '0.5px' }}>
+                  📄 BERKAS CIF (CUSTOMER INFORMATION FILE)
+                </h4>
+                <span style={{ fontSize: '11px', color: '#ffffff', opacity: 0.8, fontWeight: 700 }}>
+                  Terdaftar Resmi dari Unit Customer Service (CS)
+                </span>
+              </div>
+              <button 
+                onClick={() => setSelectedCIFProspect(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: '#ffffff',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ 
+              padding: '24px 30px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '20px', 
+              color: 'var(--text-primary)',
+              maxHeight: '70vh',
+              overflowY: 'auto'
+            }}>
+              {/* Highlight Plafon & Akad */}
+              <div style={{ background: 'rgba(243, 198, 83, 0.05)', border: '1.5px solid rgba(243, 198, 83, 0.3)', padding: '16px 20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '10px', color: 'var(--gold-intense)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plafon Pengajuan Pembiayaan</div>
+                  <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px' }}>
+                    Rp {Number(selectedCIFProspect.prospect.amount || 0).toLocaleString('id-ID')}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rencana Akad / Tujuan</div>
+                  <div style={{ fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px', textTransform: 'uppercase' }}>
+                    {selectedCIFProspect.prospect.ai_contract_type || selectedCIFProspect.prospect.type || 'MURABAHAH'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '2px' }}>
+                    {selectedCIFProspect.prospect.purpose || 'Modal Usaha'}
+                  </div>
+                </div>
+              </div>
+
+              {selectedCIFProspect.cif ? (
+                <>
+                  {/* Status Badge */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(52, 211, 153, 0.08)', border: '1px solid #34d399', padding: '12px 18px', borderRadius: '14px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#34d399' }}>✓ KYC DOKUMEN CS TERVERIFIKASI</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>Status: Aktif</span>
+                  </div>
+
+                  {/* FPP Details Section */}
+                  <div style={{ borderBottom: '1.5px dashed var(--border-primary)', paddingBottom: '16px', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--gold-intense)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>
+                      📋 DETAIL FORMULIR PENGAJUAN PEMBIAYAAN (FPP)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px' }}>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Tujuan Penggunaan Dana</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginTop: '4px', color: 'var(--text-primary)' }}>
+                          {getVal(selectedCIFProspect.prospect.collateral_metadata?.purpose || selectedCIFProspect.prospect.purpose, 'Modal Usaha')}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Detail Pekerjaan / Usaha Saat Ini</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginTop: '4px', color: 'var(--text-primary)' }}>
+                          {getVal(selectedCIFProspect.prospect.collateral_metadata?.job_detail || selectedCIFProspect.cif?.occupation, 'Sektor Usaha Produktif')}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Spesifikasi Objek Akad</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginTop: '4px', color: 'var(--text-primary)' }}>
+                          {getVal(selectedCIFProspect.prospect.collateral_metadata?.akad_object, 'Pengadaan Bahan/Modal Kerja ' + (selectedCIFProspect.prospect.type || 'Murabahah').toUpperCase())}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Daftar Inventaris Aset & Jaminan</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginTop: '4px', color: 'var(--text-primary)' }}>
+                          {getVal(selectedCIFProspect.prospect.collateral_metadata?.collaterals, 'Aset Lancar & Jaminan Personal (Terverifikasi)')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CIF Details Grid */}
+                  <div style={{ fontSize: '11px', color: 'var(--gold-intense)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>
+                    👤 DATA PRIBADI ANGGOTA (CIF)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Nama Lengkap Anggota</div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, marginTop: '4px' }}>{selectedCIFProspect.cif.users?.full_name || selectedCIFProspect.prospect.name}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Nomor Telepon</div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, marginTop: '4px' }}>{selectedCIFProspect.cif.phone_number}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Nomor NIK (KTP)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px', fontFamily: 'monospace', letterSpacing: '0.5px' }}>{selectedCIFProspect.cif.nik}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Nomor Kartu Keluarga (KK)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px', fontFamily: 'monospace', letterSpacing: '0.5px' }}>{selectedCIFProspect.cif.kk_number}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Nama Ibu Kandung</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedCIFProspect.cif.mother_name}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Agama</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedCIFProspect.cif.religion}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Pekerjaan</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, marginTop: '4px' }}>{selectedCIFProspect.cif.occupation}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Omset / Pendapatan Bulanan</div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, marginTop: '4px', color: '#10b981' }}>
+                        Rp {Number(selectedCIFProspect.cif.monthly_income || 0).toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--border-primary)', paddingTop: '16px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Alamat Sesuai KTP</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, marginTop: '4px', lineHeight: 1.5 }}>{selectedCIFProspect.cif.ktp_address}</div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Alamat Domisili</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, marginTop: '4px', lineHeight: 1.5 }}>{selectedCIFProspect.cif.domicile_address}</div>
+                  </div>
+
+                  <div style={{ borderTop: '1.5px dashed var(--border-primary)', paddingTop: '16px', marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--gold-intense)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>
+                      📂 BUNDEL BERKAS PENGAJUAN (DIKONFIRMASI UNIT CS)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px', fontSize: '12.5px', fontWeight: 800 }}>
+                      <div style={{ color: '#10b981' }}>✓ FPP (Formulir Pengajuan)</div>
+                      <div style={{ color: '#10b981' }}>✓ KTP & Kartu Keluarga</div>
+                      <div style={{ color: '#10b981' }}>✓ Slip Gaji / Nota Usaha</div>
+                      <div style={{ color: '#10b981' }}>✓ SKU / NIB (Legalitas)</div>
+                      <div style={{ color: '#10b981' }}>✓ Berkas Agunan / Jaminan</div>
+                      <div style={{ color: '#10b981' }}>✓ Surat Persetujuan Pasangan</div>
+                      <div style={{ color: '#10b981', gridColumn: 'span 2' }}>✓ Lembar Otorisasi & Hasil SLIK OJK (Lolos PI Checking)</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
+                  <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)' }}>Berkas CIF Fisik Tidak Ditemukan</div>
+                  <p style={{ fontSize: '13px', marginTop: '8px', opacity: 0.8 }}>
+                    Calon anggota ini diajukan secara manual / eksternal (Simulasi Demo) dan belum terintegrasi dengan berkas CIF resmi dari Customer Service.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              background: 'var(--border-primary)',
+              padding: '16px 24px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              borderTop: '1px solid var(--border-primary)'
+            }}>
+              <button 
+                onClick={() => setSelectedCIFProspect(null)}
+                style={{
+                  background: 'var(--text-primary)',
+                  color: 'var(--bg-page)',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                Tutup Dokumen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

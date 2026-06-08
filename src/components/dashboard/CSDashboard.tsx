@@ -71,7 +71,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     phone: '',
     amount: '',
     purpose: '',
-    type: 'murabahah'
+    type: 'murabahah',
+    job_detail: '',
+    akad_object: '',
+    collaterals: ''
   });
 
   // AI Sharia Assistant Chat States
@@ -1663,15 +1666,36 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Detail Usaha / Pekerjaan Saat Ini (FPP)</label>
-                    <input type="text" style={inputStyle} placeholder="Contoh: Berjualan sembako di pasar..." required />
+                    <input 
+                      type="text" 
+                      style={inputStyle} 
+                      placeholder="Contoh: Berjualan sembako di pasar..." 
+                      required 
+                      value={financingData.job_detail}
+                      onChange={(e) => setFinancingData({...financingData, job_detail: e.target.value})}
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Spesifikasi Objek Akad</label>
-                    <input type="text" style={inputStyle} placeholder="Barang yang dibeli / Proyek yang dijalankan..." required />
+                    <input 
+                      type="text" 
+                      style={inputStyle} 
+                      placeholder="Barang yang dibeli / Proyek yang dijalankan..." 
+                      required 
+                      value={financingData.akad_object}
+                      onChange={(e) => setFinancingData({...financingData, akad_object: e.target.value})}
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Daftar Inventaris Aset & Jaminan</label>
-                    <input type="text" style={inputStyle} placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." required />
+                    <input 
+                      type="text" 
+                      style={inputStyle} 
+                      placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." 
+                      required 
+                      value={financingData.collaterals}
+                      onChange={(e) => setFinancingData({...financingData, collaterals: e.target.value})}
+                    />
                   </div>
                 </div>
               </div>
@@ -1762,7 +1786,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         const data = await response.json();
                         if (data.success) {
                           setMessage({ type: 'success', text: data.message });
-                          setFinancingData({ member_id: '', name: '', phone: '', amount: '', purpose: '', type: 'murabahah' });
+                          setFinancingData({ member_id: '', name: '', phone: '', amount: '', purpose: '', type: 'murabahah', job_detail: '', akad_object: '', collaterals: '' });
                         } else {
                           setMessage({ type: 'error', text: data.error || 'Terjadi kesalahan.' });
                         }

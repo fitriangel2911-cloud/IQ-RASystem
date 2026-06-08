@@ -17,6 +17,9 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
   const [amount, setAmount] = useState<number>(5000000);
   const [contractType, setContractType] = useState<string>('murabahah');
   const [purpose, setPurpose] = useState<string>('');
+  const [jobDetail, setJobDetail] = useState<string>('');
+  const [akadObject, setAkadObject] = useState<string>('');
+  const [collaterals, setCollaterals] = useState<string>('');
   
   // Validation: Profile must have core docs
   const isProfileComplete = !!(profile?.nik && profile?.kk_number && profile?.mother_name && profile?.phone_number);
@@ -42,9 +45,17 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
         .from('financing_contracts')
         .insert({
           member_id: profile.user_id, // References users(id) in the schema
+          member_name: profile.full_name,
           type: contractType,
           amount: amount,
-          status: 'pending'
+          status: 'pending',
+          collateral_metadata: {
+            purpose,
+            phone: profile.phone_number,
+            job_detail: jobDetail,
+            akad_object: akadObject,
+            collaterals
+          }
         });
 
       if (error) throw error;
@@ -52,6 +63,10 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       alert('🎉 Alhamdulillah! Pengajuan Pembiayaan Syariah Anda Telah Dikirim.\nPetugas Account Officer kami akan meninjau permohonan Anda dalam waktu maksimal 3x24 jam.');
       setIsApplying(false);
       setAmount(5000000);
+      setPurpose('');
+      setJobDetail('');
+      setAkadObject('');
+      setCollaterals('');
       onUpdateSuccess();
     } catch (err: any) {
       console.error('Apply Financing Error:', err);
@@ -184,7 +199,14 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Detail Usaha / Pekerjaan Saat Ini (FPP)</label>
-                  <input type="text" style={inputStyle} placeholder="Contoh: Berjualan sembako di pasar..." required />
+                  <input 
+                    type="text" 
+                    style={inputStyle} 
+                    placeholder="Contoh: Berjualan sembako di pasar..." 
+                    required 
+                    value={jobDetail}
+                    onChange={(e) => setJobDetail(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -205,12 +227,26 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Spesifikasi Objek Akad</label>
-                  <input type="text" style={inputStyle} placeholder="Barang yang dibeli / Proyek yang dijalankan..." required />
+                  <input 
+                    type="text" 
+                    style={inputStyle} 
+                    placeholder="Barang yang dibeli / Proyek yang dijalankan..." 
+                    required 
+                    value={akadObject}
+                    onChange={(e) => setAkadObject(e.target.value)}
+                  />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Daftar Inventaris Aset & Jaminan</label>
-                  <input type="text" style={inputStyle} placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." required />
+                  <input 
+                    type="text" 
+                    style={inputStyle} 
+                    placeholder="Contoh: BPKB Motor Vario 2020 an. Budi..." 
+                    required 
+                    value={collaterals}
+                    onChange={(e) => setCollaterals(e.target.value)}
+                  />
                 </div>
               </div>
             </div>

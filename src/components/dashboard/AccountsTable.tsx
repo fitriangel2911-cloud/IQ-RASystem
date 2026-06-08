@@ -16,13 +16,14 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
   });
 
   const accountTypeLabel = (type: string) => {
-    switch (type.toLowerCase()) {
+    const safeType = type || '';
+    switch (safeType.toLowerCase()) {
       case 'wadiah': return 'Simpanan Wadiah (Titipan)';
       case 'mudharabah': return 'Investasi Mudharabah (Bagi Hasil)';
       case 'haji': return 'Tabungan Haji';
       case 'umrah': return 'Tabungan Umrah';
       case 'pembiayaan': return 'Pembiayaan Kontrak';
-      default: return type.charAt(0).toUpperCase() + type.slice(1);
+      default: return safeType ? safeType.charAt(0).toUpperCase() + safeType.slice(1) : '';
     }
   };
 

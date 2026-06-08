@@ -16,7 +16,8 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
   });
 
   const formatType = (type: string) => {
-    switch (type.toLowerCase()) {
+    const safeType = type || '';
+    switch (safeType.toLowerCase()) {
       case 'deposit':
       case 'simpanan': 
         return { label: 'SETORAN TUNAI', color: '#10b981', sign: '+' };
@@ -32,7 +33,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
       case 'financing_disbursement': 
         return { label: 'PENCAIRAN PEMBIAYAAN', color: '#3b82f6', sign: '+' };
       default: 
-        return { label: type.toUpperCase(), color: 'var(--text-primary)', sign: '' };
+        return { label: safeType.toUpperCase(), color: 'var(--text-primary)', sign: '' };
     }
   };
 

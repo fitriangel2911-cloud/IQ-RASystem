@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { member_id, purpose, amount, name, phone, type } = body;
+    const { member_id, purpose, amount, name, phone, type, job_detail, akad_object, collaterals } = body;
 
     if (!amount || !name) {
       return NextResponse.json({ error: 'Data pengajuan tidak lengkap.' }, { status: 400 });
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         amount: Number(amount),
         type: type || 'murabahah', // Gunakan type dari body, fallback murabahah
         status: 'pending',
-        collateral_metadata: { purpose, phone }
+        collateral_metadata: { purpose, phone, job_detail, akad_object, collaterals }
       })
       .select()
       .single();
