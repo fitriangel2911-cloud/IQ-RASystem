@@ -416,7 +416,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       const { data: member, error: memberErr } = await supabase
         .from('members')
         .select('*, users(full_name, email)')
-        .eq('id', specialSavingsMemberId)
+        .eq('user_id', specialSavingsMemberId)
         .single();
 
       if (memberErr || !member) {
