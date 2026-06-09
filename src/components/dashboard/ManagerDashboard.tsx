@@ -5,6 +5,16 @@ import { createClient } from '@/lib/supabase/client';
 import RAGPipelineView from './RAGPipelineView';
 import { COA } from '@/lib/constants/coa';
 
+const parseMetadata = (metadata: any) => {
+  if (!metadata) return {};
+  if (typeof metadata === 'object') return metadata;
+  try {
+    return JSON.parse(metadata);
+  } catch (e) {
+    return {};
+  }
+};
+
 interface ManagerDashboardProps {
   activeMenu: string;
   profile: any;
@@ -469,6 +479,11 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
               ) : contracts.filter(c => c.status === 'pending').length > 0 ? (
                 contracts.filter(c => c.status === 'pending').map((c) => {
                   const score = getAIScore(c);
+                  const meta = parseMetadata(c.collateral_metadata);
+                  const addressVal = meta.address || c.address || 'Tidak ditentukan';
+                  const coordinatesVal = meta.coordinates || c.coordinates || 'Tidak tersedia';
+                  const incomeVal = meta.income || c.income || 'Tidak diisi / Rp 0';
+                  const notesVal = meta.notes || c.notes || 'Tidak ada catatan tambahan.';
                   return (
                     <div 
                       key={c.id} 
@@ -537,19 +552,19 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
                             }}>
                               <div style={{ marginBottom: '8px' }}>
                                 <strong style={{ color: '#34d399' }}>Alamat Lokasi:</strong>
-                                <span style={{ display: 'block', marginTop: '2px' }}>{c.address || 'Tidak ditentukan'}</span>
+                                <span style={{ display: 'block', marginTop: '2px' }}>{addressVal}</span>
                               </div>
                               <div style={{ marginBottom: '8px' }}>
                                 <strong style={{ color: '#34d399' }}>Koordinat GPS:</strong>
-                                <span style={{ display: 'block', marginTop: '2px', fontFamily: 'monospace' }}>{c.coordinates || 'Tidak tersedia'}</span>
+                                <span style={{ display: 'block', marginTop: '2px', fontFamily: 'monospace' }}>{coordinatesVal}</span>
                               </div>
                               <div style={{ marginBottom: '8px' }}>
                                 <strong style={{ color: '#34d399' }}>Pendapatan Bulanan:</strong>
-                                <span style={{ display: 'block', marginTop: '2px', fontWeight: 700 }}>{c.income || 'Tidak diisi / Rp 0'}</span>
+                                <span style={{ display: 'block', marginTop: '2px', fontWeight: 700 }}>{incomeVal}</span>
                               </div>
                               <div>
                                 <strong style={{ color: '#34d399' }}>Catatan Lapangan AO:</strong>
-                                <span style={{ display: 'block', marginTop: '2px' }}>"{c.notes || 'Tidak ada catatan tambahan.'}"</span>
+                                <span style={{ display: 'block', marginTop: '2px' }}>"{notesVal}"</span>
                               </div>
                             </div>
                           ) : (

@@ -95,10 +95,11 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
             member_id: c.member_id,
             name: c.member_name || c.users?.full_name,
             amount: c.amount,
-            purpose: meta?.purpose || 'Pembiayaan Umum',
+            purpose: meta?.purpose || c.purpose || 'Pembiayaan Umum',
             status: 'Menunggu Survei',
             ai_contract_type: c.type,
             collateral_metadata: meta,
+            tenor_months: c.tenor_months || meta?.tenor_months || 12,
             created_at: c.created_at
           };
         });
@@ -200,13 +201,19 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
     setSelectedProspect(prospect);
     
     try {
+      const meta = prospect.collateral_metadata || {};
+      const jobDetail = meta.job_detail || 'Sektor Usaha Produktif';
+      const akadObject = meta.akad_object || 'Pengadaan modal kerja / barang';
+      const collaterals = meta.collaterals || 'Aset lancar / personal';
+      const tenor = prospect.tenor_months || meta.tenor_months || 12;
+
       const response = await fetch('/api/ai/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           purpose: prospect.purpose,
           amount: prospect.amount,
-          description: `Pengajuan pembiayaan atas nama ${prospect.name}`
+          description: `Pengajuan pembiayaan atas nama ${prospect.name}. Pekerjaan/Usaha: ${jobDetail}. Objek Akad: ${akadObject}. Jaminan: ${collaterals}. Jangka Waktu (Tenor): ${tenor} bulan.`
         })
       });
 
@@ -911,23 +918,34 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
                           return;
                         }
 
-                        try {
-                          const prompt = `Lakukan verifikasi kelayakan pembiayaan untuk nasabah berikut:
-Nama: ${selectedSurveyProspect?.name}
+                        const meta = selectedSurveyProspect?.collateral_metadata || {};
+                        const jobDetail = meta.job_detail || 'Sektor Usaha Produktif';
+                        const akadObject = meta.akad_object || 'Pengadaan modal kerja / barang';
+                        const collaterals = meta.collaterals || 'Aset lancar / personal';
+                        const tenor = selectedSurveyProspect?.tenor_months || meta.tenor_months || 12;
+
+                        const prompt = `Lakukan analisis & verifikasi kelayakan pembiayaan secara menyeluruh untuk nasabah berikut berdasarkan dokumen pengajuan:
+Nama Nasabah: ${selectedSurveyProspect?.name}
 Tujuan Pengajuan: ${selectedSurveyProspect?.purpose}
 Plafon Pengajuan: Rp ${amount.toLocaleString('id-ID')}
-Estimasi Omset Bulanan (Kotor): Rp ${income.toLocaleString('id-ID')}
-Alamat/Domisili: ${surveyData.address}
+Jangka Waktu (Tenor): ${tenor} Bulan
+Pekerjaan / Usaha: ${jobDetail}
+Spesifikasi Objek Akad: ${akadObject}
+Aset & Jaminan: ${collaterals}
+Estimasi Pendapatan / Omset Bulanan: Rp ${income.toLocaleString('id-ID')}
+Alamat Lokasi: ${surveyData.address}
 
 TUGAS ANDA:
-Berikan keputusan final secara SINGKAT, TEGAS, dan LANGSUNG KE INTI tanpa basa-basi pembuka (Maksimal 3 poin utama).
+Berikan keputusan kelayakan berdasarkan data di atas secara komprehensif (analisis rasio kemampuan bayar / DSCR, kelayakan jaminan, serta kesesuaian usaha).
+Tuliskan hasil verifikasi secara SINGKAT, TEGAS, dan LANGSUNG KE INTI tanpa basa-basi pembuka (Maksimal 3 poin utama).
 Gunakan format berikut:
 1. KEPUTUSAN FINAL: [Tulis dengan jelas: LAYAK DIAJUKAN atau DITOLAK]
-2. ALASAN FINANSIAL: [Sebutkan alasan berdasarkan rasio kemampuan bayar / DSCR 12 bulan dalam 1-2 kalimat saja]
-3. MITIGASI RISIKO: [Saran syariah singkat untuk Account Officer]
+2. ANALISIS KELAYAKAN (FINANSIAL & JAMINAN): [Sebutkan analisis kemampuan bayar dengan DSCR, kelayakan jaminan, dan jenis usaha dalam 2 kalimat saja]
+3. MITIGASI RISIKO: [Saran syariah & mitigasi risiko yang relevan untuk Account Officer]
 
-DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau penjelasan bertele-tele. Langsung berikan hasilnya.`;
+DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika rumit, atau penjelasan bertele-tele. Langsung berikan hasilnya.`;
 
+                        try {
                           const response = await fetch('/api/ai/chat', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
