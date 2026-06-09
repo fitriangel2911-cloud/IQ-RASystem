@@ -48,6 +48,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState<{ amount: number, isTransfer: boolean } | null>(null);
   
   // New: Transaction Method
   const [transactionMethod, setTransactionMethod] = useState<'tunai' | 'transfer'>('tunai');
@@ -137,11 +138,10 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           win.document.close();
         }
 
-        window.alert(`[DEMO PENCAIRAN BERHASIL]\n\nDana Rp 4.000.000 berhasil dicairkan! Status kontrak berubah menjadi Aktif.`);
+        // window.alert(`[DEMO PENCAIRAN BERHASIL]\n\nDana Rp 4.000.000 berhasil dicairkan! Status kontrak berubah menjadi Aktif.`);
         setContracts([]);
-        onSuccess();
         setLoading(false);
-        if (onGoToPanel) onGoToPanel('dashboard');
+        setShowSuccessPopup({ amount: 4000000, isTransfer: transactionMethod === 'transfer' });
         return;
       }
 
@@ -291,11 +291,9 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         win.document.close();
       }
 
-      window.alert(`Pencairan Berhasil!\n\nDana sebesar ${fmt(contract.amount)} telah berhasil dicairkan dan status kontrak berubah menjadi Aktif.`);
       // Remove the contract from the local list since it's now active
       setContracts(prev => prev.filter(c => c.id !== contract.id));
-      onSuccess();
-      if (onGoToPanel) onGoToPanel('dashboard');
+      setShowSuccessPopup({ amount: contract.amount, isTransfer: transactionMethod === 'transfer' });
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally {
@@ -451,6 +449,62 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           onCancel={() => setConfirmModal(null)}
         />
       )}
+
+      {/* Beautiful Success Pop-up Modal */}
+      {showSuccessPopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999,
+          background: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #3b82f6, #2563eb)',
+            padding: '3px', borderRadius: '28px', maxWidth: '420px', width: '90%',
+            boxShadow: '0 20px 50px rgba(59,130,246,0.3)',
+            animation: 'scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '25px', padding: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(59,130,246,0.1)', borderRadius: '50%', filter: 'blur(20px)' }} />
+              <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '120px', height: '120px', background: 'rgba(243,198,83,0.1)', borderRadius: '50%', filter: 'blur(25px)' }} />
+              
+              <div style={{ fontSize: '64px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>✨</div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#3b82f6', fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', position: 'relative', zIndex: 1 }}>Pencairan Berhasil</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.5', margin: '0 0 24px 0', position: 'relative', zIndex: 1 }}>
+                Status kontrak telah berubah menjadi Aktif. {showSuccessPopup.isTransfer ? 'Dana telah masuk ke rekening anggota.' : 'Dana tunai siap diserahkan.'}
+              </p>
+              
+              <div style={{ background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '20px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Nominal Cair</div>
+                <div style={{ fontSize: '32px', color: 'var(--text-primary)', fontWeight: 900, margin: '4px 0 0 0' }}>{fmt(showSuccessPopup.amount)}</div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setShowSuccessPopup(null);
+                  onSuccess();
+                  if (onGoToPanel) onGoToPanel('dashboard');
+                }}
+                style={{
+                  width: '100%', background: '#3b82f6', color: '#fff', border: 'none',
+                  padding: '16px', borderRadius: '14px', fontSize: '16px', fontWeight: 900,
+                  cursor: 'pointer', transition: 'all 0.2s', position: 'relative', zIndex: 1,
+                  boxShadow: '0 4px 15px rgba(59,130,246,0.4)'
+                }}
+              >
+                TUTUP & KEMBALI KE DASBOR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes scaleUp {
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

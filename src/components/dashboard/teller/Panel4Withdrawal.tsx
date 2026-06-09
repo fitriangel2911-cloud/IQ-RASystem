@@ -69,6 +69,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
   const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
   const [supervisorLimit, setSupervisorLimit] = useState(DEFAULT_SUPERVISOR_LIMIT);
   const [printSlip, setPrintSlip] = useState(true);
+  const [showSuccessPopup, setShowSuccessPopup] = useState<{ amount: number, refNo: string } | null>(null);
+  const [showInfoPopup, setShowInfoPopup] = useState<string | null>(null);
 
   const fetchApprovedRequests = async () => {
     if (!selectedMember || selectedMember.id === 'mock-member-fitri') return;
@@ -131,10 +133,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       // 4. Update status to completed
       await supabase.from('withdrawal_requests').update({ status: 'completed' }).eq('id', req.id);
 
-      window.alert(`Transaksi Berhasil!\n\nPenarikan Tunai sebesar ${req.amount.toLocaleString('id-ID')} telah dieksekusi.\nNo Referensi: ${req.reference_no || '-'}`);
-      fetchApprovedRequests();
-      onSuccess();
-      if (onGoToPanel) onGoToPanel('dashboard');
+      setApprovedRequests(prev => prev.filter(r => r.id !== req.id));
+      setShowSuccessPopup({ amount: req.amount, refNo: req.reference_no || '-' });
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
@@ -261,10 +261,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
         });
       }
 
-      window.alert(`Transaksi Penarikan Berhasil!\n\nNominal Diserahkan: ${fmt(amount)}\nNo. Referensi: ${refNo}`);
       setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
-      onSuccess();
-      if (onGoToPanel) onGoToPanel('dashboard');
+      setShowSuccessPopup({ amount: amount, refNo: refNo });
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
@@ -285,10 +283,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
 
       if (error) throw error;
 
-      window.alert(`Pemberitahuan!\n\nPenarikan melebihi batas otorisasi (${fmt(supervisorLimit)}). Transaksi Anda telah diteruskan ke Dasbor Manajer untuk otorisasi.`);
       setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
-      onSuccess();
-      if (onGoToPanel) onGoToPanel('dashboard');
+      setShowInfoPopup(`Penarikan melebihi batas otorisasi (${fmt(supervisorLimit)}). Transaksi telah diteruskan ke Dasbor Manajer untuk otorisasi.`);
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally {
@@ -575,6 +571,107 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
           {loading ? 'MEMPROSES...' : 'PROSES PENARIKAN'}
         </button>
       </form>
+
+      {/* Beautiful Success Pop-up Modal */}
+      {showSuccessPopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999,
+          background: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #10b981, #059669)',
+            padding: '3px', borderRadius: '28px', maxWidth: '420px', width: '90%',
+            boxShadow: '0 20px 50px rgba(16,185,129,0.3)',
+            animation: 'scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '25px', padding: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(16,185,129,0.1)', borderRadius: '50%', filter: 'blur(20px)' }} />
+              <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', width: '120px', height: '120px', background: 'rgba(243,198,83,0.1)', borderRadius: '50%', filter: 'blur(25px)' }} />
+              
+              <div style={{ fontSize: '64px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>✅</div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '24px', fontWeight: 900, textTransform: 'uppercase', position: 'relative', zIndex: 1 }}>Transaksi Berhasil</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.5', margin: '0 0 24px 0', position: 'relative', zIndex: 1 }}>
+                Uang tunai siap diserahkan kepada Anggota. Pastikan jumlah uang sesuai.
+              </p>
+              
+              <div style={{ background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '20px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Nominal Penarikan</div>
+                <div style={{ fontSize: '32px', color: 'var(--text-primary)', fontWeight: 900, margin: '4px 0 12px 0' }}>{fmt(showSuccessPopup.amount)}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>No Ref: {showSuccessPopup.refNo}</div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setShowSuccessPopup(null);
+                  onSuccess();
+                  if (onGoToPanel) onGoToPanel('dashboard');
+                }}
+                style={{
+                  width: '100%', background: '#10b981', color: '#fff', border: 'none',
+                  padding: '16px', borderRadius: '14px', fontSize: '16px', fontWeight: 900,
+                  cursor: 'pointer', transition: 'all 0.2s', position: 'relative', zIndex: 1,
+                  boxShadow: '0 4px 15px rgba(16,185,129,0.4)'
+                }}
+              >
+                TUTUP & KEMBALI KE DASBOR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Beautiful Info/Warning Pop-up Modal */}
+      {showInfoPopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999,
+          background: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #f3c653, #cca334)',
+            padding: '3px', borderRadius: '28px', maxWidth: '420px', width: '90%',
+            boxShadow: '0 20px 50px rgba(243,198,83,0.3)',
+            animation: 'scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '25px', padding: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(243,198,83,0.1)', borderRadius: '50%', filter: 'blur(20px)' }} />
+              
+              <div style={{ fontSize: '64px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>⏳</div>
+              <h3 style={{ margin: '0 0 12px 0', color: '#f3c653', fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', position: 'relative', zIndex: 1 }}>Menunggu Otorisasi</h3>
+              
+              <div style={{ background: 'var(--bg-page)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '20px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+                <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: '1.5' }}>{showInfoPopup}</div>
+              </div>
+
+              <button 
+                onClick={() => {
+                  setShowInfoPopup(null);
+                  onSuccess();
+                  if (onGoToPanel) onGoToPanel('dashboard');
+                }}
+                style={{
+                  width: '100%', background: 'var(--gold-gradient)', color: '#02130e', border: 'none',
+                  padding: '16px', borderRadius: '14px', fontSize: '16px', fontWeight: 900,
+                  cursor: 'pointer', transition: 'all 0.2s', position: 'relative', zIndex: 1,
+                  boxShadow: '0 4px 15px rgba(243,198,83,0.4)'
+                }}
+              >
+                MENGERTI & KEMBALI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes scaleUp {
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </>
   );
 }
