@@ -56,15 +56,33 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
     const fetchContracts = async () => {
       setLoadingContracts(true);
       const supabase = createClient();
-      // Fetch ONLY APPROVED contracts ready to be disbursed
-      const { data } = await supabase
-        .from('financing_contracts')
-        .select('*')
-        .eq('member_id', selectedMember.user_id)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
+      
+      let list: any[] = [];
+      if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase()?.includes('fitri')) {
+        const fitriStatus = localStorage.getItem('mock_status_fitri_angelina') || 'pending';
+        if (fitriStatus === 'approved') {
+          list = [{
+            id: 'mock-contract-fitri-angelina',
+            type: 'qardhul_hasan',
+            amount: 4000000,
+            tenor_months: 12,
+            margin_ratio: 0,
+            status: 'approved',
+            created_at: new Date().toISOString()
+          }];
+        }
+      } else {
+        // Fetch ONLY APPROVED contracts ready to be disbursed
+        const { data } = await supabase
+          .from('financing_contracts')
+          .select('*')
+          .eq('member_id', selectedMember.user_id)
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false });
+        list = data || [];
+      }
         
-      setContracts(data || []);
+      setContracts(list);
       setLoadingContracts(false);
     };
     fetchContracts();
@@ -85,6 +103,46 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
     setMessage(null);
 
     try {
+      if (contract.id === 'mock-contract-fitri-angelina') {
+        localStorage.setItem('mock_status_fitri_angelina', 'active');
+        
+        // Print Slip
+        const win = window.open('', '_blank', 'width=380,height=600');
+        if (win) {
+          win.document.write(`
+            <html><head><title>Bukti Pencairan</title>
+            <style>body{font-family:'Courier New',monospace;font-size:13px;padding:16px;max-width:300px;margin:0 auto;}.center{text-align:center;}.bold{font-weight:bold;}.line{border-top:1px dashed #000;margin:8px 0;}.row{display:flex;justify-content:space-between;margin:4px 0;}.title{font-size:18px;font-weight:bold;text-align:center;margin:8px 0;}</style>
+            </head><body>
+            <div class="title">KOPERASI SYARIAH IQ-RA</div>
+            <div class="center">Bukti Pencairan Pembiayaan</div>
+            <div class="line"></div>
+            <div class="row"><span>Tanggal</span><span>${new Date().toLocaleDateString('id-ID')}</span></div>
+            <div class="row"><span>No. Ref</span><span>CAIR-MOCK-${Date.now()}</span></div>
+            <div class="row"><span>Petugas</span><span>${tellerName}</span></div>
+            <div class="line"></div>
+            <div class="row"><span>Nama</span><span>Fitri Angelina</span></div>
+            <div class="row"><span>NIK</span><span>3174092837492834</span></div>
+            <div class="row"><span>Metode</span><span>${transactionMethod === 'transfer' ? 'Transfer ke Rekening' : 'Uang Tunai'}</span></div>
+            <div class="row"><span>Jenis Akad</span><span>QARDHUL HASAN</span></div>
+            <div class="line"></div>
+            <div class="row bold"><span>NOMINAL CAIR</span><span>Rp 4.000.000</span></div>
+            <div class="row"><span>Tenor</span><span>12 bln</span></div>
+            <div class="line"></div>
+            <div class="center">Dana telah diterima oleh nasabah.</div>
+            <div class="center">Terima kasih.</div>
+            <script>window.print();window.close();</script>
+            </body></html>
+          `);
+          win.document.close();
+        }
+
+        setMessage({ type: 'success', text: `[DEMO PENCAIRAN] Pencairan dana Rp 4.000.000 berhasil dan status kontrak telah menjadi Aktif!` });
+        setContracts([]);
+        onSuccess();
+        setLoading(false);
+        return;
+      }
+
       const memberName = selectedMember?.users?.full_name || (selectedMember as any)?.mother_name || 'Anggota Tanpa Nama';
       const refNo = `CAIR-${Date.now()}`;
       

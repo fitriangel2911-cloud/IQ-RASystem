@@ -274,7 +274,7 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
       
       // Recalculate metrics
       const pending = finalData.filter(c => c.status === 'pending');
-      const approved = finalData.filter(c => c.status === 'approved' || c.status === 'Cair / Aktif');
+      const approved = finalData.filter(c => c.status === 'approved' || c.status === 'active' || c.status === 'Cair / Aktif');
       
       const totalVal = approved.reduce((acc, curr) => acc + parseFloat(curr.amount || '0'), 0);
       
@@ -301,91 +301,25 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
 
     try {
       if (contract.id === 'mock-contract-fitri-angelina') {
-        localStorage.setItem('mock_status_fitri_angelina', decision === 'approved' ? 'active' : 'rejected');
+        localStorage.setItem('mock_status_fitri_angelina', decision === 'approved' ? 'approved' : 'rejected');
       } else if (!contract.id.toString().startsWith('mock-contract')) {
-        // 1. Update Contract Status to active directly if approved
-        const targetStatus = decision === 'approved' ? 'active' : 'rejected';
-        const { error: contractError } = await supabase
-          .from('financing_contracts')
-          .update({ 
-            status: targetStatus, 
-            disbursement_date: decision === 'approved' ? new Date().toISOString() : null,
-            tenor_months: contract.tenor_months || 12
+        // Call the secure API route that uses service role key to update status to 'approved' or 'rejected'
+        const res = await fetch('/api/financing/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contract_id: contract.id,
+            decision: decision === 'approved' ? 'approved' : 'rejected',
+            amount: contract.amount,
+            type: contract.type,
+            prospect_id: contract.prospect_id,
+            member_name: contract.member_name || contract.users?.full_name || 'Anggota'
           })
-          .eq('id', contract.id);
+        });
 
-        if (contractError) throw contractError;
-
-        // 2. If approved, generate amortization schedules
-        if (decision === 'approved') {
-          const tenor = contract.tenor_months || 12;
-          const marginRatio = contract.margin_ratio || (contract.type === 'qardhul_hasan' ? 0 : 0.1);
-          const amount = contract.amount || 4000000;
-          
-          const principalPerMonth = Math.floor(amount / tenor);
-          const marginAmount = Math.floor(amount * marginRatio);
-          const marginPerMonth = Math.floor(marginAmount / tenor);
-          
-          const schedules = [];
-          for (let i = 1; i <= tenor; i++) {
-            const dueDate = new Date();
-            dueDate.setMonth(dueDate.getMonth() + i);
-            
-            schedules.push({
-              contract_id: contract.id,
-              member_id: contract.member_id,
-              installment_number: i,
-              due_date: dueDate.toISOString().split('T')[0],
-              principal_amount: principalPerMonth,
-              margin_amount: marginPerMonth,
-              total_installment: principalPerMonth + marginPerMonth,
-              status: 'pending'
-            });
-          }
-          
-          const { error: scheduleError } = await supabase
-            .from('financing_schedules')
-            .insert(schedules);
-          
-          if (scheduleError) {
-            console.error("Gagal membuat jadwal angsuran:", scheduleError);
-          }
-
-          // 3. Post double-entry journal book entries for disbursement via /api/accounting/record-v2
-          const debitAccount = contract.type === 'qardhul_hasan' ? COA.RECEIVABLE_QARDH : COA.RECEIVABLE_MURABAHAH; // RECEIVABLE_QARDH or RECEIVABLE_MURABAHAH
-          const refNo = `CAIR-${Date.now()}`;
-          const memberName = contract.member_name || contract.users?.full_name || 'Anggota';
-          const entries = [
-            { account_code: debitAccount, debit: amount, credit: 0 },
-            { account_code: COA.CASH_IN_BANK, debit: 0, credit: amount } // Credit CASH_IN_BANK
-          ];
-
-          try {
-            await fetch('/api/accounting/record-v2', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                date: new Date().toISOString().split('T')[0],
-                description: `[MANAJER DIRECT DISBURSE] PENCAIRAN PEMBIAYAAN - ${memberName}`,
-                entries,
-                reference_no: refNo,
-                member_id: contract.member_id,
-              })
-            });
-          } catch (err) {
-            console.error("Gagal mencatat jurnal pencairan:", err);
-          }
-        }
-
-        // 4. Update Prospect Status
-        if (contract.prospect_id) {
-          await supabase
-            .from('prospects')
-            .update({ 
-              status: decision === 'approved' ? 'Cair / Aktif' : 'Ditolak Manajer',
-              is_converted: decision === 'approved'
-            })
-            .eq('id', contract.prospect_id);
+        const resData = await res.json();
+        if (!res.ok || !resData.success) {
+          throw new Error(resData.error || 'Gagal menyimpan persetujuan akad di database cloud.');
         }
       } else {
         // Update local storage for mock sync
@@ -394,35 +328,34 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
           const localProspects = JSON.parse(savedLocal);
           const updated = localProspects.map((p: any) => 
             p.id === contract.prospect_id 
-              ? { ...p, status: decision === 'approved' ? 'Cair / Aktif' : 'Ditolak Manajer', is_converted: decision === 'approved' } 
+              ? { ...p, status: decision === 'approved' ? 'approved' : 'rejected', is_converted: decision === 'approved' } 
               : p
           );
           localStorage.setItem('demo_prospects', JSON.stringify(updated));
         }
       }
 
-      // 3. (Accounting ledger call dihapus dari sini karena Teller yang akan melakukan posting jurnal pencairan saat uang fisik diserahkan)
-
       setMessage({ 
         type: 'success', 
-        text: `🎉 DOKUMEN DISAHKAN! Akad pembiayaan berhasil di-${decision === 'approved' ? 'SETUJUI UNTUK PENCAIRAN' : 'TOLAK'} dan status terupdate real-time.` 
+        text: `🎉 DOKUMEN DISAHKAN! Akad pembiayaan berhasil di-${decision === 'approved' ? 'SETUJUI (Menunggu Pencairan Teller)' : 'TOLAK'} dan status terupdate real-time.` 
       });
       await fetchFinancingPipeline();
     } catch (error: any) {
+      console.error("Error approving contract:", error);
       // Fallback demo approval
       const savedLocal = localStorage.getItem('demo_prospects');
       if (savedLocal) {
         const localProspects = JSON.parse(savedLocal);
         const updated = localProspects.map((p: any) => 
           p.id === contract.prospect_id 
-            ? { ...p, status: decision === 'approved' ? 'Cair / Aktif' : 'Ditolak Manajer', is_converted: decision === 'approved' } 
+            ? { ...p, status: decision === 'approved' ? 'approved' : 'rejected', is_converted: decision === 'approved' } 
             : p
         );
         localStorage.setItem('demo_prospects', JSON.stringify(updated));
       }
       setMessage({ 
         type: 'success', 
-        text: `🎉 DOKUMEN DISAHKAN! Akad berhasil di-${decision === 'approved' ? 'SETUJUI UNTUK PENCAIRAN' : 'TOLAK'}.` 
+        text: `🎉 DOKUMEN DISAHKAN! Akad berhasil di-${decision === 'approved' ? 'SETUJUI (Demo Mode)' : 'TOLAK'}.` 
       });
       await fetchFinancingPipeline();
     }
