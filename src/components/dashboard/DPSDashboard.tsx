@@ -174,7 +174,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
         const distMap: Record<string, number> = {};
         let totalPlafondDist = 0;
         data.forEach((c: any) => {
-          const type = c.contract_type || 'other';
+          const type = c.type || 'other';
           const amt = Number(c.amount || 0);
           if (!distMap[type]) distMap[type] = 0;
           distMap[type] += amt;
@@ -1085,73 +1085,249 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                 )}
 
                 {/* Contract Tab Content */}
-                {rightPanelTab === 'contract' && (
-                  <div style={{ background: '#fff', borderRadius: '28px', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', padding: '24px', color: '#1e293b', border: '12px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', overflow: 'hidden', minHeight: '620px' }}>
-                    
-                    {/* Paper watermark effect */}
-                    <div style={{ position: 'absolute', top: '10px', right: '10px', border: '2px solid rgba(4,49,33,0.1)', color: 'rgba(4,49,33,0.1)', padding: '5px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 900, fontFamily: 'monospace' }}>
-                      KSPPS iQ-RA ORIGINAL DOC
+                {rightPanelTab === 'contract' && (() => {
+                  const contract = activeAuditContract;
+                  const type = contract.type || 'murabahah';
+                  const amountVal = Number(contract.amount || 0);
+                  const tenor = Number(contract.tenor_months || 12);
+
+                  // Safely parse metadata
+                  const meta = (() => {
+                    const m = contract.collateral_metadata;
+                    if (!m) return {};
+                    if (typeof m === 'object') return m;
+                    try {
+                      return JSON.parse(m);
+                    } catch (e) {
+                      return {};
+                    }
+                  })();
+
+                  const purpose = meta.purpose || 'Modal Kerja Pengembangan Usaha';
+                  const akadObject = meta.akad_object || 'Aset Produktif / Modal Kerja';
+                  const collaterals = meta.collaterals || 'Tanpa Jaminan Fisik (Personal Guarantee)';
+                  
+                  // Custom paragraphs based on Akad type (RAG Knowledge & Fatwa DSN-MUI)
+                  let judulAkad = '';
+                  let pasal1 = null;
+                  let pasal2 = null;
+                  let pasal3 = null;
+                  let rujukanFatwa = '';
+
+                  switch (type) {
+                    case 'mudharabah':
+                      judulAkad = 'AKAD SYIRKAH MUDHARABAH (Bagi Hasil Usaha)';
+                      rujukanFatwa = 'Fatwa DSN-MUI No. 07/II/2000 tentang Pembiayaan Mudharabah';
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: PERMODALAN & NISBAH BAGI HASIL (MUDHARABAH)</strong>
+                          Pihak Pertama selaku Penyedia Dana (Shahibul Maal) menyerahkan modal sebesar <strong>{formatIDR.format(amountVal)}</strong> kepada Pihak Kedua selaku Pengelola (Mudharib) untuk menjalankan usaha <strong>{purpose}</strong>. 
+                          Pembagian keuntungan disepakati dalam bentuk nisbah rasio: <strong>40% untuk KSPPS (Pihak Pertama)</strong> dan <strong>60% untuk Anggota (Pihak Kedua)</strong> dari laba bersih riil bulanan.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: PENGELOLAAN USAHA & PENGEMBALIAN MODAL</strong>
+                          Pihak Kedua wajib mengelola modal secara amanah, profesional, dan melaporkan kinerja usaha secara transparan setiap akhir bulan. Pihak Kedua berjanji mengembalikan modal pokok sebesar <strong>{formatIDR.format(amountVal)}</strong> secara bertahap atau sekaligus pada akhir jangka waktu <strong>{tenor} bulan</strong>.
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: PENANGGUNGAN RISIKO KERUGIAN</strong>
+                          Sesuai ketentuan Fiqih Mudharabah, apabila terjadi kerugian usaha murni di luar kelalaian atau wanprestasi Pihak Kedua, maka kerugian finansial ditanggung sepenuhnya oleh Pihak Pertama. Namun, jika kerugian terjadi akibat penyimpangan, kelalaian, atau pelanggaran akad oleh Pihak Kedua, maka Pihak Kedua wajib bertanggung jawab penuh atas pengembalian modal pokok.
+                        </div>
+                      );
+                      break;
+
+                    case 'musyarakah':
+                      judulAkad = 'AKAD SYIRKAH MUSYARAKAH (Kemitraan Usaha)';
+                      rujukanFatwa = 'Fatwa DSN-MUI No. 08/II/2000 tentang Pembiayaan Musyarakah';
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: KONTRIBUSI MODAL & PORSI KEPEMILIKAN</strong>
+                          Kedua belah pihak bersepakat menggabungkan modal (syirkah) untuk membiayai kegiatan usaha <strong>{purpose}</strong>. Pihak Pertama menyetorkan modal kemitraan sebesar <strong>{formatIDR.format(amountVal)}</strong> (porsi 80%) dan Pihak Kedua berkontribusi modal/keahlian senilai 20%. Pembagian keuntungan disepakati sebesar <strong>35% untuk Pihak Pertama</strong> dan <strong>65% untuk Pihak Kedua</strong>.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: PELAKSANAAN PROYEK & PENGEMBALIAN</strong>
+                          Kemitraan ini disepakati untuk jangka waktu <strong>{tenor} bulan</strong>. Pengembalian porsi modal milik Pihak Pertama dilakukan oleh Pihak Kedua secara bertahap setiap bulan bersamaan dengan penyetoran bagi hasil keuntungan sesuai realisasi kinerja usaha.
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: PENANGGUNGAN KERUGIAN SYIRKAH</strong>
+                          Kerugian usaha yang timbul di luar kesengajaan atau kelalaian salah satu pihak akan ditanggung bersama secara proporsional sesuai porsi modal awal masing-masing pihak. Tidak diperkenankan adanya jaminan pengembalian keuntungan tetap di awal kontrak.
+                        </div>
+                      );
+                      break;
+
+                    case 'ijarah':
+                      judulAkad = 'AKAD IJARAH MULTIJASA (Penyewaan Jasa)';
+                      rujukanFatwa = 'Fatwa DSN-MUI No. 09/VI/2000 & No. 44/DSN-MUI/VIII/2004 tentang Pembiayaan Multijasa';
+                      const ujrahIjarah = amountVal * 0.08; // 8% fee ujrah sewa jasa
+                      const totalSewa = amountVal + ujrahIjarah;
+                      const angsuranIjarah = totalSewa / tenor;
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: OBJEK SEWA JASA & UJRAH (SEWA)</strong>
+                          Pihak Pertama menyewakan manfaat atas jasa/barang berupa <strong>{akadObject}</strong> untuk kebutuhan <strong>{purpose}</strong> kepada Pihak Kedua. Nilai ujrah (fee sewa) yang disepakati sebesar <strong>{formatIDR.format(ujrahIjarah)}</strong> di atas harga perolehan <strong>{formatIDR.format(amountVal)}</strong>.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: MASA SEWA & PENGEMBALIAN UJRAH</strong>
+                          Masa sewa atas manfaat disepakati selama <strong>{tenor} bulan</strong>. Pihak Kedua berkewajiban membayar angsuran biaya sewa bulanan (termasuk ujrah sewa jasa) sebesar <strong>{formatIDR.format(angsuranIjarah)}</strong> per month secara tepat waktu.
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: PEMELIHARAAN MANFAAT & SANKSI KETERLAMBATAN</strong>
+                          Pihak Kedua wajib memelihara dan menjaga kemanfaatan objek sewa agar tetap berfungsi baik. Apabila terjadi keterlambatan pembayaran sewa akibat kelalaian Pihak Kedua, dikenakan denda keterlambatan (ta'zir) yang akan dialokasikan seutuhnya untuk kegiatan sosial kemanusiaan (ZISWAF).
+                        </div>
+                      );
+                      break;
+
+                    case 'qardhul_hasan':
+                      judulAkad = 'AKAD QARDHUL HASAN (Pinjaman Kebajikan)';
+                      rujukanFatwa = 'Fatwa DSN-MUI No. 19/DSN-MUI/IV/2001 tentang Al-Qardh';
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: PINJAMAN KEBAJIKAN TANPA RIBA</strong>
+                          Pihak Pertama menyalurkan pinjaman kebajikan (qardh) sosial sebesar <strong>{formatIDR.format(amountVal)}</strong> kepada Pihak Kedua untuk kebutuhan darurat/sosial berupa <strong>{purpose}</strong>. Pihak Pertama dilarang membebankan margin keuntungan, bunga, atau bagi hasil dalam bentuk apa pun kepada Pihak Kedua.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: PELUNASAN KEMBALI POKOK PINJAMAN</strong>
+                          Pihak Kedua berkewajiban mengembalikan pokok pinjaman secara utuh sebesar <strong>{formatIDR.format(amountVal)}</strong> secara angsuran tanpa tambahan dengan tenor <strong>{tenor} bulan</strong> (angsuran bulanan: <strong>{formatIDR.format(amountVal / tenor)}</strong>).
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: KELONGGARAN BAGI DEBITUR YANG KESULITAN</strong>
+                          Jika Pihak Kedua mengalami kesulitan keuangan riil pada saat jatuh tempo, Pihak Pertama dianjurkan memberikan kelonggaran waktu pelunasan atau membebaskan sebagian pinjaman sesuai anjuran syariat. Pihak Pertama mutlak dilarang mengenakan denda komersial atau bunga keterlambatan.
+                        </div>
+                      );
+                      break;
+
+                    case 'istishna':
+                      judulAkad = "AKAD ISTISHNA' (Pemesanan Pembuatan Barang)";
+                      rujukanFatwa = "Fatwa DSN-MUI No. 06/II/2000 tentang Jual Beli Istishna'";
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: KESEPAKATAN PEMBUATAN OBJEK (ISTISHNA')</strong>
+                          Pihak Kedua memesan pembuatan objek fisik berupa <strong>{akadObject}</strong> kepada Pihak Pertama dengan total nilai pemesanan disepakati sebesar <strong>{formatIDR.format(amountVal)}</strong> untuk menunjang usaha <strong>{purpose}</strong>.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: TAHAPAN PEMBAYARAN & JANGKA WAKTU</strong>
+                          Pembayaran harga objek istishna' disepakati diangsur bertahap selama <strong>{tenor} bulan</strong>. Pihak Pertama bertindak sebagai pembuat barang yang akan menyerahkan objek fisik setelah selesai diproduksi sesuai spesifikasi.
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: PENYERAHAN BARANG & KESESUAIAN SPESIFIKASI</strong>
+                          Pihak Pertama menjamin objek yang diserahkan memenuhi kriteria dan spesifikasi yang disepakati. Jika terjadi keterlambatan penyerahan akibat kelalaian pembuat, Pihak Kedua berhak meminta ganti rugi atau pembatalan akad sesuai kesepakatan syariah.
+                        </div>
+                      );
+                      break;
+
+                    case 'murabahah':
+                    default:
+                      judulAkad = 'AKAD MURABAHAH (Jual-Beli Dengan Margin Keuntungan)';
+                      rujukanFatwa = 'Fatwa DSN-MUI No. 04/II/2000 tentang Murabahah';
+                      const marginMura = amountVal * 0.10; // 10% flat margin
+                      const totalJual = amountVal + marginMura;
+                      const angsuranMura = totalJual / tenor;
+                      pasal1 = (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: HARGA PEROLEHAN & MARGIN KEUNTUNGAN (MURABAHAH)</strong>
+                          Pihak Pertama menjual kepada Pihak Kedua satu unit barang berupa <strong>{akadObject}</strong> untuk tujuan <strong>{purpose}</strong> dengan harga perolehan pokok sebesar <strong>{formatIDR.format(amountVal)}</strong> ditambah marjin keuntungan disepakati sebesar <strong>{formatIDR.format(marginMura)}</strong>, sehingga total harga jual adalah <strong>{formatIDR.format(totalJual)}</strong>.
+                        </div>
+                      );
+                      pasal2 = (
+                        <div>
+                          <strong style={{ color: '#0f172a' }}>PASAL 2: CARA PEMBAYARAN & ANGSURAN BULANAN</strong>
+                          Pihak Kedua berjanji membayar harga jual tersebut secara angsuran bulanan tetap sebesar <strong>{formatIDR.format(angsuranMura)}</strong> selama jangka waktu <strong>{tenor} bulan</strong> tanpa ada tambahan biaya tersembunyi.
+                        </div>
+                      );
+                      pasal3 = (
+                        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
+                          <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: SANKSI KETERLAMBATAN (TA'ZIR DANA SOSIAL)</strong>
+                          Apabila Pihak Kedua terlambat membayar angsuran karena kelalaian murni, dikenakan denda keterlambatan (ta'zir) yang akan dimasukkan seutuhnya ke dalam rekening Dana Kebajikan/Sosial (ZISWAF) koperasi untuk kemaslahatan umat dan dilarang diakui sebagai laba operasional koperasi.
+                        </div>
+                      );
+                      break;
+                  }
+
+                  return (
+                    <div style={{ background: '#fff', borderRadius: '28px', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', padding: '24px', color: '#1e293b', border: '12px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', overflow: 'hidden', minHeight: '620px' }}>
+                      {/* Paper watermark effect */}
+                      <div style={{ position: 'absolute', top: '10px', right: '10px', border: '2px solid rgba(4,49,33,0.1)', color: 'rgba(4,49,33,0.1)', padding: '5px 10px', borderRadius: '5px', fontSize: '11px', fontWeight: 900, fontFamily: 'monospace' }}>
+                        KSPPS iQ-RA ORIGINAL DOC
+                      </div>
+
+                      {/* Header */}
+                      <div style={{ textAlign: 'center', borderBottom: '2px solid #475569', paddingBottom: '15px' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.5px' }}>KOPERASI SIMPAN PINJAM SYARIAH iQ-RA</h4>
+                        <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>{judulAkad}</span>
+                      </div>
+
+                      {/* Rujukan RAG/Fatwa */}
+                      <div style={{ fontSize: '10px', color: '#0f533a', background: 'rgba(4,79,51,0.06)', border: '1px solid rgba(4,79,51,0.15)', padding: '8px 12px', borderRadius: '8px', fontWeight: 700 }}>
+                        📖 Rujukan Syariah RAG: {aiAuditResult?.fatwaReferences || rujukanFatwa}
+                      </div>
+
+                      {/* Main Clauses */}
+                      <div style={{ fontSize: '11px', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
+                        <div>
+                          Yang bertanda tangan di bawah ini pada hari ini tanggal <strong>{new Date(contract.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>:
+                          <ol style={{ paddingLeft: '15px', marginTop: '4px' }}>
+                            <li><strong>KSPPS iQ-RA SYSTEM</strong> bertindak sebagai Pihak Pertama (Penyedia Dana / Penjual).</li>
+                            <li><strong>{contract.member_name || contract.users?.full_name}</strong> bertindak sebagai Pihak Kedua (Anggota Debitur / Pembeli / Pengelola).</li>
+                          </ol>
+                        </div>
+
+                        {pasal1}
+                        {pasal2}
+                        {pasal3}
+
+                        {/* Agunan / Jaminan */}
+                        <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '10px', marginTop: '6px' }}>
+                          <strong style={{ color: '#0f172a', fontSize: '10px', display: 'block', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 4: JAMINAN KONTRAK (COLLATERAL)</strong>
+                          Pihak Kedua menyerahkan agunan berupa <strong>{collaterals}</strong> sebagai komitmen dan jaminan atas kepatuhan pemenuhan kontrak syariah ini.
+                        </div>
+
+                        <div style={{ marginTop: '20px', alignSelf: 'flex-end', width: '160px', textAlign: 'center', border: '2px dashed rgba(4, 49, 33, 0.3)', padding: '10px', borderRadius: '10px', background: 'rgba(52,211,153,0.05)', color: '#043121' }}>
+                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>Verifikasi DPS Syariah</span>
+                          {auditedContractsMetadata[contract.id] ? (
+                            <div style={{ color: '#10b981', fontWeight: 900, fontSize: '12px', marginTop: '6px', border: '2px solid #10b981', padding: '4px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                              APPROVED DPS
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#f59e0b', display: 'block', marginTop: '6px' }}>MENUNGGU REVIEW</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Footer signatures */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderTop: '1px solid #cbd5e1', paddingTop: '15px' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <span>Pihak Pertama,</span>
+                          <div style={{ height: '40px' }} />
+                          <strong>KSPPS iQ-RA System</strong>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                          <span>Pihak Kedua,</span>
+                          <div style={{ height: '40px' }} />
+                          <strong>{contract.member_name || contract.users?.full_name}</strong>
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Header */}
-                    <div style={{ textAlign: 'center', borderBottom: '2px solid #475569', paddingBottom: '15px' }}>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.5px' }}>KOPERASI SIMPAN PINJAM SYARIAH iQ-RA</h4>
-                      <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>SURAT PERJANJIAN AKAD PEMBIAYAAN SYARIAH</span>
-                    </div>
-
-                    {/* Main Clauses */}
-                    <div style={{ fontSize: '11px', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px', flexGrow: 1 }}>
-                      <div>
-                        Yang bertanda tangan di bawah ini pada hari ini tanggal <strong>{new Date(activeAuditContract.created_at).toLocaleDateString('id-ID')}</strong>:
-                        <ol style={{ paddingLeft: '15px', marginTop: '4px' }}>
-                          <li><strong>KSPPS iQ-RA SYSTEM</strong> bertindak sebagai Pihak Pertama (Penjual / Pengelola Dana).</li>
-                          <li><strong>{activeAuditContract.member_name || activeAuditContract.users?.full_name}</strong> bertindak sebagai Pihak Kedua (Pembeli / Anggota Pemohon).</li>
-                        </ol>
-                      </div>
-
-                      <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b', padding: '10px 14px', borderRadius: '6px' }}>
-                        <strong style={{ color: '#b45309', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 1: OBJEK TRANSAKSI JUAL-BELI (AI HIGHLIGHTED)</strong>
-                        Pihak Pertama menjual kepada Pihak Kedua satu unit barang berupa modal usaha senilai <strong>{formatIDR.format(activeAuditContract.amount)}</strong> dengan marjin keuntungan tetap yang disepakati secara adil dan diangsur bulanan.
-                      </div>
-
-                      <div>
-                        <strong style={{ color: '#0f172a' }}>PASAL 2: CARA PEMBAYARAN & JANGKA WAKTU</strong>
-                        Pihak Kedua sepakat membayar angsuran bulanan tetap tanpa adanya pengenaan bunga berlipat ganda ataupun biaya administrasi siluman di luar kesepakatan.
-                      </div>
-
-                      <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderLeft: '4px solid #10b981', padding: '10px 14px', borderRadius: '6px' }}>
-                        <strong style={{ color: '#047857', display: 'block', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>PASAL 3: DENDA KETERLAMBATAN (TA'ZIR - VERIFIED)</strong>
-                        Jika terjadi keterlambatan bayar akibat kelalaian murni, denda keterlambatan akan dikumpulkan seutuhnya sebagai Dana Kebajikan (Sosial/ZISWAF) dan tidak diakui sebagai pendapatan inti Koperasi.
-                      </div>
-
-                      <div style={{ marginTop: '20px', alignSelf: 'flex-end', width: '160px', textAlign: 'center', border: '2px dashed rgba(4, 49, 33, 0.3)', padding: '10px', borderRadius: '10px', background: 'rgba(52,211,153,0.05)', color: '#043121' }}>
-                        <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>Verifikasi DPS Syariah</span>
-                        {auditedContractsMetadata[activeAuditContract.id] ? (
-                          <div style={{ color: '#10b981', fontWeight: 900, fontSize: '12px', marginTop: '6px', border: '2px solid #10b981', padding: '4px', borderRadius: '6px', textTransform: 'uppercase' }}>
-                            APPROVED DPS
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#f59e0b', display: 'block', marginTop: '6px' }}>MENUNGGU REVIEW</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Footer signatures */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderTop: '1px solid #cbd5e1', paddingTop: '15px' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <span>Pihak Pertama,</span>
-                        <div style={{ height: '40px' }} />
-                        <strong>KSPPS iQ-RA System</strong>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <span>Pihak Kedua,</span>
-                        <div style={{ height: '40px' }} />
-                        <strong>{activeAuditContract.member_name || activeAuditContract.users?.full_name}</strong>
-                      </div>
-                    </div>
-
-                  </div>
-                )}
+                  );
+                })()}
 
               </div>
 

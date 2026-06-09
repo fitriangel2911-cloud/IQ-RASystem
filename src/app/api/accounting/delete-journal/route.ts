@@ -115,14 +115,14 @@ export async function POST(request: Request) {
       
       await supabaseAdmin
         .from('deposit_verifications')
-        .update({ status: 'pending', verified_by: null, verified_at: null })
+        .delete()
         .eq('reference_no', referenceNo);
     }
 
-    // 3. Kembalikan status pengajuan penarikan tunai menjadi 'approved' jika ada
+    // 3. Hapus pengajuan penarikan tunai terkait jika ada
     await supabaseAdmin
       .from('withdrawal_requests')
-      .update({ status: 'approved' })
+      .delete()
       .eq('reference_no', referenceNo);
 
     // 4. Koreksi saldo tabungan anggota dan hapus transaksi terkait di savings_transactions
