@@ -57,7 +57,7 @@ export default function LoginPage() {
           else if (role === 'accounting') window.location.href = '/accounting';
           else if (role === 'manager') window.location.href = '/manager';
           else if (role === 'dps') window.location.href = '/dps';
-          else if (role === 'member') window.location.href = '/members';
+          else if (role === 'member' || role === 'anggota') window.location.href = '/members';
           else if (role === 'account_officer' || role === 'ao') window.location.href = '/ao';
           else window.location.href = '/dashboard';
         } else {

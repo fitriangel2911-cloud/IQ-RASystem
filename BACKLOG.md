@@ -121,6 +121,16 @@ Dokumen ini digunakan untuk melacak kemajuan pengembangan IQ-RA System (Platform
 
 ## Catatan Perubahan Terbaru
 
+- **2026-06-09 (UI Polishing & Vercel Sync)**:
+    - Memperbaiki isu "Tampilan Lama" untuk role `anggota` pada portal members. Memastikan pengalihan rute (redirect) dashboard untuk akun lama (role `anggota` dan `member`) mengarah ke UI portal anggota yang baru.
+    - Sinkronisasi build Vercel. Mengatasi diskrepansi antara *localhost* dan Vercel dengan sinkronisasi rute dan perbaikan role mapping.
+    - Dokumentasi `doc/` dan `BACKLOG.md` disesuaikan dengan progres.
+
+- **2026-06-08 (Penyempurnaan Modul UAT & Maker-Checker)**:
+    - **Teller Maker-Checker Workflow:** Penyempurnaan alur otorisasi penarikan. Penarikan di atas limit wajib disetujui Manager, namun eksekusi kas dan penjurnalan dipusatkan di Teller.
+    - **Data Parity CS ke AO:** Sinkronisasi FPP (Formulir Pengajuan Pembiayaan) dan dossier dokumen KYC/APU-PPT. Menjamin data pekerjaan, objek akad, dan agunan tersambung sempurna dari Customer Service ke modal CIF di dashboard AO.
+    - **Akuntansi STP:** Perbaikan *Straight-Through Processing* akuntansi di dashboard Manager dan Accounting.
+
 - **2026-06-04 (Audit Kemajuan)**:
     - **Audit menyeluruh** dilakukan terhadap seluruh modul, route, komponen, dan dokumentasi.
     - **Estimasi kemajuan MVP: ~87%** dari target Fase I–IV.

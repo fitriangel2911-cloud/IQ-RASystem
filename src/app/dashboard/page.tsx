@@ -413,7 +413,7 @@ export default function DashboardPage() {
       
       // 1. PRIORITAS REDIRECT: Hanya redirect member ke /members portal
       const role = finalProfile.role;
-      if (role === 'member') {
+      if (role === 'member' || role === 'anggota') {
         router.push('/members');
         return;
       }
@@ -1529,7 +1529,7 @@ export default function DashboardPage() {
                         </tr>
                       ) : (
                         (() => {
-                          const list = filteredUsers.filter(u => userSubTab === 'staff' ? u.role !== 'member' : u.role === 'member');
+                          const list = filteredUsers.filter(u => userSubTab === 'staff' ? (u.role !== 'member' && u.role !== 'anggota') : (u.role === 'member' || u.role === 'anggota'));
                           
                           if (list.length === 0) {
                             return (
@@ -1548,7 +1548,7 @@ export default function DashboardPage() {
                             let badgeColors = { bg: 'var(--border-primary)', border: 'var(--text-primary)', text: 'var(--text-primary)' };
                             if (u.role === 'super_admin') badgeColors = { bg: 'var(--gold-intense)', border: 'var(--gold-intense)', text: '#02130e' };
                             else if (u.role === 'manager') badgeColors = { bg: 'var(--bg-card)', border: 'var(--text-info)', text: 'var(--text-info)' };
-                            else if (u.role === 'member') badgeColors = { bg: 'var(--bg-card)', border: 'var(--text-success)', text: 'var(--text-success)' };
+                            else if (u.role === 'member' || u.role === 'anggota') badgeColors = { bg: 'var(--bg-card)', border: 'var(--text-success)', text: 'var(--text-success)' };
                             else badgeColors = { bg: 'var(--bg-card)', border: 'var(--text-warning)', text: 'var(--text-warning)' };
 
                             return (
