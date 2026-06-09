@@ -39,6 +39,105 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   
   // Fitur Cetak Voucher Spesifik
   const [printingVoucher, setPrintingVoucher] = useState<any>(null);
+  
+  // Riwayat EOD
+  const [closuresHistory, setClosuresHistory] = useState<any[]>([]);
+  const [selectedEodDate, setSelectedEodDate] = useState<string | null>(null);
+  const [tellerShifts, setTellerShifts] = useState<any[]>([]);
+  const [reconData, setReconData] = useState({ savingsDB: 0, financingDB: 0 });
+
+  // Custom Journal Templates
+  const [customTemplates, setCustomTemplates] = useState<{id: string, name: string, desc: string, debit: string, credit: string}[]>([]);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({ name: '', desc: '', debit: '110101', credit: '110101' });
+
+  // Fixed Assets State
+  const [fixedAssets, setFixedAssets] = useState<any[]>([]);
+  const [showAssetModal, setShowAssetModal] = useState(false);
+  const [newAsset, setNewAsset] = useState({ name: '', category: 'inventaris', purchase_date: new Date().toISOString().split('T')[0], purchase_price: 0, salvage_value: 0, useful_life_months: 48 });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('iqra_custom_journal_templates');
+    if (saved) {
+      try { setCustomTemplates(JSON.parse(saved)); } catch (e) {}
+    }
+    const savedAssets = localStorage.getItem('iqra_fixed_assets');
+    if (savedAssets) {
+      try { setFixedAssets(JSON.parse(savedAssets)); } catch(e) {}
+    }
+  }, []);
+
+  const handleAddAsset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newAsset.purchase_price <= 0 || newAsset.useful_life_months <= 0) {
+      setMessage({ type: 'error', text: 'Data harga atau umur ekonomis tidak valid' });
+      return;
+    }
+    const updated = [...fixedAssets, { ...newAsset, id: Date.now().toString(), accumulated_depreciation: 0 }];
+    setFixedAssets(updated);
+    localStorage.setItem('iqra_fixed_assets', JSON.stringify(updated));
+    setShowAssetModal(false);
+    setMessage({ type: 'success', text: 'Aset Tetap Berhasil Didaftarkan' });
+  };
+
+  const handleRunMassDepreciation = async () => {
+    setLoadingJournals(true);
+    let totalDepreciation = 0;
+    const updatedAssets = fixedAssets.map(asset => {
+      // Straight line depreciation: (Cost - Salvage) / Useful Life
+      const depreciableAmount = asset.purchase_price - asset.salvage_value;
+      const monthlyDepreciation = depreciableAmount / asset.useful_life_months;
+      
+      // Don't depreciate more than book value
+      const remainingValue = depreciableAmount - asset.accumulated_depreciation;
+      if (remainingValue > 0) {
+        const actualDepreciation = Math.min(monthlyDepreciation, remainingValue);
+        totalDepreciation += actualDepreciation;
+        return { ...asset, accumulated_depreciation: asset.accumulated_depreciation + actualDepreciation };
+      }
+      return asset;
+    });
+
+    if (totalDepreciation <= 0) {
+      setLoadingJournals(false);
+      setMessage({ type: 'success', text: 'Tidak ada aset yang perlu disusutkan bulan ini.' });
+      return;
+    }
+
+    // Update Local Storage
+    setFixedAssets(updatedAssets);
+    localStorage.setItem('iqra_fixed_assets', JSON.stringify(updatedAssets));
+
+    // Auto Post Journal
+    const supabase = createClient();
+    const refNo = 'DEP-' + Math.floor(100000 + Math.random() * 900000);
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Debit Beban Penyusutan (710003), Kredit Akumulasi Penyusutan (160002)
+    await supabase.from('journal_entries').insert([
+      { reference_no: refNo, date: today, account_code: '710003', debit: totalDepreciation, credit: 0, description: 'Beban Penyusutan Aset Massal Akhir Bulan' },
+      { reference_no: refNo, date: today, account_code: '160002', debit: 0, credit: totalDepreciation, description: 'Akumulasi Penyusutan Aset Tetap' }
+    ]);
+
+    await fetchJournals();
+    setLoadingJournals(false);
+    setMessage({ type: 'success', text: `Depresiasi Rp ${formatter.format(totalDepreciation)} Berhasil Dijurnal!` });
+  };
+
+  const handleAddTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = [...customTemplates, { ...newTemplate, id: Date.now().toString() }];
+    setCustomTemplates(updated);
+    localStorage.setItem('iqra_custom_journal_templates', JSON.stringify(updated));
+    setShowTemplateModal(false);
+    setNewTemplate({ name: '', desc: '', debit: '110101', credit: '110101' });
+  };
+
+  const removeTemplate = (id: string) => {
+    const updated = customTemplates.filter(t => t.id !== id);
+    setCustomTemplates(updated);
+    localStorage.setItem('iqra_custom_journal_templates', JSON.stringify(updated));
+  };
 
   useEffect(() => {
     if (journals.length > 0) {
@@ -70,6 +169,9 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     { code: '520001', name: 'Pendapatan Administrasi Pembiayaan', category: 'Pendapatan' },
     { code: '600001', name: 'Bagi Hasil Simpanan Mudharabah', category: 'Bagi Hasil' },
     { code: '710002', name: 'Beban CKPN Murabahah', category: 'Beban' },
+    { code: '710003', name: 'Beban Penyusutan Aset Tetap', category: 'Beban' },
+    { code: '160001', name: 'Aset Tetap (Inventaris & Kendaraan)', category: 'Aset' },
+    { code: '160002', name: 'Akumulasi Penyusutan Aset Tetap (-)', category: 'Kontra-Aset' },
     { code: '720001', name: 'Gaji/Honor', category: 'Beban' },
     { code: '730001', name: 'Beban Listrik dan Air', category: 'Beban' }
   ]);
@@ -104,21 +206,44 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       calculateStatsFromJournals(data, reportYear);
     }
     
-    // Cek status EOD hari ini
+    // Fetch closures history
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: closureData } = await supabase
+      const { data: allClosures } = await supabase
         .from('daily_closures')
-        .select('id')
-        .eq('closing_date', today)
-        .single();
+        .select('*')
+        .order('closing_date', { ascending: false });
         
-      if (closureData) {
-        setIsTodayClosed(true);
+      if (allClosures) {
+        setClosuresHistory(allClosures);
+        const today = new Date().toISOString().split('T')[0];
+        const todayClosed = allClosures.some(c => c.closing_date === today);
+        setIsTodayClosed(todayClosed);
       }
     } catch(e) {
       // Ignore if table missing or error
     }
+
+    // Fetch active teller shifts
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: shifts } = await supabase
+        .from('teller_shifts')
+        .select('*')
+        .gte('opened_at', today)
+        .order('opened_at', { ascending: false });
+      if (shifts) setTellerShifts(shifts);
+    } catch(e) {}
+    
+    // Fetch raw DB numbers for reconciliation
+    try {
+      const { data: savings } = await supabase.from('savings_accounts').select('balance');
+      const { data: financing } = await supabase.from('financing_applications').select('plafon_disetujui').eq('status', 'disbursed');
+      
+      const totalSavingsDB = savings?.reduce((sum, s) => sum + Number(s.balance || 0), 0) || 0;
+      const totalFinancingDB = financing?.reduce((sum, f) => sum + Number(f.plafon_disetujui || 0), 0) || 0;
+      
+      setReconData({ savingsDB: totalSavingsDB, financingDB: totalFinancingDB });
+    } catch(e) {}
 
     setLoadingJournals(false);
   };
@@ -503,6 +628,67 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             <StatCard label="Penyaluran Dana" value={formatter.format(stats.totalFinancing)} icon="🤝" subtitle="Piutang Pembiayaan Aktif" />
           </div>
 
+          {/* Rekonsiliasi Silang Modul (Cross-Module Reconciliation) */}
+          <div style={{ background: 'var(--bg-card)', border: '2px solid #3b82f6', borderRadius: '20px', padding: '32px', boxShadow: '0 15px 35px rgba(59, 130, 246, 0.15)', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '24px' }}>
+              <span style={{ fontSize: '28px' }}>⚖️</span>
+              <div>
+                <h3 style={{ margin: 0, color: '#3b82f6', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Audit Rekonsiliasi Data Inti (STP Validation)</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>Mendeteksi kebocoran transaksi dengan membandingkan tabel fisik operasional (CS/AO) vs saldo mutlak Buku Besar (Accounting).</p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {/* Recon 1: Dana Syirkah */}
+              <div style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '20px', borderRadius: '16px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>Dana Syirkah Temporer (Simpanan Anggota)</div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Fisik Modul CS (Rekening):</span>
+                  <span style={{ fontWeight: 800 }}>{formatter.format(reconData.savingsDB)}</span>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Saldo Buku Besar (COA 3):</span>
+                  <span style={{ fontWeight: 800 }}>{formatter.format(getBal('3', true) + getBal('2', true))}</span>
+                </div>
+                
+                <div style={{ height: '1px', background: 'rgba(59, 130, 246, 0.2)', margin: '10px 0' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900 }}>
+                  <span>Selisih (Variance):</span>
+                  <span style={{ color: (reconData.savingsDB - (getBal('3', true) + getBal('2', true))) === 0 ? '#4ade80' : '#ef4444' }}>
+                    {formatter.format(Math.abs(reconData.savingsDB - (getBal('3', true) + getBal('2', true))))}
+                  </span>
+                </div>
+              </div>
+
+              {/* Recon 2: Piutang Pembiayaan */}
+              <div style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '20px', borderRadius: '16px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>Piutang & Pembiayaan Syariah</div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Fisik Modul AO (Plafon Aktif):</span>
+                  <span style={{ fontWeight: 800 }}>{formatter.format(reconData.financingDB)}</span>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Saldo Buku Besar (COA 14,15):</span>
+                  <span style={{ fontWeight: 800 }}>{formatter.format(stats.totalFinancing)}</span>
+                </div>
+                
+                <div style={{ height: '1px', background: 'rgba(59, 130, 246, 0.2)', margin: '10px 0' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900 }}>
+                  <span>Selisih (Variance):</span>
+                  <span style={{ color: (reconData.financingDB - stats.totalFinancing) === 0 ? '#4ade80' : '#ef4444' }}>
+                    {formatter.format(Math.abs(reconData.financingDB - stats.totalFinancing))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Main Section Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '30px' }}>
             
@@ -599,6 +785,83 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             
             <form onSubmit={handlePostJournal} style={{ padding: '36px' }}>
               
+              {/* Smart Templates */}
+              <div style={{ marginBottom: '30px', padding: '20px', background: 'rgba(204, 163, 52, 0.05)', borderRadius: '16px', border: '1px dashed var(--border-primary)', position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ color: 'var(--gold-intense)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase' }}>💡 Template Jurnal Cepat Otomatis (Otomatisasi Posisi COA)</div>
+                  <button type="button" onClick={() => setShowTemplateModal(!showTemplateModal)} style={{ background: 'var(--gold-intense)', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}>
+                    {showTemplateModal ? 'Batal Tambah' : '+ Buat Template Sendiri'}
+                  </button>
+                </div>
+                
+                {showTemplateModal && (
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-primary)', marginBottom: '16px', animation: 'fadeInUp 0.3s ease' }}>
+                    <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-primary)' }}>Buat Template Jurnal Baru</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800 }}>NAMA TOMBOL TEMPLATE</label>
+                        <input type="text" value={newTemplate.name} onChange={e => setNewTemplate({...newTemplate, name: e.target.value})} placeholder="Cth: Bayar Internet" style={{...inputStyle, padding: '10px'}} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800 }}>DESKRIPSI JURNAL (AUTO-FILL)</label>
+                        <input type="text" value={newTemplate.desc} onChange={e => setNewTemplate({...newTemplate, desc: e.target.value})} placeholder="Cth: Pembayaran Tagihan Internet" style={{...inputStyle, padding: '10px'}} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800 }}>AKUN DEBIT (DEFAULT)</label>
+                        <select value={newTemplate.debit} onChange={e => setNewTemplate({...newTemplate, debit: e.target.value})} style={{...inputStyle, padding: '10px'}}>
+                          {coaList.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800 }}>AKUN KREDIT (DEFAULT)</label>
+                        <select value={newTemplate.credit} onChange={e => setNewTemplate({...newTemplate, credit: e.target.value})} style={{...inputStyle, padding: '10px'}}>
+                          {coaList.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <button type="button" onClick={handleAddTemplate} disabled={!newTemplate.name || !newTemplate.desc} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', opacity: (!newTemplate.name || !newTemplate.desc) ? 0.5 : 1 }}>
+                      Simpan Template
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {/* Default Templates */}
+                  <button type="button" onClick={() => {
+                    setJDesc('Pembayaran Biaya Operasional - Listrik & Air');
+                    setJLines([{ accountCode: '730001', type: 'debit', amount: 0 }, { accountCode: '110101', type: 'credit', amount: 0 }]);
+                  }} style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', color: 'var(--text-primary)', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>⚡ Bayar Listrik/Air</button>
+                  <button type="button" onClick={() => {
+                    setJDesc('Pembayaran Gaji / Honor Karyawan');
+                    setJLines([{ accountCode: '720001', type: 'debit', amount: 0 }, { accountCode: '110101', type: 'credit', amount: 0 }]);
+                  }} style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', color: 'var(--text-primary)', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>👥 Bayar Gaji</button>
+                  <button type="button" onClick={() => {
+                    setJDesc('Mutasi Penyetoran Kas Teller ke Brankas Utama');
+                    setJLines([{ accountCode: '110101', type: 'debit', amount: 0 }, { accountCode: '110102', type: 'credit', amount: 0 }]);
+                  }} style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border-primary)', color: 'var(--text-primary)', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>🏦 Mutasi Teller -&gt; Brankas</button>
+                  
+                  {/* Custom Templates */}
+                  {customTemplates.map(tpl => (
+                    <div key={tpl.id} style={{ position: 'relative', display: 'flex' }}>
+                      <button type="button" onClick={() => {
+                        setJDesc(tpl.desc);
+                        setJLines([{ accountCode: tpl.debit, type: 'debit', amount: 0 }, { accountCode: tpl.credit, type: 'credit', amount: 0 }]);
+                      }} style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1.5px solid rgba(59, 130, 246, 0.5)', color: '#3b82f6', padding: '10px 16px', borderRadius: '10px 0 0 10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        ⭐ {tpl.name}
+                      </button>
+                      <button type="button" onClick={() => removeTemplate(tpl.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1.5px solid rgba(239, 68, 68, 0.5)', borderLeft: 'none', color: '#ef4444', padding: '10px', borderRadius: '0 10px 10px 0', cursor: 'pointer' }} title="Hapus Template">
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+
+                  <button type="button" onClick={() => {
+                    setJDesc('');
+                    setJLines([{ accountCode: '110102', type: 'debit', amount: 0 }, { accountCode: '230001', type: 'credit', amount: 0 }]);
+                  }} style={{ background: 'transparent', border: '1.5px dashed rgba(239, 68, 68, 0.5)', color: '#ef4444', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>🔄 Kosongkan Form</button>
+                </div>
+              </div>
+
               {/* Global Fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '20px', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1135,24 +1398,24 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                         const debitPayload = {
                           date: new Date().toISOString().split('T')[0],
                           reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
-                          description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Otomatis`,
+                          description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Umum`,
                           debit: ckpnAmount,
                           credit: 0,
-                          account_code: '600005' // Beban CKPN (Asumsi)
+                          account_code: '710002' // Beban CKPN
                         };
 
                         const creditPayload = {
                           ...debitPayload,
                           debit: 0,
                           credit: ckpnAmount,
-                          account_code: '400006' // Cadangan Khusus (Kredit/Ekuitas Cadangan)
+                          account_code: '190002' // CKPN Piutang (-)
                         };
 
                         await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
                         await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
                         
                         await fetchJournals();
-                        setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN sebesar ${formatter.format(ckpnAmount)}.` });
+                        setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN Umum sebesar ${formatter.format(ckpnAmount)}.` });
                       } catch (err: any) {
                         setMessage({ type: 'error', text: err.message });
                       } finally {
@@ -1170,7 +1433,51 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   boxShadow: '0 10px 20px rgba(59, 130, 246, 0.3)', width: '100%'
                 }}
               >
-                {loading ? 'MEMPROSES JURNAL CKPN...' : '🛡️ POSTING JURNAL CKPN SEKARANG'}
+                {loading ? 'MEMPROSES JURNAL CKPN...' : '🛡️ POSTING JURNAL CKPN UMUM SEKARANG'}
+              </button>
+            </div>
+
+            <div style={{ marginTop: '20px', background: 'rgba(239, 68, 68, 0.05)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <h4 style={{ color: '#ef4444', margin: '0 0 10px 0', fontSize: '16px', fontWeight: 800 }}>Penyisihan CKPN Khusus (Pemindaian NPL &gt; 90 Hari)</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                Modul ini memindai seluruh akad pembiayaan aktif. Jika ditemukan fasilitas yang telah menunggak atau berusia lebih dari 90 hari tanpa penyelesaian (NPL), sistem akan otomatis membentuk <strong>CKPN Khusus</strong> dan menjurnalkannya ke akun <strong>Beban CKPN (710002)</strong> dan <strong>CKPN Piutang (190002)</strong>.
+              </p>
+              <button 
+                onClick={async () => {
+                  setConfirmModal({
+                    isOpen: true,
+                    title: 'Pemindaian CKPN Khusus',
+                    message: 'Jalankan pemindaian otomatis untuk membentuk pencadangan CKPN Khusus? Operasi ini akan menjurnal transaksi penyesuaian untuk setiap NPL yang ditemukan.',
+                    onConfirm: async () => {
+                      setConfirmModal(null);
+                      try {
+                        setLoading(true);
+                        const res = await fetch('/api/accounting/provisioning', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                          setMessage({ type: 'success', text: data.message });
+                          fetchJournals();
+                        } else {
+                          setMessage({ type: 'error', text: 'Error: ' + data.error });
+                        }
+                      } catch (err: any) {
+                        setMessage({ type: 'error', text: 'Gagal menjalankan provisioning: ' + err.message });
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  });
+                }}
+                disabled={loading}
+                style={{
+                  background: loading ? 'gray' : 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                  color: 'white', border: 'none', padding: '16px 32px', borderRadius: '12px',
+                  fontSize: '15px', fontWeight: 900, cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 10px 20px rgba(239, 68, 68, 0.3)', width: '100%',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'
+                }}
+              >
+                {loading ? '⏳ MEMINDAI DATABASE...' : '🔍 JALANKAN PEMINDAIAN NPL & BENTUK CKPN KHUSUS'}
               </button>
             </div>
 
@@ -1178,7 +1485,129 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
         </div>
       )}
       {/* ======================================= */}
-      {/* 💰 TAB 5: DISTRIBUSI BAGI HASIL (EOM)     */}
+      {/* 🏢 TAB 5: ASET TETAP & DEPRESIASI       */}
+      {/* ======================================= */}
+      {activeMenu === 'assets' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          
+          <div className="glass-dark" style={{ padding: '40px', border: '1px solid var(--border-primary)', background: 'var(--bg-card)', backdropFilter: 'blur(16px)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+              <div>
+                <h3 style={{ color: 'var(--text-primary)', margin: '0 0 10px 0', fontWeight: 900 }}>🏢 MANAJEMEN ASET TETAP & PENYUSUTAN</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>
+                  Kalkulasi **Depresiasi Garis Lurus (Straight-Line)** otomatis sesuai SAK EP. Jalankan setiap akhir bulan.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <button 
+                  onClick={() => setShowAssetModal(true)}
+                  style={{ background: 'transparent', border: '2px solid var(--gold-intense)', color: 'var(--gold-intense)', padding: '12px 24px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}
+                >
+                  ➕ Tambah Aset
+                </button>
+                <button 
+                  onClick={handleRunMassDepreciation}
+                  disabled={loadingJournals}
+                  style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 900, cursor: loadingJournals ? 'not-allowed' : 'pointer', fontSize: '14px' }}
+                >
+                  {loadingJournals ? '⏳ Memproses...' : '📉 Jalankan Depresiasi Massal'}
+                </button>
+              </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(0,0,0,0.03)', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', background: 'var(--bg-header)', borderBottom: '2px solid var(--border-primary)' }}>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>NAMA ASET & KATEGORI</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>HARGA PEROLEHAN</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>UMUR (BLN)</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>BEBAN PER BULAN</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>AKUMULASI PENYUSUTAN</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>NILAI BUKU (SISA)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fixedAssets.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada aset tetap terdaftar. Tambahkan aset untuk memantau depresiasi.</td></tr>
+                ) : (
+                  fixedAssets.map(asset => {
+                    const depreciable = asset.purchase_price - asset.salvage_value;
+                    const monthly = depreciable / asset.useful_life_months;
+                    const sisaBuku = asset.purchase_price - asset.accumulated_depreciation;
+                    return (
+                      <tr key={asset.id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                        <td style={{ padding: '20px' }}>
+                          <div style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{asset.name}</div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', textTransform: 'uppercase' }}>{asset.category} | Beli: {asset.purchase_date}</div>
+                        </td>
+                        <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>{formatter.format(asset.purchase_price)}</td>
+                        <td style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>{asset.useful_life_months}</td>
+                        <td style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>{formatter.format(monthly)}</td>
+                        <td style={{ padding: '20px', color: '#ef4444', fontWeight: 800 }}>{formatter.format(asset.accumulated_depreciation)}</td>
+                        <td style={{ padding: '20px', color: '#4ade80', fontWeight: 900, textAlign: 'right', fontSize: '16px' }}>{formatter.format(sisaBuku)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      )}
+
+      {/* Asset Registration Modal */}
+      {showAssetModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--bg-page)', padding: '40px', borderRadius: '24px', width: '500px', border: '2px solid var(--border-primary)', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+            <h3 style={{ margin: '0 0 24px 0', color: 'var(--text-primary)', fontSize: '20px', fontWeight: 900 }}>Tambah Aset Tetap Baru</h3>
+            <form onSubmit={handleAddAsset}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nama Aset</label>
+                  <input type="text" required value={newAsset.name} onChange={e => setNewAsset({...newAsset, name: e.target.value})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }} placeholder="Cth: Komputer Server IBM" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Kategori</label>
+                    <select value={newAsset.category} onChange={e => setNewAsset({...newAsset, category: e.target.value})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }}>
+                      <option value="inventaris">Inventaris Kantor</option>
+                      <option value="kendaraan">Kendaraan</option>
+                      <option value="gedung">Gedung / Bangunan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Tanggal Pembelian</label>
+                    <input type="date" required value={newAsset.purchase_date} onChange={e => setNewAsset({...newAsset, purchase_date: e.target.value})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }} />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Harga Perolehan (Rp)</label>
+                  <input type="number" required value={newAsset.purchase_price || ''} onChange={e => setNewAsset({...newAsset, purchase_price: Number(e.target.value)})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }} placeholder="20000000" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Nilai Sisa / Residu (Rp)</label>
+                    <input type="number" required value={newAsset.salvage_value || ''} onChange={e => setNewAsset({...newAsset, salvage_value: Number(e.target.value)})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }} placeholder="0" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 700 }}>Umur Ekonomis (Bulan)</label>
+                    <input type="number" required value={newAsset.useful_life_months || ''} onChange={e => setNewAsset({...newAsset, useful_life_months: Number(e.target.value)})} style={{ width: '100%', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: '15px' }} placeholder="48" />
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
+                <button type="button" onClick={() => setShowAssetModal(false)} style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--text-secondary)', borderRadius: '12px', fontWeight: 800 }}>Batal</button>
+                <button type="submit" style={{ flex: 2, padding: '14px', background: 'var(--gold-intense)', border: 'none', color: '#02130e', borderRadius: '12px', fontWeight: 900 }}>Simpan Aset Baru</button>
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '16px' }}>Peringatan: Pastikan Anda telah membuat Jurnal Pembelian Aset Tetap secara terpisah di tab Manajemen Jurnal.</div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================= */}
+      {/* 💰 TAB 6: DISTRIBUSI BAGI HASIL (EOM)     */}
       {/* ======================================= */}
       {activeMenu === 'eom' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
@@ -1388,11 +1817,61 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               </div>
 
               <div style={{ padding: '24px', background: 'rgba(243, 198, 83, 0.05)', border: '2px solid var(--border-primary)', borderRadius: '16px' }}>
-                <div style={{ fontSize: '13px', color: 'var(--gold-intense)', fontWeight: 800, marginBottom: '8px' }}>Ekspektasi Saldo Akhir Laci Teller</div>
+                <div style={{ fontSize: '13px', color: 'var(--gold-intense)', fontWeight: 800, marginBottom: '8px' }}>Ekspektasi Saldo Laci Teller (Buku Besar)</div>
                 <div style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 900 }}>
                   {formatter.format(getBal('110102'))}
                 </div>
               </div>
+            </div>
+
+            {/* Monitor Shift Teller */}
+            <div style={{ background: 'var(--bg-page)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border-primary)', marginBottom: '30px' }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span>👥</span> MONITOR SHIFT KASIR (TELLER RECONCILIATION)
+              </h4>
+              
+              {tellerShifts.length === 0 ? (
+                <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', color: 'var(--text-secondary)', textAlign: 'center', fontSize: '14px' }}>
+                  Belum ada teller yang membuka shift hari ini.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--border-primary)', textAlign: 'left', color: 'var(--text-secondary)' }}>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>NAMA TELLER</th>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>BUKA SHIFT</th>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>MODAL AWAL</th>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>HITUNG FISIK (TUTUP)</th>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>SELISIH</th>
+                      <th style={{ padding: '12px', fontWeight: 800 }}>STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tellerShifts.map((shift, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                        <td style={{ padding: '16px 12px', color: 'var(--text-primary)', fontWeight: 700 }}>{shift.teller_name}</td>
+                        <td style={{ padding: '16px 12px', color: 'var(--text-primary)' }}>{new Date(shift.opened_at).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})}</td>
+                        <td style={{ padding: '16px 12px', color: 'var(--text-primary)' }}>{formatter.format(shift.cash_in)}</td>
+                        <td style={{ padding: '16px 12px', color: shift.cash_physical_end ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                          {shift.cash_physical_end ? formatter.format(shift.cash_physical_end) : 'Belum Dihitung'}
+                        </td>
+                        <td style={{ padding: '16px 12px', fontWeight: 800, color: shift.difference === 0 ? '#4ade80' : shift.difference ? '#ef4444' : 'var(--text-secondary)' }}>
+                          {shift.difference !== null ? formatter.format(shift.difference) : '-'}
+                        </td>
+                        <td style={{ padding: '16px 12px' }}>
+                          <span style={{ 
+                            padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 800,
+                            background: shift.status === 'tutup' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            color: shift.status === 'tutup' ? '#4ade80' : '#ef4444'
+                          }}>
+                            {shift.status === 'tutup' ? '✅ SHIFT DITUTUP' : '⚠️ MASIH AKTIF'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             <div style={{ background: 'var(--bg-page)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
@@ -1471,80 +1950,63 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               )}
             </div>
 
+            {/* Riwayat Tutup Buku (EOD History) */}
+            <div style={{ marginTop: '40px' }}>
+              <h4 style={{ color: 'var(--text-primary)', margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span>📅</span> ARSIP RIWAYAT TUTUP BUKU
+              </h4>
+              
+              {closuresHistory.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed var(--border-primary)' }}>
+                  Belum ada riwayat tutup buku.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--border-primary)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-card)' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-header)', borderBottom: '2px solid var(--border-primary)', textAlign: 'left' }}>
+                        <th style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '13px' }}>TANGGAL TUTUP</th>
+                        <th style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '13px' }}>TOTAL KAS MASUK</th>
+                        <th style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '13px' }}>TOTAL KAS KELUAR</th>
+                        <th style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '13px' }}>SALDO LACI FINAL</th>
+                        <th style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 800, fontSize: '13px' }}>STATUS EOD</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {closuresHistory.map((closure, idx) => (
+                        <tr key={closure.id || idx} style={{ borderBottom: '1px solid var(--border-primary)', transition: 'background 0.2s', cursor: 'default' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                          <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                            {new Date(closure.closing_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          </td>
+                          <td style={{ padding: '16px 20px', color: 'var(--text-success)', fontWeight: 700 }}>{formatter.format(closure.total_in)}</td>
+                          <td style={{ padding: '16px 20px', color: '#ef4444', fontWeight: 700 }}>{formatter.format(closure.total_out)}</td>
+                          <td style={{ padding: '16px 20px', color: 'var(--text-primary)', fontWeight: 900 }}>{formatter.format(closure.expected_balance)}</td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                              <span style={{ background: 'rgba(52, 211, 153, 0.1)', color: 'var(--text-success)', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.5px' }}>
+                                TERKUNCI
+                              </span>
+                              <button 
+                                onClick={() => setSelectedEodDate(closure.closing_date)}
+                                style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#3b82f6', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                🔍 RINCIAN
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       )}
 
-      {/* ======================================= */}
-      {/* 🛡️ TAB 4: PROVISIONING CKPN (NPL)     */}
-      {/* ======================================= */}
-      {activeMenu === 'provisioning' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-          <div style={{ 
-            background: 'var(--bg-card)', 
-            backdropFilter: 'blur(20px)', 
-            borderRadius: '32px', 
-            overflow: 'hidden', 
-            border: '1.5px solid var(--border-primary)',
-            boxShadow: '0 40px 80px var(--shadow-color)'
-          }}>
-            <div style={{ background: 'var(--bg-header)', padding: '24px 36px', borderBottom: '1.5px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '1px' }}>🛡️ PENYISIHAN CKPN OTOMATIS (NPL &gt; 90 HARI)</h2>
-              <span style={{ background: 'var(--border-primary)', color: 'var(--text-primary)', fontWeight: 900, fontSize: '12px', padding: '6px 14px', borderRadius: '20px' }}>SAK EP COMPLIANT</span>
-            </div>
-            
-            <div style={{ padding: '36px' }}>
-              <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '20px', borderRadius: '16px', marginBottom: '30px' }}>
-                <h4 style={{ color: '#ef4444', margin: '0 0 10px 0', fontSize: '16px', fontWeight: 800 }}>Informasi Modul Pencadangan</h4>
-                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
-                  Modul ini memindai seluruh akad pembiayaan aktif. Jika ditemukan fasilitas yang telah menunggak atau berusia lebih dari 90 hari tanpa penyelesaian (NPL), sistem akan otomatis membentuk <strong>Cadangan Kerugian Penurunan Nilai (CKPN)</strong> melalui mekanisme Jurnal Penyesuaian ke akun <strong>Beban CKPN (710002)</strong> dan <strong>CKPN Piutang (- Aset) (190002)</strong>.
-                </p>
-              </div>
 
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button 
-                  onClick={async () => {
-                    setConfirmModal({
-                      isOpen: true,
-                      title: 'Pemindaian CKPN Otomatis',
-                      message: 'Jalankan pemindaian otomatis untuk membentuk pencadangan CKPN? Operasi ini akan menjurnal transaksi penyesuaian untuk setiap NPL yang ditemukan.',
-                      onConfirm: async () => {
-                        setConfirmModal(null);
-                        try {
-                          setLoading(true);
-                          const res = await fetch('/api/accounting/provisioning', { method: 'POST' });
-                          const data = await res.json();
-                          if (data.success) {
-                            setMessage({ type: 'success', text: data.message });
-                            fetchJournals();
-                          } else {
-                            setMessage({ type: 'error', text: 'Error: ' + data.error });
-                          }
-                        } catch (err: any) {
-                          setMessage({ type: 'error', text: 'Gagal menjalankan provisioning: ' + err.message });
-                        } finally {
-                          setLoading(false);
-                        }
-                      }
-                    });
-                  }}
-                  disabled={loading}
-                  style={{
-                    padding: '18px 40px', background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
-                    color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, fontSize: '16px',
-                    cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
-                    transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '10px'
-                  }}
-                  onMouseOver={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseOut={e => { if(!loading) e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  {loading ? '⏳ MEMINDAI DATABASE...' : '🔍 JALANKAN PEMINDAIAN NPL & BENTUK CKPN'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {confirmModal && (
         <Modal
@@ -1555,6 +2017,63 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
           onConfirm={confirmModal.onConfirm}
           onCancel={() => setConfirmModal(null)}
         />
+      )}
+
+      {/* Modal Rincian EOD */}
+      {selectedEodDate && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '24px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+            
+            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-header)', position: 'sticky', top: 0 }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '18px', fontWeight: 900 }}>RINCIAN MUTASI KAS HARIAN</h3>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>Tanggal: {new Date(selectedEodDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+              </div>
+              <button onClick={() => setSelectedEodDate(null)} style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', width: '36px', height: '36px', borderRadius: '50%', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>✕</button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '2px solid var(--border-primary)' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)' }}>WAKTU</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)' }}>NO REFERENSI</th>
+                    <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)' }}>KETERANGAN</th>
+                    <th style={{ padding: '12px', textAlign: 'right', color: 'var(--text-success)' }}>KAS MASUK (DEBIT)</th>
+                    <th style={{ padding: '12px', textAlign: 'right', color: '#ef4444' }}>KAS KELUAR (KREDIT)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {journals
+                    .filter(j => (j.date === selectedEodDate || (j.created_at && j.created_at.startsWith(selectedEodDate))) && (j.account_code === '110101' || j.account_code === '110102'))
+                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                    .map((j, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                        <td style={{ padding: '12px', color: 'var(--text-primary)' }}>{new Date(j.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td style={{ padding: '12px', color: 'var(--text-primary)', fontFamily: 'monospace' }}>{j.reference_no}</td>
+                        <td style={{ padding: '12px', color: 'var(--text-primary)' }}>{j.description}</td>
+                        <td style={{ padding: '12px', textAlign: 'right', color: 'var(--text-success)', fontWeight: j.debit > 0 ? 700 : 400 }}>{j.debit > 0 ? formatter.format(j.debit) : '-'}</td>
+                        <td style={{ padding: '12px', textAlign: 'right', color: '#ef4444', fontWeight: j.credit > 0 ? 700 : 400 }}>{j.credit > 0 ? formatter.format(j.credit) : '-'}</td>
+                      </tr>
+                    ))
+                  }
+                  {journals.filter(j => (j.date === selectedEodDate || (j.created_at && j.created_at.startsWith(selectedEodDate))) && (j.account_code === '110101' || j.account_code === '110102')).length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Tidak ada mutasi kas pada tanggal ini.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            <div style={{ padding: '24px', borderTop: '1px solid var(--border-primary)', background: 'var(--bg-header)', display: 'flex', justifyContent: 'flex-end', position: 'sticky', bottom: 0 }}>
+              <button onClick={() => window.print()} className="hide-on-print" style={{ background: 'var(--text-primary)', color: 'var(--bg-page)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 800, cursor: 'pointer' }}>
+                🖨️ Cetak Rincian
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
 
       <style jsx global>{`

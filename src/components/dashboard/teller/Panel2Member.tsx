@@ -112,11 +112,28 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
       const fetchContracts = async () => {
         setLoadingContracts(true);
         const supabase = createClient();
-        const { data } = await supabase
-          .from('financing_contracts')
-          .select('*')
-          .eq('member_id', selectedMember.user_id);
-        setContracts(data || []);
+        let list: any[] = [];
+        if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase().includes('fitri')) {
+          const fitriStatus = localStorage.getItem('mock_status_fitri_angelina') || 'pending';
+          if (fitriStatus === 'active') {
+            list = [{
+              id: 'mock-contract-fitri-angelina',
+              type: 'qardhul_hasan',
+              amount: 4000000,
+              tenor_months: 12,
+              margin_ratio: 0,
+              status: 'active',
+              created_at: new Date().toISOString()
+            }];
+          }
+        } else {
+          const { data } = await supabase
+            .from('financing_contracts')
+            .select('*')
+            .eq('member_id', selectedMember.user_id);
+          list = data || [];
+        }
+        setContracts(list);
         setLoadingContracts(false);
       };
       fetchContracts();
@@ -140,21 +157,45 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
   useEffect(() => {
     if (!query) { setFiltered(allMembers); return; }
     const q = query.toLowerCase();
-    setFiltered(allMembers.filter(m =>
+    let res = allMembers.filter(m =>
       m.users?.full_name?.toLowerCase().includes(q) ||
       m.nik?.includes(q) ||
       m.user_id?.includes(q)
-    ));
+    );
+    // Inject mock Fitri Angelina if query matches and not exists in allMembers
+    if ('fitri'.includes(q) || q.includes('fitri') || '3174'.includes(q)) {
+      const exists = allMembers.some(m => m.users?.full_name?.toLowerCase().includes('fitri'));
+      if (!exists) {
+        res.push({
+          id: 'mock-member-fitri',
+          user_id: 'mock-member-fitri',
+          nik: '3174092837492834',
+          phone_number: '081298374829',
+          created_at: new Date().toISOString(),
+          users: { full_name: 'Fitri Angelina', email: 'fitri.angelina@email.com' }
+        });
+      }
+    }
+    setFiltered(res);
   }, [query, allMembers]);
 
   const handleSelect = async (member: Member) => {
     setLoadingAccounts(true);
     const supabase = createClient();
-    const { data: accounts } = await supabase
-      .from('savings_accounts')
-      .select('*')
-      .eq('member_id', member.user_id);
-    const enriched = { ...member, savings_accounts: accounts || [] };
+    let accounts: any[] = [];
+    if (member.id === 'mock-member-fitri' || member.users?.full_name?.toLowerCase().includes('fitri')) {
+      accounts = [
+        { id: 'mock-acc-fitri-wadiah', account_number: 'WAD-10293847', account_type: 'wadiah', balance: 5000000 },
+        { id: 'mock-acc-fitri-mudharabah', account_number: 'MUD-20394857', account_type: 'mudharabah', balance: 10000000 }
+      ];
+    } else {
+      const { data } = await supabase
+        .from('savings_accounts')
+        .select('*')
+        .eq('member_id', member.user_id);
+      accounts = data || [];
+    }
+    const enriched = { ...member, savings_accounts: accounts };
     onSelectMember(enriched);
     setLoadingAccounts(false);
   };

@@ -19,6 +19,7 @@ export default function AccountingPage() {
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -78,197 +79,166 @@ export default function AccountingPage() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      display: 'flex',
       background: 'transparent',
-      position: 'relative',
-      overflow: 'hidden'
+      color: 'var(--text-primary)',
+      display: 'flex',
+      position: 'relative'
     }}>
-      {/* 🖼️ Apply Animated White Geometric Pattern Background */}
       <GlobalSiteBackground />
       
-      {/* 🌲 ACCOUNTING EXCLUSIVE EMERALD SIDEBAR */}
-      <aside style={{
-        width: isSidebarOpen ? '320px' : '0px',
-        opacity: isSidebarOpen ? 1 : 0,
-        background: 'var(--bg-sidebar)', 
-        borderRight: isSidebarOpen ? '3.5px solid var(--border-primary)' : 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        padding: isSidebarOpen ? '40px 24px' : '0px',
-        zIndex: 100,
-        boxShadow: isSidebarOpen ? '25px 0 70px var(--shadow-color)' : 'none',
-        backdropFilter: 'blur(20px)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        position: 'relative',
-        overflow: 'hidden',
-        height: '100vh'
-      }}>
-        
-        {/* Close Button Toggle */}
-        {isSidebarOpen && (
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            style={{
-              position: 'absolute',
-              right: '15px',
-              top: '15px',
-              background: theme === 'light' ? '#ffffff' : 'var(--bg-page)',
-              border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
-              borderRadius: '8px',
-              color: theme === 'light' ? '#000000' : '#ffffff',
-              cursor: 'pointer',
-              padding: '5px 10px',
-              fontWeight: 900,
-              transition: 'all 0.3s',
-              zIndex: 110
-            }}
-          >
-            ✕
-          </button>
-        )}
-
-        {/* Brand Header */}
-        <div style={{ marginBottom: '30px', paddingLeft: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <BrandLogo size={40} fontSize="22px" textColor="var(--text-primary)" />
-            <div style={{ marginRight: '35px' }}>
-              <NotificationBell />
-              <ThemeToggle />
-            </div>
-          </div>
-          <span style={{ color: 'var(--text-primary)', fontSize: '11px', display: 'block', opacity: 0.8, marginTop: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-            ACCOUNTING DIV
-          </span>
-        </div>
-
-        {/* Navigation Links */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
-          <AccountingMenuButton 
-            active={activeMenu === 'overview'} 
-            onClick={() => setActiveMenu('overview')} 
-            icon="📊" 
-            label="Ringkasan Keuangan" 
-          />
-          <AccountingMenuButton 
-            active={activeMenu === 'journal'} 
-            onClick={() => setActiveMenu('journal')} 
-            icon="✒️" 
-            label="Buku Besar & Jurnal" 
-          />
-          <AccountingMenuButton 
-            active={activeMenu === 'reports'} 
-            onClick={() => setActiveMenu('reports')} 
-            icon="📑" 
-            label="Laporan SAK EP" 
-          />
-          <AccountingMenuButton 
-            active={activeMenu === 'provisioning'} 
-            onClick={() => setActiveMenu('provisioning')} 
-            icon="🛡️" 
-            label="Pencadangan CKPN" 
-          />
-          <AccountingMenuButton 
-            active={activeMenu === 'eom'} 
-            onClick={() => setActiveMenu('eom')} 
-            icon="💰" 
-            label="Bagi Hasil Bulanan (EOM)" 
-          />
-          <AccountingMenuButton 
-            active={activeMenu === 'eod'} 
-            onClick={() => setActiveMenu('eod')} 
-            icon="🔒" 
-            label="Tutup Buku Harian (EOD)" 
-          />
-        </nav>
-
-        {/* Active Operator Profile */}
-        <div style={{ 
-          marginTop: 'auto', 
-          padding: '16px', 
-          background: 'var(--border-primary)', 
-          borderRadius: '20px',
-          border: '2px solid var(--border-primary)',
-          boxShadow: 'inset 0 4px 10px var(--shadow-color)'
+      {/* 1. SIDEBAR: Matching Super Admin Style */}
+      {isSidebarOpen && (
+        <aside style={{
+          width: '280px',
+          background: 'var(--bg-sidebar)',
+          borderRight: '2px solid #cca334',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px 24px',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          zIndex: 30,
+          boxShadow: '8px 0 25px var(--shadow-color)'
         }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Petugas Pembukuan</div>
-          <div style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '16px', textShadow: '0 2px 4px var(--shadow-color)' }}>{profile?.full_name}</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>Status: Terautentikasi</div>
-          
-          <button 
-            onClick={handleLogout}
-            style={{ 
-              marginTop: '24px', width: '100%', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--text-primary)', 
-              border: '2px solid rgba(239, 68, 68, 0.3)', padding: '14px', borderRadius: '14px', 
-              fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', fontSize: '14px' 
-            }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
-          >
-            🚪 Tutup Buku / Keluar
-          </button>
-        </div>
-      </aside>
+          {/* Sidebar Brand */}
+          <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ marginTop: '0px' }}>
+                <BrandLogo size={42} fontSize="20px" textColor="var(--sidebar-heading)" />
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '4px', marginLeft: '52px' }}>
+                Accounting Div
+              </div>
+            </div>
+            <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '18px', cursor: 'pointer', padding: '4px' }}>✖</button>
+          </div>
 
-      {/* ⚪ SCROLLABLE DYNAMIC MAIN CONTENT AREA */}
+          {/* Navigation Links */}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1, overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px', marginTop: '10px' }}>ACCOUNTING & PEMBUKUAN</div>
+            
+            <AccountingMenuButton 
+              active={activeMenu === 'overview'} 
+              onClick={() => setActiveMenu('overview')} 
+              icon="⊞" 
+              label="Ikhtisar Keuangan" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'journal'} 
+              onClick={() => setActiveMenu('journal')} 
+              icon="☷" 
+              label="Manajemen Jurnal" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'reports'} 
+              onClick={() => setActiveMenu('reports')} 
+              icon="▤" 
+              label="Laporan SAK EP" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'provisioning'} 
+              onClick={() => setActiveMenu('provisioning')} 
+              icon="⛨" 
+              label="Pencadangan CKPN" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'assets'} 
+              onClick={() => setActiveMenu('assets')} 
+              icon="🏢" 
+              label="Aset Tetap & Depresiasi" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'eom'} 
+              onClick={() => setActiveMenu('eom')} 
+              icon="◒" 
+              label="Bagi Hasil (EOM)" 
+            />
+            <AccountingMenuButton 
+              active={activeMenu === 'eod'} 
+              onClick={() => setActiveMenu('eod')} 
+              icon="✖" 
+              label="Tutup Buku (EOD)" 
+            />
+          </nav>
+        </aside>
+      )}
+
+      {/* 2. MAIN CONTENT AREA */}
       <main style={{ 
         flexGrow: 1, 
-        padding: '50px 70px', 
-        zIndex: 20, 
+        padding: '24px 40px', 
         overflowY: 'auto',
         height: '100vh',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+        position: 'relative',
+        zIndex: 10
       }}>
-        {!isSidebarOpen && (
-          <div style={{ marginBottom: '24px' }}>
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              style={{
-                background: theme === 'light' ? '#ffffff' : 'var(--bg-sidebar)',
-                border: theme === 'light' ? '2.5px solid #000000' : '2px solid #ffffff',
-                borderRadius: '12px',
-                color: theme === 'light' ? '#000000' : '#ffffff',
-                padding: '12px 18px',
-                cursor: 'pointer',
-                fontWeight: 900,
-                boxShadow: '0 4px 15px var(--shadow-color)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.3s'
-              }}
-            >
-              ☰ <span style={{ fontSize: '12px' }}>MENU</span>
-            </button>
-          </div>
-        )}
         
-        {/* Internal Page Header Banner */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <div>
-            <h2 style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: '28px', margin: 0 }}>
-              {activeMenu === 'overview' && '📊 Dasbor Informasi Keuangan'}
-              {activeMenu === 'journal' && '✒️ Jurnal Penyesuaian & Buku Besar'}
-              {activeMenu === 'reports' && '📑 Laporan Keuangan Syariah'}
-              {activeMenu === 'provisioning' && '🛡️ Manajemen Risiko Penurunan Nilai (CKPN)'}
-              {activeMenu === 'eom' && '💰 Distribusi Bagi Hasil Bulanan (EOM)'}
-              {activeMenu === 'eod' && '🔒 Tutup Buku Harian (End of Day)'}
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', opacity: 0.7, fontSize: '14px', fontWeight: 600, marginTop: '6px' }}>
-              Manajemen akuntansi terotomasi terpadu berbasis PostgreSQL Cloud.
-            </p>
+        {/* Header matching Super Admin */}
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'sticky', top: '-24px', paddingTop: '24px', paddingBottom: '16px', background: 'var(--bg-card)', zIndex: 20, borderBottom: '1px solid var(--border-primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
+            {!isSidebarOpen && (
+              <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--gold-intense)', fontSize: '28px', cursor: 'pointer', marginTop: '-2px' }}>
+                ☰
+              </button>
+            )}
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px var(--shadow-color)' }}>
+                {activeMenu === 'overview' && 'Ikhtisar Keuangan Syariah'}
+                {activeMenu === 'journal' && 'Sistem Pembukuan & Buku Besar'}
+                {activeMenu === 'reports' && 'Laporan Keuangan SAK EP'}
+                {activeMenu === 'provisioning' && 'Manajemen Risiko CKPN'}
+                {activeMenu === 'assets' && 'Manajemen Aset Tetap'}
+                {activeMenu === 'eom' && 'Distribusi Bagi Hasil (EOM)'}
+                {activeMenu === 'eod' && 'Tutup Buku Harian (End of Day)'}
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 500 }}>
+                {activeMenu === 'overview' && 'Statistik operasi keuangan real-time IQ-RA System.'}
+                {activeMenu === 'journal' && 'Pencatatan jurnal otomatis dan manajemen buku besar koperasi.'}
+                {activeMenu === 'reports' && 'Audit kesesuaian laporan keuangan berstandar SAK EP.'}
+                {activeMenu === 'provisioning' && 'Validasi cadangan kerugian penurunan nilai (NPL).'}
+                {activeMenu === 'assets' && 'Buku besar inventaris, kendaraan, dan kalkulasi depresiasi massal.'}
+                {activeMenu === 'eom' && 'Proses kalkulasi dan pembagian margin/bagi hasil ke anggota.'}
+                {activeMenu === 'eod' && 'Otorisasi kunci mutasi kas harian dan validasi teller.'}
+              </p>
+            </div>
           </div>
-          
-          {/* Date Pill */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', padding: '12px 20px', borderRadius: '14px', fontSize: '14px', fontWeight: 900, boxShadow: '0 4px 15px var(--shadow-color)' }}>
-            📅 {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ background: 'var(--bg-card)', border: '2px solid #34d399', borderRadius: '30px', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800, color: 'var(--text-success)', boxShadow: '0 4px 15px rgba(52, 211, 153, 0.2)' }}>
+              <div style={{ width: '10px', height: '10px', background: 'var(--text-success)', borderRadius: '50%', boxShadow: '0 0 10px #34d399' }} />
+              DATABASE SEHAT (LIVE)
+            </div>
+            
+            <div style={{ position: 'relative' }}>
+              <div 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                style={{
+                  background: 'var(--bg-dark-box)', border: '1px solid rgba(243, 198, 83, 0.2)',
+                  borderRadius: '30px', padding: '8px 16px 8px 8px', display: 'flex', alignItems: 'center', gap: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--gold-intense)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: '#02130e' }}>
+                  {profile?.full_name ? profile.full_name.charAt(0) : 'A'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)' }}>{profile?.full_name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{profile?.role}</div>
+                </div>
+              </div>
+
+              {isProfileMenuOpen && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '10px', background: 'var(--bg-card)', border: '1px solid rgba(243, 198, 83, 0.3)', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 15px 35px var(--shadow-color)', zIndex: 100, minWidth: '180px' }}>
+                  <button onClick={() => { setIsProfileMenuOpen(false); handleLogout(); }} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: '14px 20px', color: 'var(--text-danger)', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>🔌 Keluar</button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </header>
 
         <AccountingDashboard activeMenu={activeMenu} profile={profile} />
       </main>
 
-      {/* Immersive Global AI Chatbot */}
       <AIChatbot role="accounting" />
     </div>
   );
@@ -288,11 +258,11 @@ function AccountingMenuButton({ active, onClick, icon, label }: any) {
         gap: '12px',
         padding: '14px 18px',
         background: active 
-          ? 'var(--text-primary)' 
-          : (isHovered ? 'var(--border-primary)' : 'transparent'),
-        color: active ? 'var(--bg-page)' : 'var(--text-primary)',
-        border: active ? 'none' : '1px solid var(--border-primary)',
-        borderRadius: '16px',
+          ? 'var(--gold-intense)' 
+          : (isHovered ? 'var(--bg-dark-box)' : 'transparent'),
+        color: active ? '#02130e' : 'var(--sidebar-heading)',
+        border: 'none',
+        borderRadius: '12px',
         fontSize: '14px',
         fontWeight: 800,
         textAlign: 'left',

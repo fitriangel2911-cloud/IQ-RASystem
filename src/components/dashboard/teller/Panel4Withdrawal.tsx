@@ -65,10 +65,76 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
   const [authNote, setAuthNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [showSupervisorModal, setShowSupervisorModal] = useState(false);
-  const [supervisorCode, setSupervisorCode] = useState('');
+  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
   const [supervisorLimit, setSupervisorLimit] = useState(DEFAULT_SUPERVISOR_LIMIT);
   const [printSlip, setPrintSlip] = useState(true);
+
+  const fetchApprovedRequests = async () => {
+    if (!selectedMember || selectedMember.id === 'mock-member-fitri') return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('withdrawal_requests')
+      .select('*, savings_accounts(account_type, balance, account_number)')
+      .eq('member_id', selectedMember.user_id)
+      .eq('status', 'approved');
+    setApprovedRequests(data || []);
+  };
+
+  React.useEffect(() => {
+    fetchApprovedRequests();
+  }, [selectedMember]);
+
+  const executeApprovedRequest = async (req: any) => {
+    setLoading(true); setMessage(null);
+    try {
+      const supabase = createClient();
+      const memberName = selectedMember!.users?.full_name || 'Anggota';
+      const desc = `PENARIKAN TUNAI (VIA OTORISASI MANAJER) - ${memberName}`;
+      
+      let debitAccount = COA.SAVINGS_WADIAH; 
+      if (req.savings_accounts?.account_type === 'pokok') debitAccount = COA.MEMBER_CAPITAL_PRINCIPAL;
+      else if (req.savings_accounts?.account_type === 'wajib') debitAccount = COA.MEMBER_CAPITAL_MANDATORY;
+      else if (req.savings_accounts?.account_type === 'mudharabah') debitAccount = COA.SAVINGS_MUDHARABAH;
+
+      // 1. Post double-entry journal book entries
+      const res = await fetch('/api/accounting/record-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          description: `[TELLER: ${tellerName}] ${desc}`,
+          entries: [
+            { account_code: debitAccount, debit: req.amount, credit: 0 },
+            { account_code: COA.CASH_ON_HAND, debit: 0, credit: req.amount },
+          ],
+          reference_no: req.reference_no,
+          member_id: selectedMember!.user_id,
+        })
+      });
+      if (!res.ok) throw new Error('Gagal mencatat transaksi akuntansi');
+
+      // 2. Perform direct update to savings accounts balance
+      const currentBalance = Number(req.savings_accounts?.balance || 0);
+      const newBalance = currentBalance - req.amount;
+      const { error: balanceErr } = await supabase.from('savings_accounts').update({ balance: newBalance }).eq('id', req.account_id);
+      if (balanceErr) throw balanceErr;
+
+      // 3. Log mutation in savings_transactions
+      const { error: txErr } = await supabase.from('savings_transactions').insert([{
+        account_id: req.account_id, transaction_type: 'withdrawal', amount: req.amount, reference_no: req.reference_no
+      }]);
+      if (txErr) throw txErr;
+
+      // 4. Update status to completed
+      await supabase.from('withdrawal_requests').update({ status: 'completed' }).eq('id', req.id);
+
+      setMessage({ type: 'success', text: `Eksekusi Penarikan Tunai Rp ${req.amount.toLocaleString('id-ID')} Berhasil diserahkan ke nasabah!` });
+      fetchApprovedRequests();
+      onSuccess();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: `ERROR: ${err.message}` });
+    } finally { setLoading(false); }
+  };
 
   // Load dynamic supervisor limit from system parameters on mount
   React.useEffect(() => {
@@ -190,11 +256,36 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       }
 
       setMessage({ type: 'success', text: `Penarikan ${fmt(amount)} berhasil! Ref: ${refNo}` });
-      setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote(''); setSupervisorCode('');
+      setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
       onSuccess();
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
+  };
+
+  const submitToManager = async () => {
+    setLoading(true); setMessage(null);
+    try {
+      const supabase = createClient();
+      const refNo = `TRK-REQ-${Date.now()}`;
+      const { error } = await supabase.from('withdrawal_requests').insert({
+        member_id: selectedMember!.user_id,
+        account_id: selectedAccId,
+        amount: amount,
+        status: 'pending',
+        reference_no: refNo
+      });
+
+      if (error) throw error;
+
+      setMessage({ type: 'success', text: `🚨 Penarikan > ${fmt(supervisorLimit)}. Transaksi berhasil diteruskan ke Dasbor Manajer untuk Otorisasi. Status: Menunggu.` });
+      setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
+      onSuccess();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: `ERROR: ${err.message}` });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -206,7 +297,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
     if (!cardNo) { setMessage({ type: 'error', text: 'Masukkan Nomor Kartu Anggota untuk verifikasi kepemilikan fisik.' }); return; }
 
     if (amount > supervisorLimit) {
-      setShowSupervisorModal(true);
+      submitToManager();
     } else {
       processWithdrawal();
     }
@@ -222,46 +313,34 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
 
   return (
     <>
-      {showSupervisorModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(2,19,14,0.85)', backdropFilter: 'blur(12px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--bg-card)', border: '2px solid rgba(239,68,68,0.5)',
-            borderRadius: '24px', padding: '32px', width: '450px',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-            animation: 'fadeInUp 0.3s ease-out'
-          }}>
-            <h3 style={{ margin: '0 0 10px', fontSize: '24px', fontWeight: 900, color: '#fca5a5', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px' }}>Otorisasi Supervisor</h3>
-            <p style={{ margin: '0 0 20px', fontSize: '16px', color: 'var(--text-secondary)', textAlign: 'center', lineHeight: '1.5' }}>
-              Penarikan tunai di atas {fmt(supervisorLimit)} wajib divalidasi oleh Supervisor dengan PIN otorisasi khusus.
-            </p>
-            <input
-              type="password" value={supervisorCode} onChange={e => setSupervisorCode(e.target.value)}
-              placeholder="KODE OTORISASI SUPERVISOR"
-              style={{
-                width: '100%', background: 'rgba(239,68,68,0.1)', border: '2px solid rgba(239,68,68,0.4)',
-                borderRadius: '12px', padding: '18px', color: 'var(--text-primary)', fontSize: '20px',
-                fontWeight: 700, outline: 'none', textAlign: 'center', marginBottom: '20px',
-                letterSpacing: '4px'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setShowSupervisorModal(false)} style={{
-                flex: 1, padding: '16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-primary)',
-                borderRadius: '12px', color: 'var(--text-primary)', fontWeight: 800, cursor: 'pointer', fontSize: '16px'
-              }}>Batal</button>
-              <button onClick={() => {
-                if (!supervisorCode) { alert('Masukkan kode otorisasi!'); return; }
-                setShowSupervisorModal(false);
-                processWithdrawal();
-              }} style={{
-                flex: 1, padding: '16px', background: '#ef4444', border: 'none',
-                borderRadius: '12px', color: '#fff', fontWeight: 900, cursor: 'pointer', fontSize: '16px'
-              }}>KONFIRMASI & PROSES</button>
-            </div>
+      {approvedRequests.length > 0 && (
+        <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '2px dashed #10b981', borderRadius: '20px', padding: '24px', marginBottom: '24px', animation: 'fadeInUp 0.5s ease-out' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '24px' }}>🚨</span>
+            <h4 style={{ margin: 0, color: '#10b981', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase' }}>Antrean Siap Cair (Telah Diotorisasi Manajer)</h4>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {approvedRequests.map(req => (
+              <div key={req.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800 }}>Nominal Penarikan Disetujui</div>
+                  <div style={{ fontSize: '22px', color: 'var(--text-primary)', fontWeight: 900, marginTop: '4px' }}>{fmt(req.amount)}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Rekening Tujuan: <strong>{req.savings_accounts?.account_number || '-'}</strong> (Tipe: {req.savings_accounts?.account_type})
+                  </div>
+                </div>
+                <button 
+                  onClick={() => executeApprovedRequest(req)}
+                  disabled={loading}
+                  style={{
+                    background: '#10b981', color: '#fff', border: 'none', borderRadius: '12px', padding: '14px 24px',
+                    fontWeight: 900, fontSize: '14px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(16,185,129,0.3)'
+                  }}
+                >
+                  Eksekusi & Serahkan Tunai
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

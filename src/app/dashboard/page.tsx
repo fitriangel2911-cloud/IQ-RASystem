@@ -812,7 +812,11 @@ export default function DashboardPage() {
                 <>
                   <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Customer Service</div>
                   <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'onboarding'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }} icon="⚑" label="Pendaftaran Anggota (CIF)" />
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'kyc'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('kyc'); }} icon="⌕" label="Antrean KYC (Validasi NIK)" />
                   <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'members'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('members'); }} icon="☰" label="Database Anggota Aktif" />
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'verifications'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('verifications'); }} icon="💳" label="Verifikasi Setoran Online" />
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'special-savings'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('special-savings'); }} icon="🕋" label="Rekening Simpanan Khusus" />
+                  <DashboardMenuButton active={activeTab === 'cs' && activeSubMenu === 'financing'} onClick={() => { setActiveTab('cs'); setActiveSubMenu('financing'); }} icon="📝" label="Pengajuan Pembiayaan" />
                 </>
               )}
 
@@ -849,6 +853,7 @@ export default function DashboardPage() {
                   <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'journal'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('journal'); }} icon="☷" label="Manajemen Jurnal" />
                   <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'reports'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('reports'); }} icon="▤" label="Laporan SAK EP" />
                   <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'provisioning'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('provisioning'); }} icon="⛨" label="Pencadangan CKPN" />
+                  <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'assets'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('assets'); }} icon="🏢" label="Aset & Depresiasi" />
                   <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eom'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eom'); }} icon="◒" label="Bagi Hasil (EOM)" />
                   <DashboardMenuButton active={activeTab === 'accounting' && activeSubMenu === 'eod'} onClick={() => { setActiveTab('accounting'); setActiveSubMenu('eod'); }} icon="✖" label="Tutup Buku (EOD)" />
                 </>
@@ -862,10 +867,11 @@ export default function DashboardPage() {
               {hasPermission('manager') && (
                 <>
                   <div style={{ fontSize: '10px', color: 'var(--sidebar-heading)', opacity: 0.6, fontWeight: 700, paddingLeft: '14px', marginTop: '8px', marginBottom: '2px' }}>Manager</div>
-                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="⚿" label="Otorisasi Manager" />
-                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'approvals'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('approvals'); }} icon="⚙" label="Antrian Otorisasi" />
-                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'contracts'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('contracts'); }} icon="▤" label="Riwayat Otorisasi" />
-                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('rag'); }} icon="⚛" label="RAG Ingestion" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }} icon="⊞" label="Ringkasan Eksekutif" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'approvals'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('approvals'); }} icon="⚖" label="Otorisasi Pengajuan" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'contracts'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('contracts'); }} icon="📋" label="Riwayat Otorisasi Akad" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'withdrawals'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('withdrawals'); }} icon="💸" label="Otorisasi Penarikan" />
+                  <DashboardMenuButton active={activeTab === 'manager' && activeSubMenu === 'rag'} onClick={() => { setActiveTab('manager'); setActiveSubMenu('rag'); }} icon="⚛" label="RAG Ingestion View" />
                 </>
               )}
               
@@ -1143,6 +1149,89 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* DIRECT ACCESS TO ALL MODULES FOR SUPER ADMIN */}
+              {profile?.role === 'super_admin' && (
+                <div style={{ marginTop: '20px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '24px', borderBottom: '2px solid var(--border-primary)', paddingBottom: '12px' }}>
+                    🎛️ Akses Cepat Seluruh Modul Sistem (Super Admin)
+                  </h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+                    
+                    {/* CS Module */}
+                    <div 
+                      onClick={() => { setActiveTab('cs'); setActiveSubMenu('onboarding'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚑</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Customer Service</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Modul pendaftaran CIF anggota baru dan database keanggotaan aktif.</p>
+                    </div>
+
+                    {/* Teller Module */}
+                    <div 
+                      onClick={() => { setActiveTab('teller'); setActiveSubMenu('dashboard'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚖</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Layanan Teller</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Modul setoran, penarikan tunai, pembayaran angsuran, dan pencairan.</p>
+                    </div>
+
+                    {/* AO Module */}
+                    <div 
+                      onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚲</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Account Officer</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Manajemen prospek pembiayaan, survei lapangan, dan analisis kelayakan.</p>
+                    </div>
+
+                    {/* Accounting Module */}
+                    <div 
+                      onClick={() => { setActiveTab('accounting'); setActiveSubMenu('overview'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⊞</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Accounting</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Modul pembukuan otomatis SAK EP, penjurnalan, EOM, dan EOD.</p>
+                    </div>
+
+                    {/* Manager Module */}
+                    <div 
+                      onClick={() => { setActiveTab('manager'); setActiveSubMenu('overview'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚿</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Manager</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Otorisasi pembiayaan (Maker-Checker), laporan manajerial, persetujuan tarik tunai.</p>
+                    </div>
+
+                    {/* DPS Module */}
+                    <div 
+                      onClick={() => { setActiveTab('dps'); setActiveSubMenu('overview'); }}
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px var(--shadow-color)' }}
+                      onMouseOver={(e) => { e.currentTarget.style.borderColor = '#cca334'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚖</div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Dewan Pengawas Syariah</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>Audit kepatuhan syariah, validasi akad pembiayaan, dan pembersihan dana.</p>
+                    </div>
+
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -298,3 +298,36 @@ aside::-webkit-scrollbar, aside *::-webkit-scrollbar, [class*="sidebar"]::-webki
   --sidebar-text: #010906;
   --sidebar-heading: #ffffff;
 }
+
+/* ═══════════════════════════════════════════════════════
+   PRINT MEDIA STYLES (Untuk Cetak Laporan Akuntansi)
+══════════════════════════════════════════════════════════ */
+@media print {
+  body, html {
+    background: white !important;
+    color: black !important;
+  }
+  .hide-on-print, aside, .sidebar, header, nav, button {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+  .print-page-break {
+    page-break-before: always;
+  }
+  .glass-dark {
+    border: none !important;
+    background: white !important;
+    box-shadow: none !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+  * {
+    color: black !important;
+  }
+}

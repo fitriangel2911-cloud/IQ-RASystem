@@ -42,16 +42,7 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [selectedCIFProspect, setSelectedCIFProspect] = useState<any>(null);
 
-  // Form State for New Prospect
-  const [formData, setFormData] = useState({
-    member_id: '',
-    name: '',
-    phone: '',
-    amount: '',
-    purpose: 'Modal Usaha',
-    contractType: 'murabahah'
-  });
-  const [customPurpose, setCustomPurpose] = useState('');
+
 
   const fetchAOData = async () => {
     if (!profile?.id) return;
@@ -180,89 +171,7 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
     return new Intl.NumberFormat('id-ID').format(Number(numericValue));
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/\D/g, '');
-    setFormData({ ...formData, amount: rawValue });
-  };
 
-  const handleAddProspect = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.amount) return;
-    
-    setLoading(true);
-    setMessage(null);
-
-    const supabase = createClient();
-    
-    try {
-      if (formData.member_id) {
-        const { data: memberCheck } = await supabase
-          .from('members')
-          .select('is_blacklisted')
-          .eq('id', formData.member_id)
-          .single();
-          
-        if (memberCheck && memberCheck.is_blacklisted) {
-          setMessage({ type: 'error', text: '⛔ PENGAJUAN DITOLAK OTOMATIS: Sistem PI Checking (Prinsip Kehati-hatian) mendeteksi Anggota ini masuk dalam Blacklist Internal Koperasi. Risiko tinggi, pengajuan pembiayaan dibatalkan.' });
-          setLoading(false);
-          return;
-        }
-      }
-
-      let finalPurpose = formData.purpose;
-      if (finalPurpose === 'Lainnya' && customPurpose.trim() !== '') {
-        finalPurpose = customPurpose.trim();
-      }
-
-      // Instead of prospects, insert directly into financing_contracts
-      let insertData: any = {
-        member_id: formData.member_id || null,
-        member_name: formData.name,
-        amount: Number(formData.amount),
-        type: formData.contractType,
-        status: 'pending',
-        collateral_metadata: { purpose: finalPurpose, phone: formData.phone }
-      };
-      
-      let { error } = await supabase.from('financing_contracts').insert(insertData);
-
-      if (error) throw error;
-
-      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline (financing_contracts)!' });
-      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha', contractType: 'murabahah' });
-      setCustomPurpose('');
-      fetchAOData();
-    } catch (err: any) {
-      // DEBUG: SEND ERROR TO BACKEND
-      fetch('/api/debug', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: err, message: err.message, stack: err.stack, details: err.details })
-      }).catch(console.error);
-
-      // SILENT FALLBACK FOR PRESENTATION
-      let finalPurpose = formData.purpose;
-      if (finalPurpose === 'Lainnya' && customPurpose.trim() !== '') {
-        finalPurpose = customPurpose.trim();
-      }
-      const newMockProspect = {
-        id: 'mock-' + Date.now(),
-        member_id: formData.member_id || profile.id,
-        name: formData.name,
-        phone: formData.phone,
-        amount: Number(formData.amount),
-        purpose: finalPurpose,
-        status: 'Menunggu Survei',
-        created_at: new Date().toISOString()
-      };
-      setProspects([newMockProspect, ...prospects]);
-      setMessage({ type: 'success', text: 'Prospek baru berhasil disimpan ke Database Pipeline AO!' });
-      setFormData({ member_id: '', name: '', phone: '', amount: '', purpose: 'Modal Usaha', contractType: 'murabahah' });
-      setCustomPurpose('');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
   const [aiResult, setAiResult] = useState<any>(null);
@@ -502,6 +411,7 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
         
         // 1. Update financing_contracts with collateral and is_surveyed flag
         const collateralData = {
+          ...(selectedSurveyProspect.collateral_metadata || {}),
           address: surveyData.address,
           coordinates: surveyData.coordinates,
           income: surveyData.monthlyIncome,
@@ -875,114 +785,7 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
     </div>
   );
 
-  const renderAddForm = () => (
-    <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeInUp 0.5s ease-out' }}>
-      <div style={{ background: 'var(--bg-card)', backdropFilter: 'blur(16px)', borderRadius: '24px', padding: '40px', boxShadow: '0 20px 50px var(--shadow-color)', border: '1px solid var(--border-primary)' }}>
-        <h3 style={{ margin: '0 0 30px 0', fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          Input Prospek Pembiayaan Baru
-        </h3>
-        
-        <form onSubmit={handleAddProspect} style={{ display: 'grid', gap: '20px' }}>
-          <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Pilih Anggota Resmi (Database CIF)</label>
-            <select 
-              required
-              value={formData.member_id ? `${formData.member_id}|${formData.name}|${formData.phone}` : ""}
-              onChange={(e) => {
-                if (!e.target.value) return;
-                const [id, n, p] = e.target.value.split('|');
-                setFormData({...formData, member_id: id, name: n, phone: p});
-              }}
-              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none', transition: 'border-color 0.2s' }}
-            >
-              <option value="" disabled>-- Cari & Pilih Anggota --</option>
-              {membersList.map((m: any) => (
-                <option key={m.id} value={`${m.user_id}|${m.users?.full_name || m.mother_name}|${m.phone_number}`}>
-                  {m.users?.full_name || 'Tanpa Nama'} - NIK: {m.nik}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ display: 'grid', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nomor Telepon (Otomatis)</label>
-              <input 
-                type="tel" 
-                readOnly
-                placeholder="Terisi otomatis..."
-                value={formData.phone}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--border-primary)', border: '1px solid var(--border-primary)', color: 'var(--text-secondary)', fontSize: '16px', outline: 'none', cursor: 'not-allowed' }}
-              />
-            </div>
-            <div style={{ display: 'grid', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nominal Pengajuan (Rp)</label>
-              <input 
-                type="text" 
-                required
-                placeholder="10.000.000"
-                value={formatNumber(formData.amount)}
-                onChange={handleAmountChange}
-                style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', outline: 'none' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Pilih Akad Syariah</label>
-            <select 
-              value={formData.contractType}
-              onChange={(e) => setFormData({...formData, contractType: e.target.value})}
-              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
-            >
-              <option value="murabahah">Murabahah (Jual Beli)</option>
-              <option value="ijarah">Ijarah (Sewa/Multijasa)</option>
-              <option value="mudharabah">Mudharabah (Bagi Hasil / Modal Kerja)</option>
-              <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
-            </select>
-          </div>
-
-          <div style={{ display: 'grid', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Tujuan Penggunaan Dana</label>
-            <select 
-              value={formData.purpose}
-              onChange={(e) => setFormData({...formData, purpose: e.target.value})}
-              style={{ padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none' }}
-            >
-              <option value="Modal Usaha">Modal Usaha</option>
-              <option value="Pembelian Barang">Pembelian Barang / Aset</option>
-              <option value="Pendidikan">Biaya Pendidikan / Jasa</option>
-              <option value="Renovasi Rumah">Renovasi Rumah / Bangunan</option>
-              <option value="Lainnya">Lainnya (Ketik Manual)</option>
-            </select>
-            
-            {formData.purpose === 'Lainnya' && (
-              <input 
-                type="text" 
-                required
-                placeholder="Tuliskan tujuan penggunaan dana secara spesifik..."
-                value={customPurpose}
-                onChange={(e) => setCustomPurpose(e.target.value)}
-                style={{ marginTop: '8px', padding: '15px 20px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--gold-intense)', color: 'var(--text-primary)', fontSize: '16px', outline: 'none', animation: 'fadeIn 0.3s ease-out' }}
-              />
-            )}
-          </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            style={{ 
-              marginTop: '10px', background: 'var(--text-primary)', color: 'var(--bg-page)', padding: '18px', borderRadius: '14px', 
-              border: 'none', fontWeight: 900, cursor: 'pointer', transition: 'all 0.3s',
-              boxShadow: '0 10px 20px var(--shadow-color)', opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'MENYIMPAN DATA...' : 'DAFTARKAN PROSPEK KE PIPELINE'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
 
   const renderSurvey = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeInUp 0.5s ease-out' }}>
