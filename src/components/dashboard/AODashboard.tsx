@@ -179,7 +179,14 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
 
   // Survey Module State
   const [selectedSurveyProspect, setSelectedSurveyProspect] = useState<any>(null);
-  const [surveyData, setSurveyData] = useState({ address: '', notes: '', photoUrl: '', coordinates: '', isGettingLocation: false, monthlyIncome: '' });
+  const [surveyData, setSurveyData] = useState({
+    address: 'Tidak ditentukan',
+    notes: 'Tidak ada catatan tambahan.',
+    photoUrl: '',
+    coordinates: 'Tidak tersedia',
+    isGettingLocation: false,
+    monthlyIncome: 'Tidak diisi / Rp 0'
+  });
   const [surveyLoading, setSurveyLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
