@@ -159,6 +159,8 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     { code: '140001', name: 'Piutang Murabahah Anggota', category: 'Aset' },
     { code: '170001', name: 'Pembiayaan Mudharabah Anggota', category: 'Aset' },
     { code: '190002', name: 'CKPN Piutang Murabahah (-)', category: 'Kontra-Aset' },
+    { code: '220002', name: 'Titipan ZISWAF', category: 'Liabilitas' },
+    { code: '220003', name: 'Titipan Dana Sosial / Non-Halal', category: 'Liabilitas' },
     { code: '230001', name: 'Simpanan Wadiah Anggota', category: 'Liabilitas' },
     { code: '310001', name: 'Simpanan Mudharabah Anggota', category: 'Dana Syirkah' },
     { code: '400001', name: 'Simpanan Pokok', category: 'Ekuitas' },
@@ -179,11 +181,11 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   useEffect(() => {
     async function fetchCoa() {
       const supabase = createClient();
-      const { data, error } = await supabase.from('coa_accounts').select('*').order('account_code');
+      const { data, error } = await supabase.from('coa_accounts').select('*').order('code');
       if (!error && data && data.length > 0) {
         setCoaList(data.map((c: any) => ({
-          code: c.account_code,
-          name: c.account_name,
+          code: c.code,
+          name: c.name,
           category: c.category
         })));
       }
@@ -419,6 +421,32 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Error: ' + err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteJournal = async (referenceNo: string) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus seluruh jurnal transaksi dengan nomor referensi "${referenceNo}"?\nTindakan ini akan menghapus semua entri debit dan kredit terkait di database.`)) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/accounting/delete-journal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referenceNo })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menghapus jurnal.');
+      }
+      setMessage({ type: 'success', text: `🎉 Jurnal ${referenceNo} berhasil dihapus dari database.` });
+      await fetchJournals();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Gagal menghapus: ' + err.message });
     } finally {
       setLoading(false);
     }
@@ -1038,13 +1066,20 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                       <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right', fontSize: '14px' }}>
                         {j.credit > 0 ? formatter.format(j.credit) : '—'}
                       </td>
-                      <td style={{ padding: '16px', textAlign: 'center' }}>
+                      <td style={{ padding: '16px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                         <button 
                           onClick={() => setPrintingVoucher(j)}
                           style={{ background: 'rgba(243, 198, 83, 0.1)', border: '1px solid #f3c653', color: 'var(--gold-intense)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}
                           title="Cetak Bukti Jurnal / Voucher"
                         >
                           🖨️ Cetak
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteJournal(j.reference_no)}
+                          style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 800 }}
+                          title="Hapus Seluruh Jurnal Transaksi Ini"
+                        >
+                          🗑️ Hapus
                         </button>
                       </td>
                     </tr>

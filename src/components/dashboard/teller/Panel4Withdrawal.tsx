@@ -60,7 +60,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
   const [amount, setAmount] = useState(0);
   const [displayAmount, setDisplayAmount] = useState('');
   const [selectedAccId, setSelectedAccId] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'pokok' | 'wajib' | 'wadiah' | 'mudharabah'>('wadiah');
+  const [selectedCategory, setSelectedCategory] = useState<'pokok' | 'wajib' | 'wadiah' | 'mudharabah' | 'haji' | 'umrah'>('wadiah');
   const [cardNo, setCardNo] = useState('');
   const [authNote, setAuthNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -95,6 +95,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       if (req.savings_accounts?.account_type === 'pokok') debitAccount = COA.MEMBER_CAPITAL_PRINCIPAL;
       else if (req.savings_accounts?.account_type === 'wajib') debitAccount = COA.MEMBER_CAPITAL_MANDATORY;
       else if (req.savings_accounts?.account_type === 'mudharabah') debitAccount = COA.SAVINGS_MUDHARABAH;
+      else if (req.savings_accounts?.account_type === 'haji') debitAccount = COA.SAVINGS_HAJI;
+      else if (req.savings_accounts?.account_type === 'umrah') debitAccount = COA.SAVINGS_UMRAH;
 
       // 1. Post double-entry journal book entries
       const res = await fetch('/api/accounting/record-v2', {
@@ -188,10 +190,12 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       const desc = `PENARIKAN TUNAI - ${memberName} (Kartu: ${cardNo})`;
 
       // Dynamic debit account COA code mapping based on selected account type
-      let debitAccount = COA.SAVINGS_WADIAH; // Default wadiah: 201.01
-      if (selectedAcc?.account_type === 'pokok') debitAccount = COA.MEMBER_CAPITAL_PRINCIPAL; // 301.01
-      else if (selectedAcc?.account_type === 'wajib') debitAccount = COA.MEMBER_CAPITAL_MANDATORY; // 301.02
-      else if (selectedAcc?.account_type === 'mudharabah') debitAccount = COA.SAVINGS_MUDHARABAH; // 201.02
+      let debitAccount = COA.SAVINGS_WADIAH;
+      if (selectedAcc?.account_type === 'pokok') debitAccount = COA.MEMBER_CAPITAL_PRINCIPAL;
+      else if (selectedAcc?.account_type === 'wajib') debitAccount = COA.MEMBER_CAPITAL_MANDATORY;
+      else if (selectedAcc?.account_type === 'mudharabah') debitAccount = COA.SAVINGS_MUDHARABAH;
+      else if (selectedAcc?.account_type === 'haji') debitAccount = COA.SAVINGS_HAJI;
+      else if (selectedAcc?.account_type === 'umrah') debitAccount = COA.SAVINGS_UMRAH;
 
       // 1. Post double-entry journal book entries
       const res = await fetch('/api/accounting/record-v2', {
@@ -367,6 +371,8 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
               { value: 'wajib', label: 'Simpanan Wajib', desc: 'Syirkah (Kewajiban)' },
               { value: 'wadiah', label: 'Simpanan Wadiah', desc: 'Titipan Wadiah' },
               { value: 'mudharabah', label: 'Simpanan Mudharabah', desc: 'Bagi Hasil' },
+              { value: 'haji', label: 'Simpanan Haji', desc: 'Haji Khusus' },
+              { value: 'umrah', label: 'Simpanan Umrah', desc: 'Dana Umrah' },
             ] as const).map(cat => {
               const matchedAcc = selectedMember.savings_accounts?.find(a => a.account_type === cat.value);
               const hasAcc = !!matchedAcc;
@@ -431,6 +437,22 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
                 AKAD MUDHARABAH MUTLAQAH (Investasi Bagi Hasil)
               </div>
               <span>Penarikan dana investasi mudharabah produktif yang dikelola oleh koperasi untuk usaha komersial sesuai kesepakatan nisbah.</span>
+            </div>
+          )}
+          {selectedCategory === 'haji' && (
+            <div>
+              <div style={{ fontWeight: 900, color: '#f3c653', marginBottom: '8px', fontSize: '17px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                AKAD MUDHARABAH / DANA HAJI KHUSUS
+              </div>
+              <span>Penarikan dana setoran haji khusus anggota yang dikelola secara syariah untuk persiapan keberangkatan ibadah haji.</span>
+            </div>
+          )}
+          {selectedCategory === 'umrah' && (
+            <div>
+              <div style={{ fontWeight: 900, color: '#f3c653', marginBottom: '8px', fontSize: '17px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                AKAD MUDHARABAH / DANA TABUNGAN UMRAH
+              </div>
+              <span>Penarikan dana tabungan umrah anggota yang dikelola secara syariah untuk keberangkatan ibadah umrah.</span>
             </div>
           )}
         </div>

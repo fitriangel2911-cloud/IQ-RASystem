@@ -80,7 +80,7 @@ export default function Panel1Dashboard({ shiftStatus, cashOnHand, recentTransac
             KAS DI TANGAN
           </div>
           <div style={{ fontSize: '28px', fontWeight: 900, color: '#4ade80', marginBottom: '4px' }}>{fmt(cashOnHand)}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>Real-time • COA 101.01</div>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>Real-time • COA 110102</div>
         </div>
 
         {/* Date & Petugas */}

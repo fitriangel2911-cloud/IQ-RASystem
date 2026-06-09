@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import RAGPipelineView from './RAGPipelineView';
+import { COA } from '@/lib/constants/coa';
 
 interface ManagerDashboardProps {
   activeMenu: string;
@@ -351,12 +352,12 @@ export default function ManagerDashboard({ activeMenu, profile }: ManagerDashboa
           }
 
           // 3. Post double-entry journal book entries for disbursement via /api/accounting/record-v2
-          const debitAccount = contract.type === 'qardhul_hasan' ? '102.02' : '102.01'; // RECEIVABLE_QARDH or RECEIVABLE_MURABAHAH
+          const debitAccount = contract.type === 'qardhul_hasan' ? COA.RECEIVABLE_QARDH : COA.RECEIVABLE_MURABAHAH; // RECEIVABLE_QARDH or RECEIVABLE_MURABAHAH
           const refNo = `CAIR-${Date.now()}`;
           const memberName = contract.member_name || contract.users?.full_name || 'Anggota';
           const entries = [
             { account_code: debitAccount, debit: amount, credit: 0 },
-            { account_code: '101.02', debit: 0, credit: amount } // Credit CASH_IN_BANK
+            { account_code: COA.CASH_IN_BANK, debit: 0, credit: amount } // Credit CASH_IN_BANK
           ];
 
           try {

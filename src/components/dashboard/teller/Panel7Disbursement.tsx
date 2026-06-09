@@ -88,7 +88,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
       const memberName = selectedMember?.users?.full_name || (selectedMember as any)?.mother_name || 'Anggota Tanpa Nama';
       const refNo = `CAIR-${Date.now()}`;
       
-      const debitAccount = contract.type === 'qardhul_hasan' ? COA.RECEIVABLE_QARDH : COA.RECEIVABLE_MURABAHAH; // Map to correct COA
+      const debitAccount = (contract.type === 'mudharabah' || contract.type === 'qardhul_hasan') ? COA.RECEIVABLE_QARDH : COA.RECEIVABLE_MURABAHAH; // Map to correct COA
       
       let creditAccount = COA.CASH_ON_HAND;
       let targetAccId = '';

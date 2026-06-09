@@ -91,7 +91,7 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
   const [transactionMethod, setTransactionMethod] = useState<'tunai' | 'transfer'>('tunai');
   const [adminFee, setAdminFee] = useState(15000);
   const [infaq, setInfaq] = useState(10000);
-  const [selectedCategory, setSelectedCategory] = useState<'pokok' | 'wajib' | 'wadiah' | 'mudharabah'>('wadiah');
+  const [selectedCategory, setSelectedCategory] = useState<'pokok' | 'wajib' | 'wadiah' | 'mudharabah' | 'haji' | 'umrah'>('wadiah');
 
   // System parameters state
   const [sysParams, setSysParams] = useState<Record<string, string>>({});
@@ -202,6 +202,8 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
         else if (selectedCategory === 'wajib') prefix = '11';
         else if (selectedCategory === 'wadiah') prefix = '20';
         else if (selectedCategory === 'mudharabah') prefix = '21';
+        else if (selectedCategory === 'haji') prefix = '31';
+        else if (selectedCategory === 'umrah') prefix = '32';
         
         const randNum = prefix + Math.floor(10000000 + Math.random() * 90000000).toString();
         const { data: newAcc, error: createErr } = await supabase
@@ -222,10 +224,12 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
 
       // 1. Post double-entry journal book entries via v2 API
       const debitAccount = transactionMethod === 'transfer' ? COA.CASH_IN_BANK : COA.CASH_ON_HAND;
-      let creditAccount = COA.SAVINGS_WADIAH; // 201.01
-      if (selectedCategory === 'pokok') creditAccount = COA.MEMBER_CAPITAL_PRINCIPAL; // 301.01
-      else if (selectedCategory === 'wajib') creditAccount = COA.MEMBER_CAPITAL_MANDATORY; // 301.02
-      else if (selectedCategory === 'mudharabah') creditAccount = COA.SAVINGS_MUDHARABAH; // 201.02
+      let creditAccount = COA.SAVINGS_WADIAH;
+      if (selectedCategory === 'pokok') creditAccount = COA.MEMBER_CAPITAL_PRINCIPAL;
+      else if (selectedCategory === 'wajib') creditAccount = COA.MEMBER_CAPITAL_MANDATORY;
+      else if (selectedCategory === 'mudharabah') creditAccount = COA.SAVINGS_MUDHARABAH;
+      else if (selectedCategory === 'haji') creditAccount = COA.SAVINGS_HAJI;
+      else if (selectedCategory === 'umrah') creditAccount = COA.SAVINGS_UMRAH;
 
       const entries = [
         { account_code: debitAccount, debit: totalAmountToPay, credit: 0 },
@@ -376,12 +380,14 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
       {/* Kategori Simpanan Syariah Buttons */}
       <div>
         <label style={{ display: 'block', fontSize: '16px', fontWeight: 900, color: '#cca334', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Kategori Simpanan (Akad Syariah)</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '14px' }}>
           {([
             { value: 'pokok', label: 'Simpanan Pokok', desc: 'Syirkah (Penyertaan)' },
             { value: 'wajib', label: 'Simpanan Wajib', desc: 'Syirkah (Kewajiban)' },
             { value: 'wadiah', label: 'Simpanan Wadiah', desc: 'Titipan Wadiah' },
             { value: 'mudharabah', label: 'Simpanan Mudharabah', desc: 'Bagi Hasil' },
+            { value: 'haji', label: 'Simpanan Haji', desc: 'Haji Khusus' },
+            { value: 'umrah', label: 'Simpanan Umrah', desc: 'Dana Umrah' },
           ] as const).map(cat => {
             const matchedAcc = selectedMember.savings_accounts?.find(a => a.account_type === cat.value);
             const hasAcc = !!matchedAcc;
@@ -446,6 +452,22 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
               AKAD MUDHARABAH MUTLAQAH (Investasi Bagi Hasil)
             </div>
             <span>Investasi modal produktif di mana anggota mempercayakan pengelolaan dana sepenuhnya kepada koperasi untuk disalurkan dalam pembiayaan komersial, dengan nisbah bagi hasil yang disepakati.</span>
+          </div>
+        )}
+        {selectedCategory === 'haji' && (
+          <div>
+            <div style={{ fontWeight: 900, color: '#f3c653', marginBottom: '8px', fontSize: '17px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              AKAD MUDHARABAH / DANA HAJI KHUSUS
+            </div>
+            <span>Penyetoran dana persiapan keberangkatan ibadah haji khusus anggota yang dikelola secara syariah dengan akad mudharabah bagi hasil produktif.</span>
+          </div>
+        )}
+        {selectedCategory === 'umrah' && (
+          <div>
+            <div style={{ fontWeight: 900, color: '#f3c653', marginBottom: '8px', fontSize: '17px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              AKAD MUDHARABAH / TABUNGAN UMRAH
+            </div>
+            <span>Penyetoran dana persiapan ibadah umrah anggota yang dikerjasamakan secara produktif untuk keberangkatan ibadah umrah.</span>
           </div>
         )}
       </div>

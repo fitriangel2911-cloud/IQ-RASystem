@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { COA } from '@/lib/constants/coa';
 
 const inputStyle = {
   width: '100%',
@@ -463,11 +464,11 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       }
 
       // 5. Post double-entry journal ke /api/accounting/record-v2 (SAK EP)
-      const creditAccount = specialSavingsType === 'haji' ? '302020' : '302030';
+      const creditAccount = specialSavingsType === 'haji' ? COA.SAVINGS_HAJI : COA.SAVINGS_UMRAH;
       const journalDesc = `[BUKA TABUNGAN BERTUJUAN] Pembukaan Rekening ${specialSavingsType === 'haji' ? 'Haji' : 'Umrah'} Baru: ${member.users?.full_name || member.mother_name} (No. Rek: ${accNumber}, Setoran Awal: Rp ${initialDepositNum.toLocaleString('id-ID')})`;
 
       const journalEntries = [
-        { account_code: '101.01', debit: initialDepositNum, credit: 0 },
+        { account_code: COA.CASH_ON_HAND, debit: initialDepositNum, credit: 0 },
         { account_code: creditAccount, debit: 0, credit: initialDepositNum }
       ];
 

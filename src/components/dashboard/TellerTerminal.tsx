@@ -11,6 +11,8 @@ import Panel5Payment from './teller/Panel5Payment';
 import Panel6Shift, { ShiftData } from './teller/Panel6Shift';
 import Panel7Disbursement from './teller/Panel7Disbursement';
 
+import { COA } from '@/lib/constants/coa';
+
 interface TellerTerminalProps {
   userId: string;
   activeMenu?: string;
@@ -23,9 +25,9 @@ const PANELS: { key: PanelKey; label: string; shortcut: string }[] = [
   { key: 'member',    label: 'Cari Anggota',    shortcut: '2' },
   { key: 'deposit',   label: 'Setoran Tunai',   shortcut: '3' },
   { key: 'withdrawal',label: 'Penarikan Tunai', shortcut: '4' },
-  { key: 'payment',   label: 'Bayar Angsuran',  shortcut: '5' },
-  { key: 'disbursement', label: 'Pencairan Pembiayaan', shortcut: '6' },
-  { key: 'shift',     label: 'Shift Kas',       shortcut: '7' },
+  { key: 'payment',   label: 'Angsuran',        shortcut: '5' },
+  { key: 'disbursement', label: 'Pencairan Pembiayaan', shortcut: '7' },
+  { key: 'shift',     label: 'Kas & Shift',     shortcut: '6' }
 ];
 
 const PANEL_TITLES: Record<PanelKey, string> = {
@@ -93,11 +95,11 @@ export default function TellerTerminal({ userId, activeMenu }: TellerTerminalPro
 
   async function loadDashboardData() {
     const supabase = createClient();
-    // Cash on Hand (COA 101.01): sum(debit) - sum(credit)
+    // Cash on Hand (COA 110102): sum(debit) - sum(credit)
     const { data: cashData } = await supabase
       .from('journal_entries')
       .select('debit, credit')
-      .eq('account_code', '101.01');
+      .eq('account_code', '110102');
     if (cashData) {
       const totalDebit = cashData.reduce((s, r) => s + (Number(r.debit) || 0), 0);
       const totalCredit = cashData.reduce((s, r) => s + (Number(r.credit) || 0), 0);
