@@ -85,7 +85,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
     setMessage(null);
 
     try {
-      const memberName = selectedMember?.users?.full_name || 'Anggota';
+      const memberName = selectedMember?.users?.full_name || (selectedMember as any)?.mother_name || 'Anggota Tanpa Nama';
       const refNo = `CAIR-${Date.now()}`;
       
       const debitAccount = contract.type === 'qardhul_hasan' ? COA.RECEIVABLE_QARDH : COA.RECEIVABLE_MURABAHAH; // Map to correct COA
@@ -258,7 +258,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           Otorisasi Pencairan Dana (Disbursement)
         </h3>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-          Daftar di bawah ini adalah pengajuan pembiayaan milik <strong>{selectedMember.users?.full_name}</strong> yang <strong>sudah disetujui (Approved)</strong> oleh Manajer/Komite dan siap untuk dicairkan uangnya oleh Teller.
+          Daftar di bawah ini adalah pengajuan pembiayaan milik <strong>{selectedMember.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama'}</strong> yang <strong>sudah disetujui (Approved)</strong> oleh Manajer/Komite dan siap untuk dicairkan uangnya oleh Teller.
         </p>
       </div>
 

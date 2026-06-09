@@ -88,7 +88,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
     setLoading(true); setMessage(null);
     try {
       const supabase = createClient();
-      const memberName = selectedMember!.users?.full_name || 'Anggota';
+      const memberName = selectedMember!.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama';
       const desc = `PENARIKAN TUNAI (VIA OTORISASI MANAJER) - ${memberName}`;
       
       let debitAccount = COA.SAVINGS_WADIAH; 
@@ -183,7 +183,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
   const processWithdrawal = async () => {
     setLoading(true); setMessage(null);
     try {
-      const memberName = selectedMember!.users?.full_name || 'Anggota';
+      const memberName = selectedMember!.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama';
       const refNo = `TLR-WDR-${Date.now()}`;
       const desc = `PENARIKAN TUNAI - ${memberName} (Kartu: ${cardNo})`;
 
@@ -350,7 +350,7 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
         <div style={{ background: 'rgba(252,165,165,0.06)', border: '1.5px solid rgba(252,165,165,0.3)', borderRadius: '16px', padding: '20px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '14px', color: '#fca5a5', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Anggota Terpilih</div>
-            <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px' }}>{selectedMember.users?.full_name}</div>
+            <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '4px' }}>{selectedMember.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama'}</div>
             <div style={{ fontSize: '15px', color: 'var(--text-secondary)', marginTop: '2px' }}>NIK: {selectedMember.nik}</div>
           </div>
           <span style={{ fontSize: '15px', fontWeight: 900, color: '#fca5a5', background: 'rgba(252,165,165,0.1)', padding: '8px 16px', borderRadius: '6px' }}>PENARIKAN</span>

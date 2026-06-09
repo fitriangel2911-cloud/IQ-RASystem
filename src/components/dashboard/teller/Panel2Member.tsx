@@ -159,6 +159,7 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
     const q = query.toLowerCase();
     let res = allMembers.filter(m =>
       m.users?.full_name?.toLowerCase().includes(q) ||
+      (m as any).mother_name?.toLowerCase().includes(q) ||
       m.nik?.includes(q) ||
       m.user_id?.includes(q)
     );
@@ -252,10 +253,10 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
                   background: 'linear-gradient(135deg, #f3c653, #cca334)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '18px', fontWeight: 900, color: '#02130e'
-                }}>{initials(m.users?.full_name)}</div>
+                }}>{initials(m.users?.full_name || (m as any).mother_name)}</div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                   <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {m.users?.full_name || 'Anggota'}
+                    {m.users?.full_name || (m as any).mother_name || 'Anggota Tanpa Nama'}
                   </div>
                   <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>NIK: {m.nik}</div>
                 </div>
@@ -309,7 +310,7 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
                           <div>
-                            <div><strong>Nama Anggota:</strong> ${selectedMember.users?.full_name}</div>
+                            <div><strong>Nama Anggota:</strong> ${selectedMember.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama'}</div>
                             <div><strong>NIK:</strong> ${selectedMember.nik}</div>
                           </div>
                           <div style="text-align: right;">
@@ -608,9 +609,9 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
                   background: 'linear-gradient(135deg, #f3c653, #cca334)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '28px', fontWeight: 900, color: '#02130e', flexShrink: 0
-                }}>{initials(selectedMember.users?.full_name)}</div>
+                }}>{initials(selectedMember.users?.full_name || (selectedMember as any).mother_name)}</div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)' }}>{selectedMember.users?.full_name}</h4>
+                  <h4 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)' }}>{selectedMember.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama'}</h4>
                   <div style={{ fontSize: '13px', color: '#4ade80', fontWeight: 800, marginTop: '4px' }}>● AKTIF</div>
                 </div>
               </div>

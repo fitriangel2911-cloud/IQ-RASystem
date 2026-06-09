@@ -111,7 +111,7 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
 
     setLoading(true); setMessage(null);
     try {
-      const memberName = selectedMember.users?.full_name || 'Anggota';
+      const memberName = selectedMember.users?.full_name || (selectedMember as any).mother_name || 'Anggota Tanpa Nama';
       const refNo = `TLR-ANG-${Date.now()}`;
       const modeLabel = paymentMode === 'full' ? 'Sesuai Tagihan' : paymentMode === 'partial' ? 'Bayar Sebagian' : 'Uang Muka';
       const methodLabel = transactionMethod === 'tunai' ? 'TUNAI' : 'TRANSFER BANK';
