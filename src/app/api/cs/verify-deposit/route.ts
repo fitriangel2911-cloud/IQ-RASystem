@@ -52,17 +52,17 @@ export async function POST(request: Request) {
       const mandatoryAmount = Number(parts[2] || 0);
 
       // 1. Update Pokok Account
-      let { data: pokokAcc } = await supabaseAdmin.from('savings_accounts').select('*').eq('member_id', memberId).eq('account_type', 'pokok').single();
+      let { data: pokokAcc } = await supabase.from('savings_accounts').select('*').eq('member_id', memberId).eq('account_type', 'pokok').single();
       if (pokokAcc && principalAmount > 0) {
-        await supabaseAdmin.from('savings_transactions').insert({ account_id: pokokAcc.id, transaction_type: 'deposit', amount: principalAmount, reference_no: `${refNo}-P` });
-        await supabaseAdmin.from('savings_accounts').update({ balance: Number(pokokAcc.balance || 0) + principalAmount }).eq('id', pokokAcc.id);
+        await supabase.from('savings_transactions').insert({ account_id: pokokAcc.id, transaction_type: 'deposit', amount: principalAmount, reference_no: `${refNo}-P` });
+        await supabase.from('savings_accounts').update({ balance: Number(pokokAcc.balance || 0) + principalAmount }).eq('id', pokokAcc.id);
       }
 
       // 2. Update Wajib Account
-      let { data: wajibAcc } = await supabaseAdmin.from('savings_accounts').select('*').eq('member_id', memberId).eq('account_type', 'wajib').single();
+      let { data: wajibAcc } = await supabase.from('savings_accounts').select('*').eq('member_id', memberId).eq('account_type', 'wajib').single();
       if (wajibAcc && mandatoryAmount > 0) {
-        await supabaseAdmin.from('savings_transactions').insert({ account_id: wajibAcc.id, transaction_type: 'deposit', amount: mandatoryAmount, reference_no: `${refNo}-W` });
-        await supabaseAdmin.from('savings_accounts').update({ balance: Number(wajibAcc.balance || 0) + mandatoryAmount }).eq('id', wajibAcc.id);
+        await supabase.from('savings_transactions').insert({ account_id: wajibAcc.id, transaction_type: 'deposit', amount: mandatoryAmount, reference_no: `${refNo}-W` });
+        await supabase.from('savings_accounts').update({ balance: Number(wajibAcc.balance || 0) + mandatoryAmount }).eq('id', wajibAcc.id);
       }
 
       // 3. Update Member Status
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
 
     } else {
       // 2. Find or Create target savings account (SINGLE DEPOSIT MODE)
-      let { data: account, error: accErr } = await supabaseAdmin
+      let { data: account, error: accErr } = await supabase
         .from('savings_accounts')
         .select('*')
         .eq('member_id', memberId)
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
         const randomSuffix = Math.floor(10000000 + Math.random() * 90000000).toString();
         const accountNum = `${prefix}${randomSuffix}`;
 
-        const { data: newAcc, error: createAccErr } = await supabaseAdmin
+        const { data: newAcc, error: createAccErr } = await supabase
           .from('savings_accounts')
           .insert({
             member_id: memberId,
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       }
 
       // 3. Record Transaction Log
-      const { error: txErr } = await supabaseAdmin
+      const { error: txErr } = await supabase
         .from('savings_transactions')
         .insert({
           account_id: accountId,
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
 
       // 4. Update Balance
       const newBalance = Number(account.balance || 0) + Number(amount);
-      const { error: balanceErr } = await supabaseAdmin
+      const { error: balanceErr } = await supabase
         .from('savings_accounts')
         .update({ balance: newBalance })
         .eq('id', accountId);
