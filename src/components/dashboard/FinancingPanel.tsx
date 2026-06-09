@@ -14,7 +14,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
   const [submitting, setSubmitting] = useState(false);
 
   // Form states
-  const [amount, setAmount] = useState<number>(5000000);
+  const [displayAmount, setDisplayAmount] = useState<string>('5.000.000');
   const [contractType, setContractType] = useState<string>('murabahah');
   const [purpose, setPurpose] = useState<string>('');
   const [jobDetail, setJobDetail] = useState<string>('');
@@ -33,7 +33,9 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       return;
     }
 
-    if (amount <= 0) {
+    const rawAmount = Number(displayAmount.replace(/\D/g, ''));
+
+    if (rawAmount <= 0) {
       alert('❌ Jumlah pengajuan tidak valid.');
       return;
     }
@@ -48,7 +50,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
           member_id: profile.user_id, // References users(id) in the schema
           member_name: profile.full_name,
           type: contractType,
-          amount: amount,
+          amount: rawAmount,
           status: 'pending',
           tenor_months: tenorMonths ? Number(tenorMonths) : 12,
           collateral_metadata: {
@@ -64,7 +66,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
 
       alert('🎉 Alhamdulillah! Pengajuan Pembiayaan Syariah Anda Telah Dikirim.\nPetugas Account Officer kami akan meninjau permohonan Anda dalam waktu maksimal 3x24 jam.');
       setIsApplying(false);
-      setAmount(5000000);
+      setDisplayAmount('5.000.000');
       setPurpose('');
       setJobDetail('');
       setAkadObject('');
@@ -179,10 +181,13 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
                   <input 
-                    type="number" 
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    placeholder="Contoh: 5000000" 
+                    type="text" 
+                    value={displayAmount}
+                    onChange={(e) => {
+                      const numeric = e.target.value.replace(/\D/g, '');
+                      setDisplayAmount(numeric ? Number(numeric).toLocaleString('id-ID') : '');
+                    }}
+                    placeholder="Contoh: 5.000.000" 
                     style={inputStyle}
                     required 
                   />

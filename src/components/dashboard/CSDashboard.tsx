@@ -248,7 +248,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
           ktp_address: formData.ktpAddress,
           domicile_address: formData.domicileAddress || formData.ktpAddress,
           occupation: formData.occupation,
-          monthly_income: parseInt(formData.monthlyIncome) || 0,
+          monthly_income: parseInt(formData.monthlyIncome.toString().replace(/\D/g, '')) || 0,
           religion: formData.religion,
           birth_place_date: formData.birthPlaceDate,
           gender: formData.gender,
@@ -271,8 +271,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       const memberId = memberData.id;
 
       // 4. PEMBUATAN OTOMATIS REKENING SIMPANAN KOPERASI (Pokok, Wajib, Wadiah)
-      const initialPrincipalAmount = Number(formData.initialPrincipal) || 0;
-      const initialMandatoryAmount = Number(formData.initialMandatory) || 0;
+      const initialPrincipalAmount = Number(formData.initialPrincipal.toString().replace(/\D/g, '')) || 0;
+      const initialMandatoryAmount = Number(formData.initialMandatory.toString().replace(/\D/g, '')) || 0;
       
       const accountsToCreate = [
         { type: 'pokok', balance: initialPrincipalAmount, prefix: '11' },
@@ -313,7 +313,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       const admParam = systemParams.find(p => p.key === 'biaya_adm');
       const admFee = admParam ? Number(admParam.value) : 15000;
-      const infaqSedekahBase = Number(formData.initialInfaq) || 10000;
+      const infaqSedekahBase = Number(formData.initialInfaq.toString().replace(/\D/g, '')) || 10000;
       const infaqSedekahTotal = infaqSedekahBase; // Kode unik dipisah ke unik_code kolom
 
       const grandTotalPayment = totalInitialDeposit + admFee + infaqSedekahTotal + uniqueCodeValue;
@@ -970,11 +970,14 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                onChange={(val: string) => setFormData({...formData, companyName: val})} 
              />
              <CSInputField 
-               label="Estimasi Pendapatan Per Bulan" 
-               placeholder="Dalam Rupiah (Contoh: 5000000)..." 
-               value={formData.monthlyIncome} 
-               onChange={(val: string) => setFormData({...formData, monthlyIncome: val})} 
-             />
+                label="Estimasi Pendapatan Per Bulan" 
+                placeholder="Dalam Rupiah (Contoh: 5.000.000)..." 
+                value={formData.monthlyIncome} 
+                onChange={(val: string) => {
+                  const numeric = val.replace(/\D/g, '');
+                  setFormData({...formData, monthlyIncome: numeric ? Number(numeric).toLocaleString('id-ID') : ''});
+                }} 
+              />
              
              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                <label style={{ color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sumber Dana (APU-PPT Compliance)</label>
@@ -1029,9 +1032,33 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                <h3 style={{ color: 'var(--gold-intense)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>SETORAN SIMPANAN AWAL KOPERASI (SAK EP)</h3>
              </div>
 
-             <CSInputField label="Simpanan Pokok (Setoran Awal)" placeholder="Contoh: 100000" value={formData.initialPrincipal} onChange={(val: string) => setFormData({...formData, initialPrincipal: val})} />
-             <CSInputField label="Simpanan Wajib (Setoran Awal)" placeholder="Contoh: 20000" value={formData.initialMandatory} onChange={(val: string) => setFormData({...formData, initialMandatory: val})} />
-             <CSInputField label="Donasi Infaq Koperasi (Opsional)" placeholder="Minimal 10000" value={formData.initialInfaq} onChange={(val: string) => setFormData({...formData, initialInfaq: val})} />
+             <CSInputField 
+                label="Simpanan Pokok (Setoran Awal)" 
+                placeholder="Contoh: 300.000" 
+                value={formData.initialPrincipal} 
+                onChange={(val: string) => {
+                  const numeric = val.replace(/\D/g, '');
+                  setFormData({...formData, initialPrincipal: numeric ? Number(numeric).toLocaleString('id-ID') : ''});
+                }} 
+              />
+              <CSInputField 
+                label="Simpanan Wajib (Setoran Awal)" 
+                placeholder="Contoh: 50.000" 
+                value={formData.initialMandatory} 
+                onChange={(val: string) => {
+                  const numeric = val.replace(/\D/g, '');
+                  setFormData({...formData, initialMandatory: numeric ? Number(numeric).toLocaleString('id-ID') : ''});
+                }} 
+              />
+              <CSInputField 
+                label="Donasi Infaq Koperasi (Opsional)" 
+                placeholder="Minimal 10.000" 
+                value={formData.initialInfaq} 
+                onChange={(val: string) => {
+                  const numeric = val.replace(/\D/g, '');
+                  setFormData({...formData, initialInfaq: numeric ? Number(numeric).toLocaleString('id-ID') : ''});
+                }} 
+              />
             
             <div style={{ gridColumn: 'span 2', marginTop: '12px' }}>
               <button 
@@ -1640,12 +1667,15 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     required 
                     style={inputStyle} 
-                    placeholder="Contoh: 10000000" 
+                    placeholder="Contoh: 10.000.000" 
                     value={financingData.amount}
-                    onChange={(e) => setFinancingData({...financingData, amount: e.target.value})}
+                    onChange={(e) => {
+                      const numeric = e.target.value.replace(/\D/g, '');
+                      setFinancingData({...financingData, amount: numeric ? Number(numeric).toLocaleString('id-ID') : ''});
+                    }}
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1787,7 +1817,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
               <button 
                 type="button" 
                 onClick={() => {
-                  if (!financingData.member_id || !financingData.amount || !financingData.purpose) {
+                  const rawAmount = Number(financingData.amount.toString().replace(/\D/g, ''));
+                  if (!financingData.member_id || !rawAmount || !financingData.purpose) {
                     setMessage({ type: 'error', text: 'Mohon lengkapi data anggota, nominal, dan tujuan pembiayaan terlebih dahulu.' });
                     return;
                   }
@@ -1802,7 +1833,10 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         const response = await fetch('/api/cs/submit-financing', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(financingData)
+                          body: JSON.stringify({
+                            ...financingData,
+                            amount: financingData.amount.toString().replace(/\D/g, '')
+                          })
                         });
                         const data = await response.json();
                         if (data.success) {

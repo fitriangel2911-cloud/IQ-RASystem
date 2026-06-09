@@ -8,10 +8,10 @@ if (!fs.existsSync(envPath)) {
 
 const envContent = fs.readFileSync(envPath, 'utf8');
 const urlMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/);
-const keyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.*)/);
+const keyMatch = envContent.match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/);
 
 if (!urlMatch || !keyMatch) {
-  console.error("Error: URL or Anon key missing in .env.local");
+  console.error("Error: URL or Service Role key missing in .env.local");
   process.exit(1);
 }
 
@@ -50,6 +50,19 @@ async function testConnection() {
         console.log("Both tables are empty.");
       }
     }
+  }
+
+  // Let's also check financing_applications if it exists
+  const { data: aData, error: aError } = await supabase
+    .from('financing_applications')
+    .select('*')
+    .limit(1);
+  if (aError) {
+    console.error("Error fetching financing_applications:", aError.message);
+  } else if (aData && aData.length > 0) {
+    console.log("financing_applications table columns:", Object.keys(aData[0]));
+  } else {
+    console.log("financing_applications is empty or not found.");
   }
 }
 

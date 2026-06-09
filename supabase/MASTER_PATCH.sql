@@ -115,6 +115,13 @@ ALTER TABLE public.users
 ADD CONSTRAINT users_role_check
 CHECK (role IN ('teller', 'customer_service', 'account_officer', 'manager', 'accounting', 'super_admin', 'member', 'dps'));
 
+-- ----------------------------------------
+-- 6. KOLOM: tenor_months dan member_name di financing_contracts (jika belum ada)
+-- ----------------------------------------
+ALTER TABLE public.financing_contracts
+    ADD COLUMN IF NOT EXISTS tenor_months INTEGER DEFAULT 12,
+    ADD COLUMN IF NOT EXISTS member_name TEXT;
+
 -- ==========================================================
 -- SELESAI. Semua tabel yang diperlukan sudah tersedia.
 -- Tidak ada data yang dihapus.
