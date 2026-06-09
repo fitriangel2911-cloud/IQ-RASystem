@@ -183,18 +183,25 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
     setLoadingAccounts(true);
     const supabase = createClient();
     let accounts: any[] = [];
-    if (member.id === 'mock-member-fitri' || member.users?.full_name?.toLowerCase().includes('fitri')) {
-      accounts = [
-        { id: 'mock-acc-fitri-wadiah', account_number: 'WAD-10293847', account_type: 'wadiah', balance: 5000000 },
-        { id: 'mock-acc-fitri-mudharabah', account_number: 'MUD-20394857', account_type: 'mudharabah', balance: 10000000 }
-      ];
-    } else {
+    
+    // Always try to fetch actual accounts first
+    if (member.id !== 'mock-member-fitri') {
       const { data } = await supabase
         .from('savings_accounts')
         .select('*')
         .eq('member_id', member.user_id);
       accounts = data || [];
     }
+
+    // UAT MOCK DATA INJECTION:
+    // Jika tidak ada data asli, berikan data dummy supaya semua member punya "Tampilan Baru"
+    if (accounts.length === 0) {
+      accounts = [
+        { id: `mock-wadiah-${member.id}`, account_number: `WAD-${Math.floor(Math.random()*899999)+100000}`, account_type: 'wadiah', balance: Math.floor(Math.random() * 20000000) + 1000000 },
+        { id: `mock-mudharabah-${member.id}`, account_number: `MUD-${Math.floor(Math.random()*899999)+100000}`, account_type: 'mudharabah', balance: Math.floor(Math.random() * 50000000) + 5000000 }
+      ];
+    }
+
     const enriched = { ...member, savings_accounts: accounts };
     onSelectMember(enriched);
     setLoadingAccounts(false);

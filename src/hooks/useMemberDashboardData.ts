@@ -77,9 +77,45 @@ export function useMemberDashboardData() {
       if (txRes.error) throw new Error('Gagal mengambil data transaksi: ' + txRes.error.message);
       if (conRes.error) throw new Error('Gagal mengambil data pengajuan: ' + conRes.error.message);
 
-      setAccounts(accData || []);
-      setTransactions(txRes.data || []);
-      setContracts(conRes.data || []);
+      let finalAccounts = accData || [];
+      let finalTransactions = txRes.data || [];
+      let finalContracts = conRes.data || [];
+
+      // ==========================================
+      // UAT MOCK DATA INJECTION
+      // Jika anggota belum punya rekening asli di database, 
+      // kita berikan dummy data agar mereka bisa melihat "Tampilan Baru" yang full fitur!
+      // ==========================================
+      if (finalAccounts.length === 0) {
+        finalAccounts = [
+          { id: 'mock-wadiah', account_number: 'WAD-888999', account_type: 'wadiah', balance: 12500000, status: 'active', created_at: new Date().toISOString() },
+          { id: 'mock-mudharabah', account_number: 'MUD-777666', account_type: 'mudharabah', balance: 45000000, status: 'active', created_at: new Date().toISOString() }
+        ];
+        
+        finalTransactions = [
+          { id: 'tx-1', account_id: 'mock-wadiah', transaction_type: 'deposit', amount: 5000000, balance_after: 12500000, description: 'Setoran Tunai (Simulasi)', created_at: new Date().toISOString() },
+          { id: 'tx-2', account_id: 'mock-wadiah', transaction_type: 'withdrawal', amount: 1500000, balance_after: 7500000, description: 'Tarik Tunai via Teller (Simulasi)', created_at: new Date(Date.now() - 86400000).toISOString() },
+          { id: 'tx-3', account_id: 'mock-mudharabah', transaction_type: 'deposit', amount: 45000000, balance_after: 45000000, description: 'Setoran Awal Investasi (Simulasi)', created_at: new Date(Date.now() - 172800000).toISOString() }
+        ];
+
+        finalContracts = [
+          { 
+            id: 'mock-contract-1', 
+            contract_number: 'MUR-2026-001', 
+            financing_type: 'murabahah', 
+            amount: 25000000, 
+            margin_rate: 10,
+            tenor_months: 24,
+            status: 'active',
+            created_at: new Date(Date.now() - 259200000).toISOString(),
+            details: { object: 'Motor Operasional Usaha', ai_confidence: 94 }
+          }
+        ];
+      }
+
+      setAccounts(finalAccounts);
+      setTransactions(finalTransactions);
+      setContracts(finalContracts);
 
     } catch (err: any) {
       console.error('Fetch Error:', err);
