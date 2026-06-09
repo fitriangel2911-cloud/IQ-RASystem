@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     "Platform keuangan mikro syariah berbasis web dengan mekanisme RAG AI untuk rekomendasi akad dan kepatuhan SAK EP secara otomatis.",
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { ThemeProvider } from "@/context/ThemeContext";
 import GlobalSiteBackground from "@/components/dashboard/GlobalSiteBackground";
 
