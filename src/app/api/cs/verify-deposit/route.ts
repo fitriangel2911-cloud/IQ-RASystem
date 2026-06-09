@@ -36,7 +36,13 @@ export async function POST(request: Request) {
     }
 
     const memberId = verification.member_id;
-    const { payment_type: paymentType, target_account_type: targetAccountType, amount, admin_fee: adminFee, infaq, unique_code: uniqueCode, total_paid: totalPaid, reference_no: refNo } = verification;
+    let { payment_type: paymentType, target_account_type: targetAccountType, amount, admin_fee: adminFee, infaq, unique_code: uniqueCode, total_paid: totalPaid, reference_no: refNo } = verification;
+
+    if (!targetAccountType) {
+      if (paymentType === 'principal') targetAccountType = 'pokok';
+      else if (paymentType === 'mandatory') targetAccountType = 'wajib';
+      else targetAccountType = 'wadiah';
+    }
 
     const isRegistrationBundle = paymentType.startsWith('registration_bundle');
 
@@ -153,7 +159,7 @@ export async function POST(request: Request) {
           .select()
           .single();
 
-        if (createAccErr) throw new Error('Gagal membuat rekening baru.');
+        if (createAccErr) throw new Error(`Gagal membuat rekening baru: ${createAccErr.message} ${JSON.stringify(createAccErr)}`);
         accountId = newAcc.id;
         account = newAcc;
       }

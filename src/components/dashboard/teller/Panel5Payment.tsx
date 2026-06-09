@@ -78,7 +78,7 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
     const fetchContracts = async () => {
       const supabase = createClient();
       let list: any[] = [];
-      if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase().includes('fitri')) {
+      if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase()?.includes('fitri')) {
         const fitriStatus = localStorage.getItem('mock_status_fitri_angelina') || 'pending';
         if (fitriStatus === 'active') {
           list = [{
@@ -136,7 +136,7 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
       }
 
       const supabase = createClient();
-      if (!selectedMember.user_id.toString().startsWith('mock-') && !selectedMember.users?.full_name?.toLowerCase().includes('fitri')) {
+      if (!selectedMember.user_id.toString().startsWith('mock-') && !selectedMember.users?.full_name?.toLowerCase()?.includes('fitri')) {
         const res = await fetch('/api/accounting/record-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

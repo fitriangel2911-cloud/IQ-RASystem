@@ -113,7 +113,7 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
         setLoadingContracts(true);
         const supabase = createClient();
         let list: any[] = [];
-        if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase().includes('fitri')) {
+        if (selectedMember.id === 'mock-member-fitri' || selectedMember.users?.full_name?.toLowerCase()?.includes('fitri')) {
           const fitriStatus = localStorage.getItem('mock_status_fitri_angelina') || 'pending';
           if (fitriStatus === 'active') {
             list = [{
@@ -160,12 +160,12 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
     let res = allMembers.filter(m =>
       (m.users?.full_name || '').toLowerCase().includes(q) ||
       ((m as any).mother_name || '').toLowerCase().includes(q) ||
-      (m.nik || '').includes(q) ||
-      (m.user_id || '').includes(q)
+      String(m.nik || '').includes(q) ||
+      String(m.user_id || '').includes(q)
     );
     // Inject mock Fitri Angelina if query matches and not exists in allMembers
     if ('fitri'.includes(q) || q.includes('fitri') || '3174'.includes(q)) {
-      const exists = allMembers.some(m => m.users?.full_name?.toLowerCase().includes('fitri'));
+      const exists = allMembers.some(m => m.users?.full_name?.toLowerCase()?.includes('fitri'));
       if (!exists) {
         res.push({
           id: 'mock-member-fitri',
@@ -184,7 +184,7 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
     setLoadingAccounts(true);
     const supabase = createClient();
     let accounts: any[] = [];
-    if (member.id === 'mock-member-fitri' || member.users?.full_name?.toLowerCase().includes('fitri')) {
+    if (member.id === 'mock-member-fitri' || member.users?.full_name?.toLowerCase()?.includes('fitri')) {
       accounts = [
         { id: 'mock-acc-fitri-wadiah', account_number: 'WAD-10293847', account_type: 'wadiah', balance: 5000000 },
         { id: 'mock-acc-fitri-mudharabah', account_number: 'MUD-20394857', account_type: 'mudharabah', balance: 10000000 }
