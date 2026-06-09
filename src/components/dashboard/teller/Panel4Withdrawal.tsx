@@ -130,8 +130,9 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       }]);
       if (txErr) throw txErr;
 
-      // 4. Update status to completed
-      await supabase.from('withdrawal_requests').update({ status: 'completed' }).eq('id', req.id);
+      // 4. Hapus antrean secara permanen (karena sudah dieksekusi)
+      const { error: reqErr } = await supabase.from('withdrawal_requests').delete().eq('id', req.id);
+      if (reqErr) throw reqErr;
 
       setApprovedRequests(prev => prev.filter(r => r.id !== req.id));
       setShowSuccessPopup({ amount: req.amount, refNo: req.reference_no || '-' });
