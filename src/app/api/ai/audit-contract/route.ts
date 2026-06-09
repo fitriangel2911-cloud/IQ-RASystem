@@ -53,10 +53,26 @@ export async function POST(req: Request) {
     }
 
     // 3. Perform RAG query
-    const realPurpose = contract.collateral_metadata?.purpose || prospect?.purpose || 'Pembiayaan Syariah';
-    const realIncome = contract.collateral_metadata?.income || 'Tidak diisi';
-    const realNotes = contract.collateral_metadata?.notes || 'Tidak ada catatan tambahan';
-    const realAddress = contract.collateral_metadata?.address || 'Tidak diisi';
+    const parseMetadata = (meta: any) => {
+      if (!meta) return {};
+      if (typeof meta === 'object') return meta;
+      try {
+        return JSON.parse(meta);
+      } catch (e) {
+        return {};
+      }
+    };
+
+    const metadata = parseMetadata(contract.collateral_metadata);
+    const prospectMetadata = parseMetadata(prospect?.collateral_metadata);
+
+    const realPurpose = metadata.purpose || prospectMetadata.purpose || prospect?.purpose || 'Pembiayaan Syariah';
+    const realJob = metadata.job_detail || prospectMetadata.job_detail || 'Tidak diisi';
+    const realAkadObject = metadata.akad_object || prospectMetadata.akad_object || 'Tidak diisi';
+    const realCollaterals = metadata.collaterals || prospectMetadata.collaterals || 'Tidak ada jaminan';
+    const realIncome = metadata.income || prospectMetadata.income || 'Tidak diisi';
+    const realNotes = metadata.notes || prospectMetadata.notes || 'Tidak ada catatan tambahan';
+    const realAddress = metadata.address || prospectMetadata.address || 'Tidak diisi';
 
     const queryForEmbed = `Akad: ${contract.type}. Tujuan: ${realPurpose}. Nominal: Rp ${contract.amount}.`;
     let contextDocs: any[] = [];
@@ -102,20 +118,23 @@ INFORMASI KONTRAK PEMBIAYAAN (DATA AKTUAL NASABAH):
 - Plafon Pembiayaan: Rp ${Number(contract.amount || 0).toLocaleString('id-ID')}
 - Tanggal Pengajuan: ${contract.created_at}
 
-DATA LAPANGAN & KEBUTUHAN (DARI FORM / SURVEI AO):
-- Tujuan/Kebutuhan Sebenarnya: ${realPurpose}
-- Pendapatan Bulanan: ${realIncome}
-- Catatan Jaminan / Agunan / Prospek Asli: ${realNotes}
-- Alamat/Lokasi Usaha: ${realAddress}
+DATA FORMULIR PENGAJUAN & SURVEI LAPANGAN AKTUAL:
+- Tujuan / Kebutuhan Sebenarnya: ${realPurpose}
+- Detail Pekerjaan / Bidang Usaha: ${realJob}
+- Objek Akad / Aset yang Dibiayai: ${realAkadObject}
+- Agunan / Jaminan Diajukan Debitur: ${realCollaterals}
+- Estimasi Pendapatan Bulanan: ${realIncome}
+- Alamat Hasil Survei Domisili: ${realAddress}
+- Catatan Kelayakan Lapangan AO: ${realNotes}
 
 RUJUKAN FATWA / KEBIJAKAN SYARIAH (Hasil RAG):
 ${contextText}
 
 Silakan susun dossier audit syariah terperinci berdasarkan DATA AKTUAL di atas. Anda harus menganalisis:
-1. Pengajuan Pembiayaan: validasi kesesuaian akad ${contract.type} dengan Tujuan/Kebutuhan Sebenarnya (${realPurpose}).
-2. Jaminan (Collateral): JIKA TIDAK ADA JAMINAN (misal: Qardhul Hasan tanpa agunan), SEBUTKAN BAHWA TIDAK ADA JAMINAN ATAU SESUAI CATATAN. JANGAN MENGARANG EMAS/BPKB JIKA TIDAK DITULIS!
-3. Kebutuhan (Needs): evaluasi kebutuhan nasabah sesuai "Tujuan/Kebutuhan Sebenarnya" di atas, BUKAN modal usaha jika tujuannya adalah pendidikan/konsumtif.
-4. Prospek Kelayakan: evaluasi berdasarkan Pendapatan Bulanan aktual (${realIncome}) dan catatan survei (${realNotes}). Jika pendapatan kosong, sebutkan bahwa data belum lengkap. Dilarang mengarang omset fiktif. Jika akad Qardhul Hasan (kebajikan), jangan hitung margin/nisbah, hanya pengembalian pokok!
+1. Pengajuan Pembiayaan: validasi kesesuaian akad ${contract.type} dengan Tujuan/Kebutuhan Sebenarnya (${realPurpose}) dan Objek Akad (${realAkadObject}).
+2. Jaminan (Collateral): Analisis kesesuaian Agunan / Jaminan Diajukan Debitur (${realCollaterals}) serta Catatan AO (${realNotes}). JIKA TIDAK ADA JAMINAN (misalnya Qardhul Hasan tanpa agunan), SEBUTKAN JELAS BAHWA TIDAK ADA AGUNAN/JAMINAN. DILARANG KERAS MENGARANG AGUNAN EMAS/BPKB JIKA TIDAK DITULIS DI DATA DI ATAS!
+3. Kebutuhan (Needs): evaluasi kebutuhan nasabah sesuai "Tujuan/Kebutuhan Sebenarnya" (${realPurpose}) dan "Objek Akad" (${realAkadObject}).
+4. Prospek Kelayakan: evaluasi berdasarkan Pendapatan Bulanan aktual (${realIncome}) dan catatan survei (${realNotes}) serta Pekerjaan (${realJob}). Hitung rasio kemampuan bayar (DSCR = Pendapatan / Angsuran Bulanan) secara kasar jika ada datanya. Jika pendapatan kosong, sebutkan bahwa data belum lengkap. Dilarang mengarang omset fiktif. Jika akad Qardhul Hasan (kebajikan), jangan hitung margin/nisbah, hanya pengembalian pokok!
 5. Opini Syariah Resmi: pastikan akad sesuai dengan sifatnya (misal: Qardhul hasan dilarang ada persenan imbal hasil/margin/nisbah). Kutip fatwa DSN-MUI yang relevan dari dokumen RAG.
 
 Kembalikan jawaban Anda dalam format JSON persis seperti berikut (tanpa tambahan markdown, tanpa petik tiga \`\`\`json, murni kode JSON):
@@ -128,8 +147,8 @@ Kembalikan jawaban Anda dalam format JSON persis seperti berikut (tanpa tambahan
     "serahTerimaAwal": true,
     "bebasRiba": true
   },
-  "collateral": "Tuliskan detail jaminan syariah yang ditentukan (misalnya: Agunan BPKB motor Honda Vario senilai Rp 18.000.000 atas nama Debitur). Harus logis dengan plafon.",
-  "prospectAnalysis": "Tuliskan analisis kebutuhan nasabah dan prospek usahanya secara kuantitatif dan kualitatif, termasuk omset bulanan dan rasio kemampuan bayar (DSCR) nasabah.",
+  "collateral": "Deskripsikan detail agunan/jaminan fisik aktual berdasarkan data yang diajukan nasabah (${realCollaterals}) dan catatan AO (${realNotes}). Jika tidak ada jaminan, tulis 'Tanpa Jaminan Fisik (Hanya Jaminan Personal / Karakter)'. DILARANG KERAS menggunakan contoh Honda Vario jika tidak tertera di data input!",
+  "prospectAnalysis": "Tuliskan analisis kebutuhan nasabah dan prospek usahanya secara kuantitatif dan kualitatif berdasarkan data riil: pekerjaan (${realJob}), objek akad (${realAkadObject}), pendapatan bulanan (${realIncome}), serta catatan kelayakan AO (${realNotes}).",
   "fatwaReferences": "Sebutkan nama dan nomor fatwa DSN-MUI yang menjadi rujukan utama akad ini."
 }
 `;

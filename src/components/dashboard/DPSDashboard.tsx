@@ -1023,7 +1023,9 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                           </h4>
                           <div style={{ background: 'var(--bg-subtle-warning)', border: '1.5px solid var(--border-warning)', padding: '16px', borderRadius: '14px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                             <div>
-                              <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Aset Penjaminan Fisik</strong>
+                              <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>
+                                Aset Penjaminan Fisik Diajukan: <span style={{ color: 'var(--text-gold)' }}>{(activeAuditContract?.collateral_metadata ? (typeof activeAuditContract.collateral_metadata === 'object' ? activeAuditContract.collateral_metadata.collaterals : (() => { try { return JSON.parse(activeAuditContract.collateral_metadata).collaterals; } catch(e) { return ''; } })()) : '') || 'Tanpa Jaminan Fisik'}</span>
+                              </strong>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
                                 {aiAuditResult.collateral}
                               </p>
@@ -1040,7 +1042,7 @@ export default function DPSDashboard({ activeMenu, profile }: DPSDashboardProps)
                             <div>
                               <strong style={{ color: 'var(--text-primary)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Deskripsi Kebutuhan</strong>
                               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0, lineHeight: '1.5' }}>
-                                Dana dialokasikan sepenuhnya untuk kebutuhan produktif syariah: <strong>{activeAuditContract.prospect_purpose || 'Modal Kerja Pengembangan Usaha'}</strong>.
+                                Dana dialokasikan sepenuhnya untuk: <strong>{(activeAuditContract?.collateral_metadata ? (typeof activeAuditContract.collateral_metadata === 'object' ? activeAuditContract.collateral_metadata.purpose : (() => { try { return JSON.parse(activeAuditContract.collateral_metadata).purpose; } catch(e) { return ''; } })()) : '') || activeAuditContract.prospect_purpose || 'Modal Kerja Pengembangan Usaha'}</strong> (Objek Akad: <strong>{(activeAuditContract?.collateral_metadata ? (typeof activeAuditContract.collateral_metadata === 'object' ? activeAuditContract.collateral_metadata.akad_object : (() => { try { return JSON.parse(activeAuditContract.collateral_metadata).akad_object; } catch(e) { return ''; } })()) : '') || 'Sesuai Ketentuan'}</strong>).
                               </p>
                             </div>
                           </div>
