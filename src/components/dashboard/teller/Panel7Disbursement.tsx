@@ -82,6 +82,36 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           .eq('status', 'approved')
           .order('created_at', { ascending: false });
         list = data || [];
+
+        // Load approved mock prospects from localStorage
+        const savedLocal = localStorage.getItem('demo_prospects');
+        if (savedLocal) {
+          try {
+            const localProspects = JSON.parse(savedLocal);
+            const memberNameLower = selectedMember.users?.full_name?.toLowerCase() || '';
+            localProspects.forEach((p: any) => {
+              const prospectNameLower = (p.name || '').toLowerCase();
+              if (prospectNameLower && (memberNameLower.includes(prospectNameLower) || prospectNameLower.includes(memberNameLower))) {
+                if (p.status === 'approved') {
+                  if (!list.some(c => c.id === `mock-contract-${p.id}`)) {
+                    list.push({
+                      id: `mock-contract-${p.id}`,
+                      prospect_id: p.id,
+                      type: p.type || p.ai_contract_type || 'murabahah',
+                      amount: Number(p.amount || 0),
+                      tenor_months: Number(p.tenor || 12),
+                      margin_ratio: 0.1,
+                      status: 'approved',
+                      created_at: p.created_at || new Date().toISOString()
+                    });
+                  }
+                }
+              }
+            });
+          } catch (e) {
+            console.error('Failed to parse demo_prospects:', e);
+          }
+        }
       }
         
       setContracts(list);
@@ -105,12 +135,30 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
     setMessage(null);
 
     try {
-      if (contract.id === 'mock-contract-fitri-angelina') {
-        localStorage.setItem('mock_status_fitri_angelina', 'active');
+      if (contract.id.toString().startsWith('mock-contract')) {
+        const isFitri = contract.id === 'mock-contract-fitri-angelina';
+        if (isFitri) {
+          localStorage.setItem('mock_status_fitri_angelina', 'active');
+        } else {
+          // Update status in demo_prospects
+          const savedLocal = localStorage.getItem('demo_prospects');
+          if (savedLocal) {
+            try {
+              const localProspects = JSON.parse(savedLocal);
+              const updated = localProspects.map((p: any) => 
+                p.id === (contract as any).prospect_id 
+                  ? { ...p, status: 'Cair / Aktif', is_converted: true } 
+                  : p
+              );
+              localStorage.setItem('demo_prospects', JSON.stringify(updated));
+            } catch (e) {}
+          }
+        }
         
         // Print Slip
         const win = window.open('', '_blank', 'width=380,height=600');
         if (win) {
+          const memberName = selectedMember?.users?.full_name || 'Anggota Demo';
           win.document.write(`
             <html><head><title>Bukti Pencairan</title>
             <style>body{font-family:'Courier New',monospace;font-size:13px;padding:16px;max-width:300px;margin:0 auto;}.center{text-align:center;}.bold{font-weight:bold;}.line{border-top:1px dashed #000;margin:8px 0;}.row{display:flex;justify-content:space-between;margin:4px 0;}.title{font-size:18px;font-weight:bold;text-align:center;margin:8px 0;}</style>
@@ -122,13 +170,13 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
             <div class="row"><span>No. Ref</span><span>CAIR-MOCK-${Date.now()}</span></div>
             <div class="row"><span>Petugas</span><span>${tellerName}</span></div>
             <div class="line"></div>
-            <div class="row"><span>Nama</span><span>Fitri Angelina</span></div>
-            <div class="row"><span>NIK</span><span>3174092837492834</span></div>
+            <div class="row"><span>Nama</span><span>${memberName}</span></div>
+            <div class="row"><span>NIK</span><span>${selectedMember?.nik || '3174092837492834'}</span></div>
             <div class="row"><span>Metode</span><span>${transactionMethod === 'transfer' ? 'Transfer ke Rekening' : 'Uang Tunai'}</span></div>
-            <div class="row"><span>Jenis Akad</span><span>QARDHUL HASAN</span></div>
+            <div class="row"><span>Jenis Akad</span><span>${contract.type.toUpperCase()}</span></div>
             <div class="line"></div>
-            <div class="row bold"><span>NOMINAL CAIR</span><span>Rp 4.000.000</span></div>
-            <div class="row"><span>Tenor</span><span>12 bln</span></div>
+            <div class="row bold"><span>NOMINAL CAIR</span><span>${fmt(contract.amount)}</span></div>
+            <div class="row"><span>Tenor</span><span>${contract.tenor_months} bln</span></div>
             <div class="line"></div>
             <div class="center">Dana telah diterima oleh nasabah.</div>
             <div class="center">Terima kasih.</div>
@@ -138,10 +186,9 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           win.document.close();
         }
 
-        // window.alert(`[DEMO PENCAIRAN BERHASIL]\n\nDana Rp 4.000.000 berhasil dicairkan! Status kontrak berubah menjadi Aktif.`);
-        setContracts([]);
+        setContracts(prev => prev.filter(c => c.id !== contract.id));
         setLoading(false);
-        setShowSuccessPopup({ amount: 4000000, isTransfer: transactionMethod === 'transfer' });
+        setShowSuccessPopup({ amount: contract.amount, isTransfer: transactionMethod === 'transfer' });
         return;
       }
 
@@ -220,13 +267,19 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal mencatat jurnal pencairan');
 
-      // 2. Update Contract Status to 'active'
-      const { error: updateError } = await supabase
-        .from('financing_contracts')
-        .update({ status: 'active' })
-        .eq('id', contract.id);
-        
-      if (updateError) throw updateError;
+      // 2. Update Contract Status to 'active' via secure API to bypass RLS
+      const disburseRes = await fetch('/api/financing/disburse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contract_id: contract.id,
+          prospect_id: (contract as any).prospect_id
+        })
+      });
+      const disburseResData = await disburseRes.json();
+      if (!disburseRes.ok || !disburseResData.success) {
+        throw new Error(disburseResData.error || 'Gagal mengubah status pembiayaan menjadi aktif.');
+      }
 
       // 3. Generate Financing Schedules (Amortization)
       if (contract.tenor_months > 0) {

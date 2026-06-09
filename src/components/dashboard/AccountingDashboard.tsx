@@ -1136,8 +1136,10 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   <ReportLine label="Kas & Setara Kas (11)" value={formatter.format(getBal('11'))} />
                   <ReportLine label="Penempatan pada Bank (12)" value={formatter.format(getBal('12'))} />
                   <ReportLine label="Piutang Murabahah (14)" value={formatter.format(getBal('14'))} />
-                  <ReportLine label="Pembiayaan Mudharabah (15)" value={formatter.format(getBal('15'))} />
-                  <ReportLine label="Aset Tetap & Inventaris (16)" value={formatter.format(getBal('16'))} />
+                  <ReportLine label="Cadangan Penurunan Nilai / CKPN (19)" value={formatter.format(getBal('19'))} isRed />
+                  <ReportLine label="Pembiayaan Mudharabah (15+17)" value={formatter.format(getBal('15') + getBal('17'))} />
+                  <ReportLine label="Aset Tetap & Inventaris (160001)" value={formatter.format(getBal('160001'))} />
+                  <ReportLine label="Akumulasi Penyusutan Aset (160002)" value={formatter.format(getBal('160002'))} isRed />
                   
                   <div style={{ borderTop: '1.5px solid var(--border-primary)', marginTop: '20px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: 'var(--text-primary)', fontSize: '16px' }}>
                     <span>TOTAL ASET</span>
@@ -1151,7 +1153,8 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                 <h4 style={{ color: 'var(--text-primary)', borderBottom: '2.5px double var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. KEWAJIBAN (LIABILITAS)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
                   <ReportLine label="Kewajiban Segera (21)" value={formatter.format(getBal('21', true))} />
-                  <ReportLine label="Simpanan Wadiah/Titipan (22)" value={formatter.format(getBal('22', true))} />
+                  <ReportLine label="Titipan ZISWAF & Dana Sosial (22)" value={formatter.format(getBal('22', true))} />
+                  <ReportLine label="Simpanan Wadiah Anggota (23)" value={formatter.format(getBal('23', true))} />
                   <ReportLine label="Dana Syirkah Temporer (31+32)" value={formatter.format(getBal('3', true))} />
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px solid var(--border-primary)', paddingTop: '10px' }}>
@@ -1162,8 +1165,11 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
                 <h4 style={{ color: 'var(--text-primary)', borderBottom: '2.5px double var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. EKUITAS (MODAL)</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(getBal('400001', true))} />
-                  <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(getBal('400002', true))} />
+                  <ReportLine label="Simpanan Pokok Anggota (400001)" value={formatter.format(getBal('400001', true))} />
+                  <ReportLine label="Simpanan Wajib Anggota (400002)" value={formatter.format(getBal('400002', true))} />
+                  <ReportLine label="Modal Disetor / Hibah (400003)" value={formatter.format(getBal('400003', true))} />
+                  <ReportLine label="Cadangan Umum & Khusus (400005+400006)" value={formatter.format(getBal('400005', true) + getBal('400006', true))} />
+                  <ReportLine label="SHU Tahun Lalu / Ditahan (400008)" value={formatter.format(getBal('400008', true))} />
                   <ReportLine label="Sisa Hasil Usaha (SHU) Berjalan" value={formatter.format(stats.netProfit)} />
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px solid var(--border-primary)', paddingTop: '10px' }}>
@@ -1245,10 +1251,11 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '800px', margin: '0 auto' }}>
-              <ReportLine label="Simpanan Pokok Anggota" value={formatter.format(getBal('400001', true))} />
-              <ReportLine label="Simpanan Wajib Anggota" value={formatter.format(getBal('400002', true))} />
-              <ReportLine label="Cadangan Umum & Khusus" value={formatter.format(getBal('400005', true) + getBal('400006', true))} />
-              <ReportLine label="SHU Tahun Lalu (Ditahan)" value={formatter.format(getBal('400008', true))} />
+              <ReportLine label="Simpanan Pokok Anggota (400001)" value={formatter.format(getBal('400001', true))} />
+              <ReportLine label="Simpanan Wajib Anggota (400002)" value={formatter.format(getBal('400002', true))} />
+              <ReportLine label="Modal Disetor / Pendirian (400003)" value={formatter.format(getBal('400003', true))} />
+              <ReportLine label="Cadangan Umum & Khusus (400005+400006)" value={formatter.format(getBal('400005', true) + getBal('400006', true))} />
+              <ReportLine label="SHU Tahun Lalu (Ditahan) (400008)" value={formatter.format(getBal('400008', true))} />
               <ReportLine label="Laba Bersih (SHU Tahun Berjalan)" value={formatter.format(stats.netProfit)} />
               
               <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1.5px solid var(--border-primary)', padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', marginTop: '10px', alignItems: 'center' }}>
@@ -1274,10 +1281,12 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                 <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>1. ARUS KAS DARI AKTIVITAS OPERASI</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Laba Bersih (SHU) Berjalan" value={formatter.format(stats.netProfit)} />
+                  <ReportLine label="Penyusutan Aset Tetap (Non-Kas)" value={formatter.format(getBal('710003'))} />
+                  <ReportLine label="Beban Pencadangan CKPN (Non-Kas)" value={formatter.format(getBal('710002'))} />
                   <ReportLine label="Kenaikan Titipan & Dana Syirkah" value={formatter.format(stats.totalLiabilities)} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Operasi</span>
-                    <span>{formatter.format(stats.netProfit + stats.totalLiabilities)}</span>
+                    <span>{formatter.format(stats.netProfit + getBal('710003') + getBal('710002') + stats.totalLiabilities)}</span>
                   </div>
                 </div>
               </div>
@@ -1286,11 +1295,11 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
               <div>
                 <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>2. ARUS KAS DARI AKTIVITAS INVESTASI</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
-                  <ReportLine label="Penyaluran Pembiayaan Keluar (Penambahan Piutang)" value={`(${formatter.format(getBal('14') + getBal('15'))})`} isRed />
-                  <ReportLine label="Pembelian Aset Tetap" value={`(${formatter.format(getBal('16'))})`} isRed />
+                  <ReportLine label="Penyaluran Pembiayaan Keluar (Penambahan Piutang)" value={`(${formatter.format(getBal('14') + getBal('15') + getBal('17'))})`} isRed />
+                  <ReportLine label="Pembelian Aset Tetap" value={`(${formatter.format(getBal('160001'))})`} isRed />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Investasi</span>
-                    <span>({formatter.format(getBal('14') + getBal('15') + getBal('16'))})</span>
+                    <span>({formatter.format(getBal('14') + getBal('15') + getBal('17') + getBal('160001'))})</span>
                   </div>
                 </div>
               </div>
@@ -1300,9 +1309,10 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                 <h4 style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border-primary)', paddingBottom: '8px', fontWeight: 800 }}>3. ARUS KAS DARI AKTIVITAS PENDANAAN</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px' }}>
                   <ReportLine label="Penerimaan Modal Pokok & Wajib" value={formatter.format(getBal('400001', true) + getBal('400002', true))} />
+                  <ReportLine label="Penerimaan Modal Disetor / Pendirian" value={formatter.format(getBal('400003', true))} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px', borderTop: '1px dashed var(--border-primary)', paddingTop: '10px' }}>
                     <span>Kas Bersih dari Aktivitas Pendanaan</span>
-                    <span>{formatter.format(getBal('400001', true) + getBal('400002', true))}</span>
+                    <span>{formatter.format(getBal('400001', true) + getBal('400002', true) + getBal('400003', true))}</span>
                   </div>
                 </div>
               </div>

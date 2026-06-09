@@ -4,7 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { member_id, amount, type, prospect_id, name } = body;
+    const { contract_id, prospect_id } = body;
+
+    if (!contract_id) {
+      return NextResponse.json({ success: false, error: 'contract_id is required' }, { status: 400 });
+    }
 
     // Use Service Role Key to BYPASS Row Level Security completely
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -12,45 +16,32 @@ export async function POST(req: Request) {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Try inserting WITH new columns first
-    let contractResult = await supabase
+    // 1. Update Contract Status
+    const { data: updatedContract, error: contractError } = await supabase
       .from('financing_contracts')
-      .insert({
-        member_id,
-        prospect_id,
-        amount,
-        type,
+      .update({ 
         status: 'active',
         disbursement_date: new Date().toISOString().split('T')[0]
       })
+      .eq('id', contract_id)
       .select()
       .single();
 
-    // If it fails because columns don't exist (e.g. user didn't run migrations)
-    if (contractResult.error && contractResult.error.message.includes('Could not find')) {
-      contractResult = await supabase
-        .from('financing_contracts')
-        .insert({
-          member_id,
-          amount,
-          type,
-          status: 'active'
+    if (contractError) throw contractError;
+
+    // 2. Update Prospect Status (if prospect_id or updatedContract.prospect_id exists)
+    const pId = prospect_id || updatedContract?.prospect_id;
+    if (pId) {
+      await supabase
+        .from('prospects')
+        .update({ 
+          status: 'Cair / Aktif',
+          is_converted: true 
         })
-        .select()
-        .single();
+        .eq('id', pId);
     }
 
-    if (contractResult.error) {
-      throw contractResult.error;
-    }
-
-    // Try updating prospect status
-    await supabase
-      .from('prospects')
-      .update({ is_converted: true, status: 'Cair / Aktif' })
-      .eq('id', prospect_id);
-
-    return NextResponse.json({ success: true, contract: contractResult.data });
+    return NextResponse.json({ success: true, contract: updatedContract });
   } catch (err: any) {
     console.error('Disburse API Error:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
