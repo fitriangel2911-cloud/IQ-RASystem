@@ -244,6 +244,7 @@ export default function TellerTerminal({ userId, activeMenu }: TellerTerminalPro
             selectedMember={selectedMember}
             tellerName={tellerName}
             onSuccess={handleTransactionSuccess}
+            onGoToPanel={(p: string) => setActivePanel(p as PanelKey)}
           />
         )}
         {activePanel === 'withdrawal' && (
@@ -251,6 +252,7 @@ export default function TellerTerminal({ userId, activeMenu }: TellerTerminalPro
             selectedMember={selectedMember}
             tellerName={tellerName}
             onSuccess={handleTransactionSuccess}
+            onGoToPanel={(p: string) => setActivePanel(p as PanelKey)}
           />
         )}
         {activePanel === 'payment' && (
@@ -258,6 +260,7 @@ export default function TellerTerminal({ userId, activeMenu }: TellerTerminalPro
             selectedMember={selectedMember}
             tellerName={tellerName}
             onSuccess={handleTransactionSuccess}
+            onGoToPanel={(p: string) => setActivePanel(p as PanelKey)}
           />
         )}
         {activePanel === 'disbursement' && (
@@ -265,6 +268,7 @@ export default function TellerTerminal({ userId, activeMenu }: TellerTerminalPro
             selectedMember={selectedMember}
             tellerName={tellerName}
             onSuccess={handleTransactionSuccess}
+            onGoToPanel={(p: string) => setActivePanel(p as PanelKey)}
           />
         )}
         {activePanel === 'shift' && (

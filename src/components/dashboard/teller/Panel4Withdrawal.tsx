@@ -17,6 +17,7 @@ interface Panel4Props {
   selectedMember: Member | null;
   tellerName: string;
   onSuccess: () => void;
+  onGoToPanel?: (panel: string) => void;
 }
 
 const MIN_BALANCE = 50000; // Saldo mengendap minimum
@@ -56,7 +57,7 @@ function printReceipt(data: {
   win.document.close();
 }
 
-export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess }: Panel4Props) {
+export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess, onGoToPanel }: Panel4Props) {
   const [amount, setAmount] = useState(0);
   const [displayAmount, setDisplayAmount] = useState('');
   const [selectedAccId, setSelectedAccId] = useState('');
@@ -130,9 +131,10 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
       // 4. Update status to completed
       await supabase.from('withdrawal_requests').update({ status: 'completed' }).eq('id', req.id);
 
-      setMessage({ type: 'success', text: `Eksekusi Penarikan Tunai Rp ${req.amount.toLocaleString('id-ID')} Berhasil diserahkan ke nasabah!` });
+      window.alert(`Transaksi Berhasil!\n\nPenarikan Tunai sebesar ${req.amount.toLocaleString('id-ID')} telah dieksekusi.\nNo Referensi: ${req.reference_no || '-'}`);
       fetchApprovedRequests();
       onSuccess();
+      if (onGoToPanel) onGoToPanel('dashboard');
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
@@ -259,9 +261,10 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
         });
       }
 
-      setMessage({ type: 'success', text: `Penarikan ${fmt(amount)} berhasil! Ref: ${refNo}` });
+      window.alert(`Transaksi Penarikan Berhasil!\n\nNominal Diserahkan: ${fmt(amount)}\nNo. Referensi: ${refNo}`);
       setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
       onSuccess();
+      if (onGoToPanel) onGoToPanel('dashboard');
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
@@ -282,9 +285,10 @@ export default function Panel4Withdrawal({ selectedMember, tellerName, onSuccess
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: `🚨 Penarikan > ${fmt(supervisorLimit)}. Transaksi berhasil diteruskan ke Dasbor Manajer untuk Otorisasi. Status: Menunggu.` });
+      window.alert(`Pemberitahuan!\n\nPenarikan melebihi batas otorisasi (${fmt(supervisorLimit)}). Transaksi Anda telah diteruskan ke Dasbor Manajer untuk otorisasi.`);
       setAmount(0); setDisplayAmount(''); setCardNo(''); setAuthNote('');
       onSuccess();
+      if (onGoToPanel) onGoToPanel('dashboard');
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally {

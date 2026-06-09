@@ -78,13 +78,14 @@ const DENOMINATIONS = [
   { value: 100, label: 'Rp 100' },
 ];
 
-export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }: Panel3Props) {
+export default function Panel3Deposit({ selectedMember, tellerName, onSuccess, onGoToPanel }: Panel3Props & { onGoToPanel?: (p: string) => void }) {
   const [amount, setAmount] = useState(0);
   const [displayAmount, setDisplayAmount] = useState('');
   const [selectedAccId, setSelectedAccId] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [description, setDescription] = useState('');
+  const [paymentMonth, setPaymentMonth] = useState('');
   const [printSlip, setPrintSlip] = useState(true);
 
   // New features: Transaction Method (Tunai vs Transfer), Admin Fee, and Infaq
@@ -251,7 +252,7 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: new Date().toISOString().split('T')[0],
-          description: `[TELLER: ${tellerName}] SETORAN ${methodLabel} - ${memberName} (${selectedCategory.toUpperCase()} | Pokok: ${fmt(amount)}, ADM: ${fmt(adminFee)}, Infaq+Kode: ${fmt(infaq + uniqueCode)})`,
+          description: `[TELLER: ${tellerName}] SETORAN ${methodLabel} - ${memberName} (${selectedCategory.toUpperCase()}${paymentMonth ? ` | Bulan: ${paymentMonth}` : ''}${description ? ` | Ket: ${description}` : ''} | Pokok: ${fmt(amount)}, ADM: ${fmt(adminFee)}, Infaq+Kode: ${fmt(infaq + uniqueCode)})`,
           entries,
           reference_no: refNo,
           member_id: selectedMember.user_id,
@@ -314,6 +315,10 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
               <div class="row"><span>NIK</span><span>${selectedMember.nik}</span></div>
               <div class="row"><span>No. Rek</span><span>${targetAccNumber}</span></div>
               <div class="line"></div>
+              <div class="row"><span>Jenis Setoran</span><span>${selectedCategory.toUpperCase()}</span></div>
+              ${paymentMonth ? `<div class="row"><span>Bulan</span><span>${paymentMonth}</span></div>` : ''}
+              ${description ? `<div class="row"><span>Keterangan</span><span>${description}</span></div>` : ''}
+              <div class="line"></div>
               <div class="row"><span>Setoran Pokok</span><span>${fmt(amount)}</span></div>
               ${adminFee > 0 ? `<div class="row"><span>Biaya Admin</span><span>${fmt(adminFee)}</span></div>` : ''}
               ${infaq > 0 ? `<div class="row"><span>Infaq/Sedekah</span><span>${fmt(infaq)}</span></div>` : ''}
@@ -332,8 +337,9 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
       }
 
       setMessage({ type: 'success', text: `Setoran ${fmt(totalAmountToPay)} berhasil! Ref: ${refNo}` });
-      setAmount(0); setDisplayAmount(''); setDescription(''); setAdminFee(0); setInfaq(0); setDenomCounts({});
+      setAmount(0); setDisplayAmount(''); setDescription(''); setPaymentMonth(''); setAdminFee(0); setInfaq(0); setDenomCounts({});
       onSuccess();
+      if (onGoToPanel) onGoToPanel('dashboard');
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally { setLoading(false); }
@@ -571,6 +577,28 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
                 fontSize: '16px', fontWeight: 700, outline: 'none'
               }} />
           </div>
+        </div>
+      </div>
+
+      {/* Payment Month & Description Inputs */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: '16px', padding: '20px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '15px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pembayaran Bulan (Opsional)</label>
+          <input type="month" value={paymentMonth} onChange={e => setPaymentMonth(e.target.value)}
+            style={{
+              width: '100%', background: 'var(--bg-page)', border: '1px solid var(--border-primary)',
+              borderRadius: '8px', padding: '14px', color: 'var(--text-primary)',
+              fontSize: '16px', fontWeight: 700, outline: 'none'
+            }} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '15px', fontWeight: 900, color: '#cca334', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Keterangan / Pesan Tambahan</label>
+          <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Contoh: Bayar tunggakan..."
+            style={{
+              width: '100%', background: 'var(--bg-page)', border: '1px solid var(--border-primary)',
+              borderRadius: '8px', padding: '14px', color: 'var(--text-primary)',
+              fontSize: '16px', fontWeight: 700, outline: 'none'
+            }} />
         </div>
       </div>
 

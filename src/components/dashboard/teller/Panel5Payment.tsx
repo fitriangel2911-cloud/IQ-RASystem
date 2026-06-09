@@ -24,6 +24,7 @@ interface Panel5Props {
   selectedMember: Member | null;
   tellerName: string;
   onSuccess: () => void;
+  onGoToPanel?: (panel: string) => void;
 }
 
 type PaymentMode = 'full' | 'partial' | 'advance';

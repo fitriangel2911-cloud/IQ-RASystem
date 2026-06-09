@@ -28,6 +28,7 @@ interface Panel7Props {
   selectedMember: Member | null;
   tellerName: string;
   onSuccess: () => void;
+  onGoToPanel?: (panel: string) => void;
 }
 
 const fmt = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
@@ -41,7 +42,7 @@ const CONTRACT_TYPE_LABELS: Record<string, string> = {
   qardhul_hasan: 'Qardhul Hasan (Pinjaman Kebajikan)',
 };
 
-export default function Panel7Disbursement({ selectedMember, tellerName, onSuccess }: Panel7Props) {
+export default function Panel7Disbursement({ selectedMember, tellerName, onSuccess, onGoToPanel }: Panel7Props) {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loadingContracts, setLoadingContracts] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -136,10 +137,11 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
           win.document.close();
         }
 
-        setMessage({ type: 'success', text: `[DEMO PENCAIRAN] Pencairan dana Rp 4.000.000 berhasil dan status kontrak telah menjadi Aktif!` });
+        window.alert(`[DEMO PENCAIRAN BERHASIL]\n\nDana Rp 4.000.000 berhasil dicairkan! Status kontrak berubah menjadi Aktif.`);
         setContracts([]);
         onSuccess();
         setLoading(false);
+        if (onGoToPanel) onGoToPanel('dashboard');
         return;
       }
 
@@ -289,10 +291,11 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         win.document.close();
       }
 
-      setMessage({ type: 'success', text: `Pencairan dana ${fmt(contract.amount)} berhasil dan status kontrak telah menjadi Aktif!` });
+      window.alert(`Pencairan Berhasil!\n\nDana sebesar ${fmt(contract.amount)} telah berhasil dicairkan dan status kontrak berubah menjadi Aktif.`);
       // Remove the contract from the local list since it's now active
       setContracts(prev => prev.filter(c => c.id !== contract.id));
       onSuccess();
+      if (onGoToPanel) onGoToPanel('dashboard');
     } catch (err: any) {
       setMessage({ type: 'error', text: `ERROR: ${err.message}` });
     } finally {

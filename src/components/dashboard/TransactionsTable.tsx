@@ -103,7 +103,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
               </tr>
             ) : (
               transactions.map((tx, idx) => {
-                const info = formatType(tx.type);
+                const info = formatType(tx.type || tx.transaction_type);
                 const dateObj = new Date(tx.created_at);
                 return (
                   <tr 

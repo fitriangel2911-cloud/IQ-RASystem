@@ -22,6 +22,8 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
   const [loading, setLoading] = useState(false);
   const [copiedText, setCopiedText] = useState<'acc' | 'amount' | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [paymentMonth, setPaymentMonth] = useState('');
+  const [paymentNote, setPaymentNote] = useState('');
   const [receiptData, setReceiptData] = useState<any>(null);
 
   // Generate unique code once on mount or when type changes
@@ -89,6 +91,8 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentType,
+          paymentMonth,
+          paymentNote,
           amount,
           adminFee,
           infaq,
@@ -110,6 +114,8 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
         accountNumber: data.accountNumber,
         paymentType,
         targetAccountType,
+        paymentMonth,
+        paymentNote,
         amount,
         adminFee,
         infaq,
@@ -164,6 +170,8 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
           <div class="row"><span>No. Rek</span><span>${receiptData.accountNumber}</span></div>
           <div class="line"></div>
           <div class="row"><span>Jenis Setoran</span><span>${labelMap[receiptData.paymentType]}</span></div>
+          <div class="row"><span>Bulan</span><span>${receiptData.paymentMonth || '-'}</span></div>
+          <div class="row"><span>Keterangan</span><span>${receiptData.paymentNote || '-'}</span></div>
           <div class="row"><span>Akad</span><span>${receiptData.targetAccountType.toUpperCase()}</span></div>
           <div class="row"><span>Nominal Setoran</span><span>${fmt(receiptData.amount)}</span></div>
           <div class="row"><span>Biaya Admin</span><span>${fmt(receiptData.adminFee)}</span></div>
@@ -350,6 +358,39 @@ export default function DepositPaymentPanel({ profile, accounts, onPaymentSucces
               type="number"
               value={infaq}
               onChange={(e) => setInfaq(Number(e.target.value))}
+              style={{
+                width: '100%', background: 'var(--bg-page)', border: '1px solid var(--border-primary)',
+                borderRadius: '8px', padding: '12px', color: 'var(--text-primary)', fontWeight: 700, outline: 'none'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Payment Month & Note Inputs */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
+              Untuk Pembayaran Bulan (Opsional)
+            </label>
+            <input
+              type="month"
+              value={paymentMonth}
+              onChange={(e) => setPaymentMonth(e.target.value)}
+              style={{
+                width: '100%', background: 'var(--bg-page)', border: '1px solid var(--border-primary)',
+                borderRadius: '8px', padding: '12px', color: 'var(--text-primary)', fontWeight: 700, outline: 'none'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
+              Keterangan / Pesan (Opsional)
+            </label>
+            <input
+              type="text"
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
+              placeholder="Contoh: Bayar 2 bln..."
               style={{
                 width: '100%', background: 'var(--bg-page)', border: '1px solid var(--border-primary)',
                 borderRadius: '8px', padding: '12px', color: 'var(--text-primary)', fontWeight: 700, outline: 'none'

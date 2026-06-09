@@ -79,7 +79,7 @@ export default function WithdrawalPanel({ profile, accounts, onPaymentSuccess }:
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: `Berhasil mengajukan penarikan tunai sebesar ${fmt(amount)}. Silakan datangi kantor Koperasi untuk pencairan.` });
+      setMessage({ type: 'success', text: `Berhasil mengajukan penarikan tunai sebesar ${fmt(amount)}. Menunggu konfirmasi pihak koperasi. Silakan datangi kantor Koperasi untuk proses selanjutnya.` });
       setAmount(0);
       setDisplayAmount('');
       
@@ -224,7 +224,7 @@ export default function WithdrawalPanel({ profile, accounts, onPaymentSuccess }:
                     color: req.status === 'pending' ? '#f3c653' : req.status === 'approved' ? '#34d399' : '#ef4444',
                     border: `1px solid ${req.status === 'pending' ? '#f3c653' : req.status === 'approved' ? '#34d399' : '#ef4444'}`
                   }}>
-                    {req.status === 'pending' ? 'MENUNGGU TELLER' : req.status === 'approved' ? 'SELESAI (CAIR)' : 'DITOLAK'}
+                    {req.status === 'pending' ? 'MENUNGGU KONFIRMASI PIHAK KOPERASI' : req.status === 'approved' ? 'SELESAI (CAIR)' : 'DITOLAK'}
                   </span>
                 </div>
               </div>
