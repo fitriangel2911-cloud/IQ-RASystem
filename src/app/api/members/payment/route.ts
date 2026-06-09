@@ -59,6 +59,8 @@ export async function POST(request: Request) {
         unique_code: uniqueCode,
         total_paid: totalPaid,
         reference_no: refNo,
+        payment_month: body.paymentMonth || null,
+        payment_note: body.paymentNote || null,
         status: 'pending'
       });
 
