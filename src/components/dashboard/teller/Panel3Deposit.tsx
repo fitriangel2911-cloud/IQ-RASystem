@@ -197,7 +197,13 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
 
       // Auto-create account if it does not exist yet (On-the-fly Account Creator)
       if (!targetAccId) {
-        const randNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+        let prefix = '99';
+        if (selectedCategory === 'pokok') prefix = '10';
+        else if (selectedCategory === 'wajib') prefix = '11';
+        else if (selectedCategory === 'wadiah') prefix = '20';
+        else if (selectedCategory === 'mudharabah') prefix = '21';
+        
+        const randNum = prefix + Math.floor(10000000 + Math.random() * 90000000).toString();
         const { data: newAcc, error: createErr } = await supabase
           .from('savings_accounts')
           .insert({

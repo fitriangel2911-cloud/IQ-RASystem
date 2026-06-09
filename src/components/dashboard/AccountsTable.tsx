@@ -20,6 +20,8 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
     switch (safeType.toLowerCase()) {
       case 'wadiah': return 'Simpanan Wadiah (Titipan)';
       case 'mudharabah': return 'Investasi Mudharabah (Bagi Hasil)';
+      case 'pokok': return 'Simpanan Pokok (Syirkah)';
+      case 'wajib': return 'Simpanan Wajib (Syirkah)';
       case 'haji': return 'Tabungan Haji';
       case 'umrah': return 'Tabungan Umrah';
       case 'pembiayaan': return 'Pembiayaan Kontrak';
@@ -80,10 +82,10 @@ export default function AccountsTable({ accounts }: AccountsTableProps) {
                       fontWeight: 800,
                       color: 'var(--text-primary)',
                       fontFamily: 'monospace'
-                    }}>{acc.account_code}</code>
+                    }}>{acc.account_number || acc.account_code}</code>
                   </td>
                   <td style={{ padding: '20px', color: 'var(--text-primary)', fontSize: '15px', fontWeight: 800 }}>
-                    {accountTypeLabel(acc.type)}
+                    {accountTypeLabel(acc.account_type || acc.type)}
                   </td>
                   <td style={{ padding: '20px', textAlign: 'right', fontSize: '18px', fontWeight: 900, color: '#10b981' }}>
                     {currencyFormatter.format(acc.balance)}

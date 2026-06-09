@@ -158,10 +158,10 @@ export default function Panel2Member({ onSelectMember, selectedMember, onGoToPan
     if (!query) { setFiltered(allMembers); return; }
     const q = query.toLowerCase();
     let res = allMembers.filter(m =>
-      m.users?.full_name?.toLowerCase().includes(q) ||
-      (m as any).mother_name?.toLowerCase().includes(q) ||
-      m.nik?.includes(q) ||
-      m.user_id?.includes(q)
+      (m.users?.full_name || '').toLowerCase().includes(q) ||
+      ((m as any).mother_name || '').toLowerCase().includes(q) ||
+      (m.nik || '').includes(q) ||
+      (m.user_id || '').includes(q)
     );
     // Inject mock Fitri Angelina if query matches and not exists in allMembers
     if ('fitri'.includes(q) || q.includes('fitri') || '3174'.includes(q)) {
