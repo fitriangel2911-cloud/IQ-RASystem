@@ -75,7 +75,8 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
     type: 'murabahah',
     job_detail: '',
     akad_object: '',
-    collaterals: ''
+    collaterals: '',
+    tenor_months: ''
   });
 
   // AI Sharia Assistant Chat States
@@ -1636,7 +1637,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     <option value="qardhul_hasan">Qardhul Hasan (Pinjaman Kebajikan)</option>
                   </select>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jumlah Pembiayaan (Rp)</label>
                   <input 
                     type="number" 
@@ -1646,6 +1647,25 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                     value={financingData.amount}
                     onChange={(e) => setFinancingData({...financingData, amount: e.target.value})}
                   />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jangka Waktu Angsuran (Tenor)</label>
+                  <select 
+                    style={inputStyle}
+                    value={financingData.tenor_months}
+                    onChange={(e) => setFinancingData({...financingData, tenor_months: e.target.value})}
+                  >
+                    <option value="">Pilih Jangka Waktu (Opsional, Default 12 Bulan)</option>
+                    {Array.from({ length: 60 }, (_, i) => {
+                      const months = i + 1;
+                      if (months < 12) {
+                        return <option key={months} value={months.toString()}>{months} Bulan</option>;
+                      } else {
+                        const years = (months / 12).toFixed(1).replace('.0', '');
+                        return <option key={months} value={months.toString()}>{months} Bulan ({years} Tahun)</option>;
+                      }
+                    })}
+                  </select>
                 </div>
               </div>
 
@@ -1787,7 +1807,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
                         const data = await response.json();
                         if (data.success) {
                           setMessage({ type: 'success', text: data.message });
-                          setFinancingData({ member_id: '', name: '', phone: '', amount: '', purpose: '', type: 'murabahah', job_detail: '', akad_object: '', collaterals: '' });
+                          setFinancingData({ member_id: '', name: '', phone: '', amount: '', purpose: '', type: 'murabahah', job_detail: '', akad_object: '', collaterals: '', tenor_months: '' });
                         } else {
                           setMessage({ type: 'error', text: data.error || 'Terjadi kesalahan.' });
                         }

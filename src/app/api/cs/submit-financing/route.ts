@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { member_id, purpose, amount, name, phone, type, job_detail, akad_object, collaterals } = body;
+    const { member_id, purpose, amount, name, phone, type, job_detail, akad_object, collaterals, tenor_months } = body;
 
     if (!amount || !name) {
       return NextResponse.json({ error: 'Data pengajuan tidak lengkap.' }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
         amount: Number(amount),
         type: type || 'murabahah', // Gunakan type dari body, fallback murabahah
         status: 'pending',
+        tenor_months: tenor_months ? Number(tenor_months) : 12,
         collateral_metadata: { purpose, phone, job_detail, akad_object, collaterals }
       })
       .select()
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       const notifications = staffUsers.map(staff => ({
         user_id: staff.id,
         type: 'info',
-        message: `Pengajuan Pembiayaan Baru: Rp ${Number(amount).toLocaleString('id-ID')} atas nama ${name}.`
+        message: `Pengajuan Pembiayaan Baru: Rp ${Number(amount).toLocaleString('id-ID')} atas nama ${name} (Tenor: ${tenor_months || 12} Bulan).`
       }));
 
       await supabase.from('notifications').insert(notifications);

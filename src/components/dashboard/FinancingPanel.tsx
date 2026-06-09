@@ -20,6 +20,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
   const [jobDetail, setJobDetail] = useState<string>('');
   const [akadObject, setAkadObject] = useState<string>('');
   const [collaterals, setCollaterals] = useState<string>('');
+  const [tenorMonths, setTenorMonths] = useState<string>('');
   
   // Validation: Profile must have core docs
   const isProfileComplete = !!(profile?.nik && profile?.kk_number && profile?.mother_name && profile?.phone_number);
@@ -49,6 +50,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
           type: contractType,
           amount: amount,
           status: 'pending',
+          tenor_months: tenorMonths ? Number(tenorMonths) : 12,
           collateral_metadata: {
             purpose,
             phone: profile.phone_number,
@@ -67,6 +69,7 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
       setJobDetail('');
       setAkadObject('');
       setCollaterals('');
+      setTenorMonths('');
       onUpdateSuccess();
     } catch (err: any) {
       console.error('Apply Financing Error:', err);
@@ -183,6 +186,26 @@ export default function FinancingPanel({ contracts, profile, onUpdateSuccess, na
                     style={inputStyle}
                     required 
                   />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Jangka Waktu Angsuran (Tenor)</label>
+                  <select 
+                    value={tenorMonths}
+                    onChange={(e) => setTenorMonths(e.target.value)}
+                    style={inputStyle}
+                  >
+                    <option value="">Pilih Jangka Waktu (Opsional, Default 12 Bulan)</option>
+                    {Array.from({ length: 60 }, (_, i) => {
+                      const months = i + 1;
+                      if (months < 12) {
+                        return <option key={months} value={months.toString()}>{months} Bulan</option>;
+                      } else {
+                        const years = (months / 12).toFixed(1).replace('.0', '');
+                        return <option key={months} value={months.toString()}>{months} Bulan ({years} Tahun)</option>;
+                      }
+                    })}
+                  </select>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

@@ -1317,6 +1317,12 @@ DILARANG KERAS menggunakan sapaan panjang, menjabarkan rumus matematika, atau pe
                           {getVal(selectedCIFProspect.prospect.collateral_metadata?.collaterals, 'Aset Lancar & Jaminan Personal (Terverifikasi)')}
                         </div>
                       </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase' }}>Jangka Waktu Angsuran (Tenor)</div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, marginTop: '4px', color: 'var(--text-primary)' }}>
+                          {selectedCIFProspect.prospect.tenor_months ? `${selectedCIFProspect.prospect.tenor_months} Bulan` : '12 Bulan (Default)'}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
