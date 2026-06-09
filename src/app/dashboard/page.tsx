@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import TellerTerminal from '@/components/dashboard/TellerTerminal';
 import BrandLogo from '@/components/brand/BrandLogo';
+import GlobalSiteBackground from '@/components/dashboard/GlobalSiteBackground';
 import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
 import DPSDashboard from '@/components/dashboard/DPSDashboard';
 import AODashboard from '@/components/dashboard/AODashboard';
@@ -771,6 +772,7 @@ export default function DashboardPage() {
         display: 'flex',
         position: 'relative'
       }}>
+        <GlobalSiteBackground />
 
         {/* 1. SIDEBAR: Solid, Bold, Premium Dark Emerald */}
         {isSidebarOpen && (
@@ -938,7 +940,7 @@ export default function DashboardPage() {
         }}>
           
           {/* Header */}
-          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'sticky', top: '-24px', paddingTop: '24px', paddingBottom: '16px', background: 'var(--bg-card)', zIndex: 20, borderBottom: '1px solid var(--border-primary)' }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'sticky', top: '-24px', paddingTop: '24px', paddingBottom: '16px', background: 'var(--bg-card)', backdropFilter: 'blur(24px)', zIndex: 20, borderBottom: '1px solid var(--border-primary)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
               {!isSidebarOpen && (
                 <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--gold-intense)', fontSize: '28px', cursor: 'pointer', marginTop: '-2px' }}>

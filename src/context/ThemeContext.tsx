@@ -16,10 +16,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Load theme from localStorage on mount
-    const savedTheme = localStorage.getItem('iqra-theme') as Theme;
+    // Force reset theme to dark mode for all existing users who might be stuck on broken light mode
+    const savedTheme = localStorage.getItem('iqra-theme-v2') as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
+    } else {
+      // If no v2 theme found, aggressively default to dark and clear old v1 theme
+      localStorage.removeItem('iqra-theme');
+      setTheme('dark');
     }
     setMounted(true);
   }, []);
@@ -34,7 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.body.classList.remove('light-mode');
         document.body.classList.add('dark-mode');
       }
-      localStorage.setItem('iqra-theme', theme);
+      localStorage.setItem('iqra-theme-v2', theme);
     }
   }, [theme, mounted]);
 
