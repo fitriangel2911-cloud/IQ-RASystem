@@ -131,8 +131,11 @@ export default function Panel5Payment({ selectedMember, tellerName, onSuccess }:
         entries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
       }
 
-      if (infaqVal + uniqueCode > 0) {
-        entries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqVal + uniqueCode });
+      if (infaqVal > 0) {
+        entries.push({ account_code: COA.ZISWAF, debit: 0, credit: infaqVal });
+      }
+      if (uniqueCode > 0) {
+        entries.push({ account_code: COA.DANA_KEBAJIKAN, debit: 0, credit: uniqueCode });
       }
 
       const supabase = createClient();

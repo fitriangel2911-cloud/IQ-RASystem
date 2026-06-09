@@ -69,7 +69,6 @@ export async function POST(request: Request) {
       await supabaseAdmin.from('members').update({ status: 'active', paid_principal_deposit: true, paid_mandatory_deposit: true }).eq('user_id', memberId);
 
       // 4. Post Journals (SAK EP)
-      const infaqTotal = Number(infaq) + Number(uniqueCode);
       const journalEntries = [
         { account_code: COA.CASH_IN_BANK, debit: totalPaid, credit: 0 }
       ];
@@ -77,9 +76,10 @@ export async function POST(request: Request) {
       if (principalAmount > 0) journalEntries.push({ account_code: COA.MEMBER_CAPITAL_PRINCIPAL, debit: 0, credit: principalAmount });
       if (mandatoryAmount > 0) journalEntries.push({ account_code: COA.MEMBER_CAPITAL_MANDATORY, debit: 0, credit: mandatoryAmount });
       if (adminFee > 0) journalEntries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
-      if (infaqTotal > 0) journalEntries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqTotal });
+      if (Number(infaq) > 0) journalEntries.push({ account_code: COA.ZISWAF, debit: 0, credit: Number(infaq) });
+      if (Number(uniqueCode) > 0) journalEntries.push({ account_code: COA.DANA_KEBAJIKAN, debit: 0, credit: Number(uniqueCode) });
 
-      const journalDesc = `[PENDAFTARAN ANGGOTA] Setoran CIF Baru (Pokok: Rp ${principalAmount.toLocaleString('id-ID')}, Wajib: Rp ${mandatoryAmount.toLocaleString('id-ID')}, Admin: Rp ${adminFee.toLocaleString('id-ID')}, Infaq+Kode: Rp ${infaqTotal.toLocaleString('id-ID')})`;
+      const journalDesc = `[PENDAFTARAN ANGGOTA] Setoran CIF Baru (Pokok: Rp ${principalAmount.toLocaleString('id-ID')}, Wajib: Rp ${mandatoryAmount.toLocaleString('id-ID')}, Admin: Rp ${adminFee.toLocaleString('id-ID')}, Infaq+Kode: Rp ${(Number(infaq) + Number(uniqueCode)).toLocaleString('id-ID')})`;
 
       const dbEntries = journalEntries.map(e => ({
         date: new Date().toISOString().split('T')[0],
@@ -111,8 +111,8 @@ export async function POST(request: Request) {
       ];
       
       if (adminFee > 0) journalEntries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
-      const infaqTotal = Number(infaq) + Number(uniqueCode);
-      if (infaqTotal > 0) journalEntries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqTotal });
+      if (Number(infaq) > 0) journalEntries.push({ account_code: COA.ZISWAF, debit: 0, credit: Number(infaq) });
+      if (Number(uniqueCode) > 0) journalEntries.push({ account_code: COA.DANA_KEBAJIKAN, debit: 0, credit: Number(uniqueCode) });
 
       const journalDesc = `[VERIFIED TRANSFER] Pembayaran Angsuran Pembiayaan (Ref: ${refNo})`;
 
@@ -199,11 +199,11 @@ export async function POST(request: Request) {
       ];
 
       if (adminFee > 0) journalEntries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
-      const infaqTotal = Number(infaq) + Number(uniqueCode);
-      if (infaqTotal > 0) journalEntries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaqTotal });
+      if (Number(infaq) > 0) journalEntries.push({ account_code: COA.ZISWAF, debit: 0, credit: Number(infaq) });
+      if (Number(uniqueCode) > 0) journalEntries.push({ account_code: COA.DANA_KEBAJIKAN, debit: 0, credit: Number(uniqueCode) });
 
       const typeLabels: Record<string, string> = { principal: 'Simpanan Pokok', mandatory: 'Simpanan Wajib', voluntary: 'Simpanan Sukarela' };
-      const journalDesc = `[VERIFIED TRANSFER] Pembayaran ${typeLabels[paymentType] || paymentType} (Tenor/Pokok: Rp ${amount.toLocaleString('id-ID')}, Admin: Rp ${adminFee.toLocaleString('id-ID')}, Infaq+Kode: Rp ${infaqTotal.toLocaleString('id-ID')})`;
+      const journalDesc = `[VERIFIED TRANSFER] Pembayaran ${typeLabels[paymentType] || paymentType} (Tenor/Pokok: Rp ${amount.toLocaleString('id-ID')}, Admin: Rp ${adminFee.toLocaleString('id-ID')}, Infaq+Kode: Rp ${(Number(infaq) + Number(uniqueCode)).toLocaleString('id-ID')})`;
 
       const dbEntries = journalEntries.map(e => ({
         date: new Date().toISOString().split('T')[0],

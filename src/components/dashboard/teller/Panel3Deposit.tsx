@@ -239,8 +239,11 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess }:
       if (adminFee > 0) {
         entries.push({ account_code: COA.INCOME_SERVICE_FEE, debit: 0, credit: adminFee });
       }
-      if (infaq + uniqueCode > 0) {
-        entries.push({ account_code: COA.RETAINED_EARNINGS, debit: 0, credit: infaq + uniqueCode });
+      if (infaq > 0) {
+        entries.push({ account_code: COA.ZISWAF, debit: 0, credit: infaq });
+      }
+      if (uniqueCode > 0) {
+        entries.push({ account_code: COA.DANA_KEBAJIKAN, debit: 0, credit: uniqueCode });
       }
 
       const res = await fetch('/api/accounting/record-v2', {

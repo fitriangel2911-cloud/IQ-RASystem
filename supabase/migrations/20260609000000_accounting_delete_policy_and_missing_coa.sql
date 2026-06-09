@@ -5,7 +5,9 @@
 -- 1. Seed missing ZISWAF and Non-Halal COA accounts
 INSERT INTO public.coa_accounts (code, name, category, normal_balance) VALUES
 ('220002', 'Titipan ZISWAF', 'Liabilitas', 'Kredit'),
-('220003', 'Titipan Dana Sosial / Non-Halal', 'Liabilitas', 'Kredit')
+('220003', 'Titipan Dana Sosial / Non-Halal', 'Liabilitas', 'Kredit'),
+('710003', 'Beban Penyusutan Aset Tetap', 'Beban', 'Debit'),
+('160002', 'Akumulasi Penyusutan Aset Tetap', 'Aset', 'Kredit')
 ON CONFLICT (code) DO NOTHING;
 
 -- 2. Drop existing delete policy if exists and create one for journal_entries

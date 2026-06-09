@@ -31,29 +31,7 @@ export async function POST(req: Request) {
         .eq('id', prospect_id);
     }
 
-    // 3. If Approved, Create Accounting Ledger Entry
-    if (decision === 'approved') {
-      try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/accounting/record-v2`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            date: new Date().toISOString().split('T')[0],
-            description: `[PENCAIRAN] ${type?.toUpperCase() || 'PEMBIAYAAN'} - ${member_name || 'Nasabah'}`,
-            reference_no: `DSB-${Date.now()}`,
-            entries: [
-              { account_code: '1.1.03', debit: amount, credit: 0 }, // Receivable
-              { account_code: '1.1.01', debit: 0, credit: amount }  // Cash
-            ]
-          })
-        });
-        
-        if (!res.ok) console.warn("Failed to record accounting ledger during approval");
-      } catch (e) {
-        console.warn("Accounting API unreachable during approval", e);
-      }
-    }
+    // Note: Accounting ledger entries are created upon actual disbursement by Teller (Panel7Disbursement)
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

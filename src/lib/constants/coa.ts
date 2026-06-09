@@ -15,6 +15,8 @@ export const COA = {
   SAVINGS_MUDHARABAH: "310001",       // Simpanan Mudharabah Anggota (Dana Syirkah)
   SAVINGS_HAJI: "302020",             // Simpanan Haji Khusus (Dana Syirkah Temporer)
   SAVINGS_UMRAH: "302030",            // Simpanan Umrah (Dana Syirkah Temporer)
+  ZISWAF: "220002",                   // Titipan ZISWAF
+  DANA_KEBAJIKAN: "220003",           // Titipan Dana Sosial / Non-Halal / Dana Kebajikan
   
   // EQUITY (4xx)
   MEMBER_CAPITAL_PRINCIPAL: "400001", // Simpanan Pokok
