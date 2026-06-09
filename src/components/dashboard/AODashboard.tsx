@@ -96,7 +96,7 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
             name: c.member_name || c.users?.full_name,
             amount: c.amount,
             purpose: meta?.purpose || 'Pembiayaan Umum',
-            status: meta?.ai_status === 'completed' ? 'Menunggu Survei' : 'Menunggu Analisis',
+            status: 'Menunggu Survei',
             ai_contract_type: c.type,
             collateral_metadata: meta,
             created_at: c.created_at

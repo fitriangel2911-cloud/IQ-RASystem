@@ -121,7 +121,6 @@ export default function AOPage() {
             <div style={{ fontSize: '11px', color: 'var(--sidebar-heading)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', paddingLeft: '14px', marginBottom: '4px', marginTop: '10px' }}>MENU UTAMA</div>
             
             <AOMenuButton active={activeMenu === 'overview'} onClick={() => setActiveMenu('overview')} icon="📊" label="Pipeline AO" />
-            <AOMenuButton active={activeMenu === 'prospects'} onClick={() => setActiveMenu('prospects')} icon="🤖" label="Analisis AI" />
             <AOMenuButton active={activeMenu === 'survey'} onClick={() => setActiveMenu('survey')} icon="🗺️" label="Survei Lapangan" />
             <AOMenuButton active={activeMenu === 'portfolio'} onClick={() => setActiveMenu('portfolio')} icon="📂" label="Portofolio Anggota" />
             <AOMenuButton active={activeMenu === 'history'} onClick={() => setActiveMenu('history')} icon="📜" label="Riwayat Proses" />
@@ -150,7 +149,6 @@ export default function AOPage() {
             <div>
               <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '6px', textShadow: '0 2px 10px var(--shadow-color)' }}>
                 {activeMenu === 'overview' && '📊 Dashboard Operasional AO'}
-                {activeMenu === 'prospects' && '🤖 Analisis Akad Berbasis AI'}
                 {activeMenu === 'survey' && '🗺️ Modul Verifikasi Lapangan'}
                 {activeMenu === 'portfolio' && '📂 Monitoring Portofolio Aktif'}
                 {activeMenu === 'history' && '📜 Riwayat Proses Pembiayaan'}
