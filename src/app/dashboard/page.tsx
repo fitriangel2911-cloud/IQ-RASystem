@@ -843,6 +843,7 @@ export default function DashboardPage() {
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'overview'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('overview'); }} icon="⚲" label="Pipeline Nasabah" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'prospects'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('prospects'); }} icon="⚛" label="Analisis Akad & AI" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'survey'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('survey'); }} icon="⌖" label="Verifikasi Lapangan" />
+                  <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'portfolio'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('portfolio'); }} icon="📂" label="Portofolio Anggota" />
                   <DashboardMenuButton active={activeTab === 'ao' && activeSubMenu === 'history'} onClick={() => { setActiveTab('ao'); setActiveSubMenu('history'); }} icon="📜" label="Riwayat Proses AO" />
                 </>
               )}
