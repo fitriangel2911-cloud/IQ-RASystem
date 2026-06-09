@@ -66,46 +66,93 @@ export default function Panel6Shift({ shiftStatus, tellerId, tellerName, cashOnH
     setLoading(true); setMessage(null);
     try {
       const supabase = createClient();
+      const openedAt = new Date().toISOString();
       const { data, error } = await supabase.from('teller_shifts').insert({
         teller_id: tellerId,
         teller_name: tellerName,
         cash_in: cashInAmount,
-        opened_at: new Date().toISOString(),
+        opened_at: openedAt,
         status: 'aktif',
       }).select().single();
       if (error) throw error;
+
+      // INSERT JOURNAL FOR MODAL AWAL KAS (KAS TELLER DEBIT, KAS UTAMA/BANK CREDIT)
+      const trxId = 'TRX-SHF-' + Date.now();
+      await supabase.from('journal_entries').insert([
+        {
+          transaction_id: trxId,
+          account_code: '110102', // Kas Teller (Masuk)
+          debit: cashInAmount,
+          credit: 0,
+          description: `Modal Awal Buka Shift Kasir - ${tellerName}`,
+          created_at: openedAt
+        },
+        {
+          transaction_id: trxId,
+          account_code: '110201', // Giro Bank / Kas Utama (Keluar)
+          debit: 0,
+          credit: cashInAmount,
+          description: `Mutasi Kas Utama ke Kas Teller - Buka Shift ${tellerName}`,
+          created_at: openedAt
+        }
+      ]);
+
       onShiftChange({ id: data.id, status: 'aktif', start_time: data.opened_at, cash_in: cashInAmount, teller_name: tellerName, teller_id: tellerId });
       setMessage({ type: 'success', text: `Shift dibuka! Modal awal: ${fmt(cashInAmount)}` });
       setCashInAmount(0); setDisplayCashIn('');
     } catch (err: any) {
       onShiftChange({ status: 'aktif', start_time: new Date().toISOString(), cash_in: cashInAmount, teller_name: tellerName, teller_id: tellerId });
-      setMessage({ type: 'success', text: `Shift dibuka (simulasi)! Modal awal: ${fmt(cashInAmount)}` });
+      setMessage({ type: 'error', text: `Shift gagal dibuka penuh: ${err.message}` });
       setCashInAmount(0); setDisplayCashIn('');
     } finally { setLoading(false); }
   };
 
   const handleCloseShift = async () => {
-    if (cashPhysical <= 0) { setMessage({ type: 'error', text: 'Masukkan hasil hitung fisik kas terlebih dahulu.' }); return; }
+    if (cashPhysical < 0) { setMessage({ type: 'error', text: 'Masukkan hasil hitung fisik kas terlebih dahulu.' }); return; }
     if (Math.abs(difference) > 0 && !diffNote) { setMessage({ type: 'error', text: 'Terdapat selisih kas! Wajib isi keterangan selisih.' }); return; }
     setLoading(true); setMessage(null);
     try {
       const supabase = createClient();
+      const closedAt = new Date().toISOString();
       if (shiftStatus.id) {
         await supabase.from('teller_shifts').update({
-          closed_at: new Date().toISOString(),
+          closed_at: closedAt,
           cash_system_end: cashOnHand,
           cash_physical_end: cashPhysical,
           difference,
           difference_note: diffNote || null,
           status: 'tutup',
         }).eq('id', shiftStatus.id);
+
+        // KEMBALIKAN FISIK KAS TELLER KE KAS UTAMA
+        if (cashPhysical > 0) {
+          const trxId = 'TRX-SHFC-' + Date.now();
+          await supabase.from('journal_entries').insert([
+            {
+              transaction_id: trxId,
+              account_code: '110201', // Kas Utama (Masuk/Dikembalikan)
+              debit: cashPhysical,
+              credit: 0,
+              description: `Pengembalian Fisik Kas Teller ke Kas Utama - Tutup Shift ${tellerName}`,
+              created_at: closedAt
+            },
+            {
+              transaction_id: trxId,
+              account_code: '110102', // Kas Teller (Keluar/Dikosongkan)
+              debit: 0,
+              credit: cashPhysical,
+              description: `Setoran Tutup Shift Kasir - ${tellerName}`,
+              created_at: closedAt
+            }
+          ]);
+        }
       }
       onShiftChange({ status: 'tutup', teller_name: tellerName, teller_id: tellerId });
       setMessage({ type: 'success', text: `Shift ditutup. Selisih: ${fmt(Math.abs(difference))} ${difference >= 0 ? '(Lebih)' : '(Kurang)'}` });
       setCashPhysical(0); setDisplayPhysical(''); setDiffNote('');
     } catch (err: any) {
       onShiftChange({ status: 'tutup', teller_name: tellerName, teller_id: tellerId });
-      setMessage({ type: 'success', text: `Shift ditutup (simulasi).` });
+      setMessage({ type: 'error', text: `Shift gagal ditutup penuh: ${err.message}` });
     } finally { setLoading(false); }
   };
 

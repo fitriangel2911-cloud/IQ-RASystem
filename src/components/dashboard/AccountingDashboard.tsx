@@ -231,7 +231,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       const { data: shifts } = await supabase
         .from('teller_shifts')
         .select('*')
-        .gte('opened_at', today)
+        .or(`status.eq.aktif,opened_at.gte.${today}`)
         .order('opened_at', { ascending: false });
       if (shifts) setTellerShifts(shifts);
     } catch(e) {}
