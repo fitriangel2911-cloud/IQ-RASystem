@@ -251,7 +251,7 @@ export default function MemberPage() {
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <button
-                onClick={() => window.open('https://wa.me/6281234567890?text=Halo%20Customer%20Service%20IQ-RA,%20saya%20ingin%20konsultasi%20gratis', '_blank')}
+                onClick={() => window.open('https://wa.me/6285713473576?text=Halo%20Customer%20Service%20IQ-RA,%20saya%20ingin%20konsultasi%20gratis', '_blank')}
                 style={{
                   background: 'var(--gold-intense)',
                   color: '#02130e',
