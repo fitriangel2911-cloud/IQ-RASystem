@@ -1613,11 +1613,12 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>BEBAN PER BULAN</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>AKUMULASI PENYUSUTAN</th>
                   <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'right' }}>NILAI BUKU (SISA)</th>
+                  <th style={{ padding: '20px', color: 'var(--text-primary)', fontWeight: 800, textAlign: 'center' }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
                 {fixedAssets.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada aset tetap terdaftar. Tambahkan aset untuk memantau depresiasi.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Belum ada aset tetap terdaftar. Tambahkan aset untuk memantau depresiasi.</td></tr>
                 ) : (
                   fixedAssets.map(asset => {
                     const depreciable = asset.purchase_price - asset.salvage_value;
@@ -1634,6 +1635,22 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                         <td style={{ padding: '20px', color: '#f3c653', fontWeight: 800 }}>{formatter.format(monthly)}</td>
                         <td style={{ padding: '20px', color: '#ef4444', fontWeight: 800 }}>{formatter.format(asset.accumulated_depreciation)}</td>
                         <td style={{ padding: '20px', color: '#4ade80', fontWeight: 900, textAlign: 'right', fontSize: '16px' }}>{formatter.format(sisaBuku)}</td>
+                        <td style={{ padding: '20px', textAlign: 'center' }}>
+                          <button
+                            onClick={() => {
+                              if(window.confirm('Apakah Anda yakin ingin menghapus aset ini dari daftar pelacakan depresiasi? (Catatan: Ini tidak akan menghapus jurnal pembukuannya secara otomatis)')) {
+                                const newAssets = fixedAssets.filter(a => a.id !== asset.id);
+                                setFixedAssets(newAssets);
+                                localStorage.setItem('iqra_fixed_assets', JSON.stringify(newAssets));
+                              }
+                            }}
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '12px' }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                          >
+                            Hapus
+                          </button>
+                        </td>
                       </tr>
                     );
                   })
