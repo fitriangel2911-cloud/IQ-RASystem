@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { COA } from '@/lib/constants/coa';
+import { sendEmail } from '@/lib/email';
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -248,6 +249,34 @@ export async function POST(request: Request) {
       type: 'success',
       message: `Alhamdulillah, setoran ${typeLabels[paymentType] || 'Simpanan'} Anda sebesar Rp ${totalPaid.toLocaleString('id-ID')} telah sukses dikonfirmasi oleh Admin.`
     });
+
+    // Send email notification using Resend
+    try {
+      const { data: userData } = await supabaseAdmin
+        .from('users')
+        .select('email, full_name')
+        .eq('id', memberId)
+        .single();
+
+      if (userData?.email) {
+        await sendEmail({
+          to: userData.email,
+          subject: `[IQ-RA Koperasi] Bukti Setoran ${typeLabels[paymentType] || 'Simpanan'} Berhasil Diverifikasi`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #0b5345; text-align: center;">IQ-RA Cooperative</h2>
+              <p>Assalamu'alaikum wr. wb. <b>${userData.full_name || 'Anggota'}</b>,</p>
+              <p>Kami menginformasikan bahwa setoran Anda untuk <b>${typeLabels[paymentType] || 'Simpanan'}</b> sebesar <b>Rp ${totalPaid.toLocaleString('id-ID')}</b> telah berhasil diverifikasi oleh Customer Service.</p>
+              <p>Saldo Anda kini telah bertambah dan ter-update secara otomatis di dalam sistem IQ-RA.</p>
+              <br/>
+              <p>Jazakumullah Khairan Katsiran,<br/><b>Pengurus IQ-RA Cooperative</b></p>
+            </div>
+          `
+        });
+      }
+    } catch (emailErr) {
+      console.error('Gagal mengirimkan email notifikasi:', emailErr);
+    }
 
     return NextResponse.json({ success: true, message: 'Verifikasi berhasil diproses!' });
 

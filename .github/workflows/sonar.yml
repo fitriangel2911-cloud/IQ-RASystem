@@ -1,0 +1,23 @@
+name: SonarQube Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Menonaktifkan shallow clone agar SonarCloud dapat mendeteksi riwayat git author dengan baik
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Otomatis disediakan oleh GitHub Actions
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Didapatkan dari akun SonarCloud Anda dan dimasukkan ke GitHub Secrets
