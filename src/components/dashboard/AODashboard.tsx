@@ -880,15 +880,15 @@ export default function AODashboard({ activeMenu, setActiveMenu, profile }: AODa
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div style={{ display: 'grid', gap: '8px' }}>
-                      <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Status Kepemilikan Tempat Usaha</label>
+                      <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Status Kepemilikan Domisili / Tempat Usaha</label>
                       <select 
                         value={surveyData.businessStatus || 'Milik Sendiri'}
                         onChange={(e) => setSurveyData({...surveyData, businessStatus: e.target.value})}
                         style={{ padding: '12px 16px', borderRadius: '12px', background: 'var(--bg-page)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)', outline: 'none', fontFamily: 'inherit', fontWeight: 700 }}
                       >
                         <option value="Milik Sendiri">Milik Sendiri / Keluarga</option>
-                        <option value="Sewa / Kontrak">Sewa / Kontrak</option>
-                        <option value="Fasilitas Publik / Kaki Lima">Fasilitas Publik / Kaki Lima</option>
+                        <option value="Sewa / Kontrak">Sewa / Kontrak / Kos</option>
+                        <option value="Fasilitas Publik / Kaki Lima / Dinas">Fasilitas Publik / Kaki Lima / Dinas</option>
                       </select>
                     </div>
 
@@ -1008,8 +1008,8 @@ Aset & Jaminan (Dokumen): ${collaterals}
 
 HASIL SURVEI LAPANGAN (VERIFIKASI FISIK & DOKUMEN):
 - Estimasi Pendapatan / Omset Bulanan: Rp ${income.toLocaleString('id-ID')}
-- Alamat Lokasi Usaha: ${surveyData.address}
-- Status Kepemilikan Tempat Usaha: ${surveyData.businessStatus || 'Milik Sendiri'}
+- Alamat Kunjungan Survei: ${surveyData.address}
+- Status Kepemilikan Domisili / Tempat Usaha: ${surveyData.businessStatus || 'Milik Sendiri'}
 - Kondisi Agunan / Jaminan (Bandingkan dgn Dokumen): ${surveyData.collateralCondition || 'Sesuai Fisik & Dokumen'}
 - Reputasi / Karakter di Lingkungan: ${surveyData.environmentReputation || 'Baik & Dikenal Warga'}
 
