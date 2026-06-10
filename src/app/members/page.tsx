@@ -250,6 +250,38 @@ export default function MemberPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '15px' }}>
+              <button
+                onClick={() => setModalConfig({
+                  isOpen: true,
+                  type: 'info',
+                  title: 'Layanan Customer Service',
+                  message: 'Silakan hubungi tim Customer Service kami di:\n📞 +62 812-3456-7890\n(Senin - Jumat, 08:00 - 17:00 WIB)',
+                  confirmText: 'Tutup',
+                  onConfirm: () => setModalConfig(null)
+                })}
+                style={{
+                  background: 'var(--gold-intense)',
+                  color: '#02130e',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '42px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px var(--shadow-color)',
+                  transition: 'transform 0.2s ease',
+                  position: 'relative',
+                  zIndex: 1000
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                title="Hubungi Customer Service"
+              >
+                📞
+              </button>
               <NotificationBell />
               <ThemeToggle />
             </div>

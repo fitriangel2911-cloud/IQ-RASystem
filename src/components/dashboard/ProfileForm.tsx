@@ -129,7 +129,7 @@ export default function ProfileForm({ profile, onUpdateSuccess }: ProfileFormPro
         ...formData,
         monthly_income: Number(formData.monthly_income),
         user_id: profile.user_id,
-        status: 'active'
+        status: 'pending' // CS Verification required
       };
       
       // Hapus fullName karena itu milik tabel users, bukan members

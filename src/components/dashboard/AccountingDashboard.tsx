@@ -108,16 +108,24 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     setFixedAssets(updatedAssets);
     localStorage.setItem('iqra_fixed_assets', JSON.stringify(updatedAssets));
 
-    // Auto Post Journal
-    const supabase = createClient();
     const refNo = 'DEP-' + Math.floor(100000 + Math.random() * 900000);
     const today = new Date().toISOString().split('T')[0];
     
-    // Debit Beban Penyusutan (710003), Kredit Akumulasi Penyusutan (160002)
-    await supabase.from('journal_entries').insert([
-      { reference_no: refNo, date: today, account_code: '710003', debit: totalDepreciation, credit: 0, description: 'Beban Penyusutan Aset Massal Akhir Bulan' },
-      { reference_no: refNo, date: today, account_code: '160002', debit: 0, credit: totalDepreciation, description: 'Akumulasi Penyusutan Aset Tetap' }
-    ]);
+    const payload = {
+      date: today,
+      reference_no: refNo,
+      description: 'Beban Penyusutan Aset Massal Akhir Bulan',
+      entries: [
+        { account_code: '710003', debit: totalDepreciation, credit: 0 },
+        { account_code: '160002', debit: 0, credit: totalDepreciation }
+      ]
+    };
+
+    await fetch('/api/accounting/record-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
     await fetchJournals();
     setLoadingJournals(false);
@@ -333,6 +341,19 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     fetchJournals();
     // Generate a starting random Ref No
     setJRef('ADJ-' + Math.floor(100000 + Math.random() * 900000));
+
+    // Supabase Realtime Listener
+    const supabase = createClient();
+    const channel = supabase.channel('realtime-accounting')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_entries' }, () => {
+        fetchJournals();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        fetchJournals();
+      })
+      .subscribe();
+      
+    return () => { supabase.removeChannel(channel); }
   }, []);
 
   // Add line for dynamic journal posting
@@ -1440,24 +1461,21 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                       setConfirmModal(null);
                       setLoading(true);
                       try {
-                        const debitPayload = {
+                        const payload = {
                           date: new Date().toISOString().split('T')[0],
                           reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
                           description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Umum`,
-                          debit: ckpnAmount,
-                          credit: 0,
-                          account_code: '710002' // Beban CKPN
+                          entries: [
+                            { account_code: '710002', debit: ckpnAmount, credit: 0 },
+                            { account_code: '190002', debit: 0, credit: ckpnAmount }
+                          ]
                         };
 
-                        const creditPayload = {
-                          ...debitPayload,
-                          debit: 0,
-                          credit: ckpnAmount,
-                          account_code: '190002' // CKPN Piutang (-)
-                        };
-
-                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debitPayload) });
-                        await fetch('/api/accounting/record-v2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditPayload) });
+                        await fetch('/api/accounting/record-v2', { 
+                          method: 'POST', 
+                          headers: { 'Content-Type': 'application/json' }, 
+                          body: JSON.stringify(payload) 
+                        });
                         
                         await fetchJournals();
                         setMessage({ type: 'success', text: `Berhasil memposting jurnal CKPN Umum sebesar ${formatter.format(ckpnAmount)}.` });
