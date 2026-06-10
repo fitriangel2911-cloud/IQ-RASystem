@@ -251,14 +251,7 @@ export default function MemberPage() {
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <button
-                onClick={() => setModalConfig({
-                  isOpen: true,
-                  type: 'info',
-                  title: 'Layanan Customer Service',
-                  message: 'Silakan hubungi tim Customer Service kami di:\n📞 +62 812-3456-7890\n(Senin - Jumat, 08:00 - 17:00 WIB)',
-                  confirmText: 'Tutup',
-                  onConfirm: () => setModalConfig(null)
-                })}
+                onClick={() => window.open('https://wa.me/6281234567890?text=Halo%20Customer%20Service%20IQ-RA,%20saya%20ingin%20konsultasi%20gratis', '_blank')}
                 style={{
                   background: 'var(--gold-intense)',
                   color: '#02130e',

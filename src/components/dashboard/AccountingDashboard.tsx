@@ -67,17 +67,43 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     }
   }, []);
 
-  const handleAddAsset = (e: React.FormEvent) => {
+  const handleAddAsset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newAsset.purchase_price <= 0 || newAsset.useful_life_months <= 0) {
       setMessage({ type: 'error', text: 'Data harga atau umur ekonomis tidak valid' });
       return;
     }
+
+    try {
+      setLoadingJournals(true);
+      const refNo = 'AST-' + Math.floor(100000 + Math.random() * 900000);
+      const payload = {
+        date: newAsset.purchase_date || new Date().toISOString().split('T')[0],
+        reference_no: refNo,
+        description: `Pembelian Aset Tetap: ${newAsset.name}`,
+        entries: [
+          { account_code: '160001', debit: newAsset.purchase_price, credit: 0 },
+          { account_code: '110101', debit: 0, credit: newAsset.purchase_price }
+        ]
+      };
+      await fetch('/api/accounting/record-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await fetchJournals();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Gagal mencatat jurnal pembelian: ' + err.message });
+      setLoadingJournals(false);
+      return;
+    }
+    setLoadingJournals(false);
+
     const updated = [...fixedAssets, { ...newAsset, id: Date.now().toString(), accumulated_depreciation: 0 }];
     setFixedAssets(updated);
     localStorage.setItem('iqra_fixed_assets', JSON.stringify(updated));
     setShowAssetModal(false);
-    setMessage({ type: 'success', text: 'Aset Tetap Berhasil Didaftarkan' });
+    setMessage({ type: 'success', text: 'Aset Tetap Didaftarkan & Dijurnal (Debit 160001, Kredit Kas)' });
   };
 
   const handleRunMassDepreciation = async () => {
