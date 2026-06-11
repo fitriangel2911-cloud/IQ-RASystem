@@ -209,7 +209,7 @@ export default function Panel7Disbursement({ selectedMember, tellerName, onSucce
         let wadiahAcc = selectedMember?.savings_accounts?.find((a: any) => a.account_type === 'wadiah');
         
         if (!wadiahAcc) {
-          const randNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+          const randNum = Math.floor(1000000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 9000000000).toString();
           const { data: newAcc, error: createErr } = await supabase
             .from('savings_accounts')
             .insert({

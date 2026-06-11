@@ -76,7 +76,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
 
     try {
       setLoadingJournals(true);
-      const refNo = 'AST-' + Math.floor(100000 + Math.random() * 900000);
+      const refNo = 'AST-' + Math.floor(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900000);
       const payload = {
         date: newAsset.purchase_date || new Date().toISOString().split('T')[0],
         reference_no: refNo,
@@ -134,7 +134,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
     setFixedAssets(updatedAssets);
     localStorage.setItem('iqra_fixed_assets', JSON.stringify(updatedAssets));
 
-    const refNo = 'DEP-' + Math.floor(100000 + Math.random() * 900000);
+    const refNo = 'DEP-' + Math.floor(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900000);
     const today = new Date().toISOString().split('T')[0];
     
     const payload = {
@@ -366,7 +366,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
   useEffect(() => {
     fetchJournals();
     // Generate a starting random Ref No
-    setJRef('ADJ-' + Math.floor(100000 + Math.random() * 900000));
+    setJRef('ADJ-' + Math.floor(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900000));
 
     // Supabase Realtime Listener
     const supabase = createClient();
@@ -459,7 +459,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
       
       // Reset form state
       setJDesc('');
-      setJRef('ADJ-' + Math.floor(100000 + Math.random() * 900000));
+      setJRef('ADJ-' + Math.floor(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900000));
       setJLines([
         { accountCode: '110102', type: 'debit', amount: 0 },
         { accountCode: '230001', type: 'credit', amount: 0 }
@@ -1484,7 +1484,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                       try {
                         const payload = {
                           date: new Date().toISOString().split('T')[0],
-                          reference_no: `CKPN-${Math.floor(10000 + Math.random() * 90000)}`,
+                          reference_no: `CKPN-${Math.floor(10000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 90000)}`,
                           description: `Pencadangan Kerugian Penurunan Nilai (CKPN) Umum`,
                           entries: [
                             { account_code: '710002', debit: ckpnAmount, credit: 0 },
@@ -1839,7 +1839,7 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                         // 3. Posting Jurnal Agregat ke Buku Besar
                         const debitPayload = {
                           date: new Date().toISOString().split('T')[0],
-                          reference_no: `EOM-${Math.floor(100000 + Math.random() * 900000)}`,
+                          reference_no: `EOM-${Math.floor(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900000)}`,
                           description: `Distribusi Bagi Hasil Bulan ${monthName} (Nisbah Anggota ${eomNisbah}%)`,
                           debit: profitShareAmount,
                           credit: 0,

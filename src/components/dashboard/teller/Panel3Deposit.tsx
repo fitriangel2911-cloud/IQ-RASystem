@@ -206,7 +206,7 @@ export default function Panel3Deposit({ selectedMember, tellerName, onSuccess, o
         else if (selectedCategory === 'haji') prefix = '31';
         else if (selectedCategory === 'umrah') prefix = '32';
         
-        const randNum = prefix + Math.floor(10000000 + Math.random() * 90000000).toString();
+        const randNum = prefix + Math.floor(10000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 90000000).toString();
         const { data: newAcc, error: createErr } = await supabase
           .from('savings_accounts')
           .insert({

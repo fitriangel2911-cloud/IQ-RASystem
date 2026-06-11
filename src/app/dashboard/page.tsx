@@ -621,15 +621,15 @@ export default function DashboardPage() {
           .from('members')
           .insert({
             user_id: targetCandidate.id,
-            nik: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000), // Valid length NIK
-            kk_number: '320' + Math.floor(1000000000000 + Math.random() * 9000000000000),
+            nik: '320' + Math.floor(1000000000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 9000000000000), // Valid length NIK
+            kk_number: '320' + Math.floor(1000000000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 9000000000000),
             mother_name: 'Siti Aminah',
             religion: 'Islam',
-            ktp_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
-            domicile_address: 'Jl. Kramat Pela Raya No. ' + Math.floor(Math.random() * 120) + ', Jakarta Selatan',
+            ktp_address: 'Jl. Kramat Pela Raya No. ' + Math.floor((crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 120) + ', Jakarta Selatan',
+            domicile_address: 'Jl. Kramat Pela Raya No. ' + Math.floor((crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 120) + ', Jakarta Selatan',
             occupation: 'Wirausaha Mikro Kuliner',
             monthly_income: 9200000,
-            phone_number: '0812' + Math.floor(10000000 + Math.random() * 90000000),
+            phone_number: '0812' + Math.floor(10000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 90000000),
             status: 'active'
           });
           

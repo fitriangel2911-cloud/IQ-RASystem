@@ -283,7 +283,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
       const createdAccounts: any[] = [];
 
       for (const acc of accountsToCreate) {
-        const randomSuffix = Math.floor(1000000 + Math.random() * 9000000);
+        const randomSuffix = Math.floor(1000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 9000000);
         const accNumber = `${acc.prefix}${randomSuffix}`;
 
         const { data: newAccount, error: accError } = await supabase
@@ -429,7 +429,7 @@ export default function CSDashboard({ activeMenu, profile }: CSDashboardProps) {
 
       // 2. Buat nomor rekening unik
       const prefix = specialSavingsType === 'haji' ? '31' : '32';
-      const randomSuffix = Math.floor(1000000 + Math.random() * 9000000);
+      const randomSuffix = Math.floor(1000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 9000000);
       const accNumber = `${prefix}${randomSuffix}`;
 
       // 3. Masukkan ke savings_accounts

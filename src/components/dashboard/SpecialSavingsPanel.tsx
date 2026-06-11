@@ -23,7 +23,7 @@ export default function SpecialSavingsPanel({ profile, accounts, onPaymentSucces
   const [receiptData, setReceiptData] = useState<any>(null);
 
   useEffect(() => {
-    const code = Math.floor(100 + Math.random() * 900);
+    const code = Math.floor(100 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900);
     setUniqueCode(code);
   }, [savingsType]);
 

@@ -43,7 +43,7 @@ export default function RepaymentPanel({ profile, accounts, contracts, onPayment
         .order('installment_number', { ascending: true });
       
       setSchedules(data || []);
-      setUniqueCode(Math.floor(100 + Math.random() * 900));
+      setUniqueCode(Math.floor(100 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 900));
     };
     fetchSchedules();
   }, [selectedContractId]);

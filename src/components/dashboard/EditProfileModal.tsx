@@ -37,7 +37,7 @@ export default function EditProfileModal({ isOpen, onClose, profile, onUpdate }:
 
     if (selectedFile) {
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${profile?.id}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+      const fileName = `${profile?.id}-${(crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296).toString(36).substring(2, 10)}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('avatars')

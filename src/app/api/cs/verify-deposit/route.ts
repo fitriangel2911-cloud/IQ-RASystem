@@ -146,7 +146,7 @@ export async function POST(request: Request) {
           : targetAccountType === 'haji' ? '31'
           : targetAccountType === 'umrah' ? '32'
           : '22';
-        const randomSuffix = Math.floor(10000000 + Math.random() * 90000000).toString();
+        const randomSuffix = Math.floor(10000000 + (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296) * 90000000).toString();
         const accountNum = `${prefix}${randomSuffix}`;
 
         const { data: newAcc, error: createAccErr } = await supabase
