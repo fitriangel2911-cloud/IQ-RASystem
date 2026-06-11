@@ -22,8 +22,8 @@ export class AIService {
     }
 
     const candidates = [
-      { url: `https://generativelanguage.googleapis.com/v1/models/gemini-embedding-001:embedContent?key=${apiKey}`, model: "models/gemini-embedding-001" },
-      { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`, model: "models/gemini-embedding-001" }
+      { url: `https://generativelanguage.googleapis.com/v1/models/gemini-embedding-001:embedContent`, model: "models/gemini-embedding-001" },
+      { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent`, model: "models/gemini-embedding-001" }
     ];
 
     let lastError = "";
@@ -33,7 +33,10 @@ export class AIService {
         try {
           const response = await fetch(candidate.url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey 
+            },
             body: JSON.stringify({
               model: candidate.model,
               content: { parts: [{ text }] }
@@ -100,10 +103,13 @@ export class AIService {
     for (const model of this.GEMINI_MODELS) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey
+            },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
               generationConfig
