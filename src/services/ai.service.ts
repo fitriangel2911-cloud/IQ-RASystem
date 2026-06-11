@@ -164,19 +164,19 @@ export class AIService {
     const safetySettings = [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
       },
       {
         category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
       },
       {
         category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
       },
       {
         category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
       },
     ];
 
@@ -237,10 +237,11 @@ export class AIService {
           if (error) console.warn("match_knowledge RPC failed, falling back to basic text search.", error);
           
           // Fallback to basic text search if RPC is missing/fails
+          const safePurpose = prospectData.purpose.replace(/[,"]/g, '').trim() || 'umum';
           const { data: textData } = await supabase
             .from('sharia_knowledge')
             .select('*')
-            .or(`content.ilike.%${prospectData.purpose}%,source_title.ilike.%${prospectData.purpose}%`)
+            .or(`content.ilike.%${safePurpose}%,source_title.ilike.%${safePurpose}%`)
             .limit(3);
           if (textData) {
             contextDocs = textData;
