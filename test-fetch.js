@@ -5,11 +5,9 @@ fetch("http://localhost:3000/api/ai/test-langchain")
     }
     return res.json();
   })
-  .then(data => {
+  .then(() => {
     console.log("=========================================");
     console.log("API TEST SUCCESSFUL!");
-    console.log("=========================================");
-    console.log(JSON.stringify(data, null, 2));
     console.log("=========================================");
     process.exit(0);
   })
