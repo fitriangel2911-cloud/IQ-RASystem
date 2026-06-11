@@ -251,7 +251,7 @@ export default function MemberPage() {
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <button
-                onClick={() => window.open('https://wa.me/6285713473576?text=Halo%20Customer%20Service%20IQ-RA,%20saya%20ingin%20konsultasi%20gratis', '_blank')}
+                onClick={() => window.open('https://wa.me/6285713473576?text=Halo%20Customer%20Service%20IQ-RA,%20saya%20ingin%20konsultasi%20gratis', '_blank', 'noopener,noreferrer')}
                 style={{
                   background: 'var(--gold-intense)',
                   color: '#02130e',
@@ -303,6 +303,8 @@ export default function MemberPage() {
                 }}
                 onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
                 onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                onFocus={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onBlur={e => e.currentTarget.style.transform = 'scale(1)'}
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />

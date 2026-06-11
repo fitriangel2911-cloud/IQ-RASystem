@@ -116,7 +116,7 @@ export default function Modal({ isOpen, type, title, message, confirmText = 'OK'
           <button 
             onClick={onConfirm}
             style={{
-              flex: isAlert ? 1 : 1,
+              flex: 1,
               padding: '14px',
               borderRadius: '14px',
               border: 'none',

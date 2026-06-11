@@ -540,20 +540,15 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
             <p style={{ margin: '5px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>NO. REF: {printingVoucher.reference_no}</p>
           </div>
 
-          <table style={{ width: '100%', marginBottom: '40px', fontSize: '14px' }}>
-            <tbody>
-              <tr>
-                <td style={{ width: '150px', padding: '5px 0', fontWeight: 'bold' }}>Tanggal Transaksi</td>
-                <td style={{ width: '10px' }}>:</td>
-                <td>{printingVoucher.date}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '5px 0', fontWeight: 'bold' }}>Keterangan / Uraian</td>
-                <td>:</td>
-                <td>{printingVoucher.description}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 10px 1fr', gap: '10px 0', marginBottom: '40px', fontSize: '14px' }}>
+            <div style={{ padding: '5px 0', fontWeight: 'bold' }}>Tanggal Transaksi</div>
+            <div style={{ padding: '5px 0' }}>:</div>
+            <div style={{ padding: '5px 0' }}>{printingVoucher.date}</div>
+
+            <div style={{ padding: '5px 0', fontWeight: 'bold' }}>Keterangan / Uraian</div>
+            <div style={{ padding: '5px 0' }}>:</div>
+            <div style={{ padding: '5px 0' }}>{printingVoucher.description}</div>
+          </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '50px' }}>
             <thead>
@@ -1647,6 +1642,8 @@ export default function AccountingDashboard({ activeMenu, profile }: AccountingD
                             style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '12px' }}
                             onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
                             onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                            onFocus={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
+                            onBlur={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
                           >
                             Hapus
                           </button>

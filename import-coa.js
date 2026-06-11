@@ -1,8 +1,34 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
+const path = require('path');
 
-const supabaseUrl = 'https://lxtgmjsxpfnivdhfnnot.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dGdtanN4cGZuaXZkaGZubm90Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODU2Njk1MCwiZXhwIjoyMDk0MTQyOTUwfQ.-2Bt8fio2hUf0QPyWq9OjZ7QjUmN7y-iaWXuBjZ__g8';
+// Memuat .env.local secara dinamis untuk mengambil Supabase Key
+try {
+  const envPath = path.resolve(__dirname, '.env.local');
+  if (fs.existsSync(envPath)) {
+    const envConfig = fs.readFileSync(envPath, 'utf-8');
+    envConfig.split(/\r?\n/).forEach(line => {
+      // Abaikan baris komentar atau baris kosong
+      if (line.trim().startsWith('#') || !line.includes('=')) return;
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim();
+        process.env[key] = value;
+      }
+    });
+  }
+} catch (e) {
+  console.warn('Gagal memuat file .env.local:', e.message);
+}
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lxtgmjsxpfnivdhfnnot.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+if (!supabaseKey) {
+  console.error('ERROR: SUPABASE_SERVICE_ROLE_KEY tidak ditemukan di environment atau .env.local');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
