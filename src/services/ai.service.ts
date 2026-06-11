@@ -729,11 +729,11 @@ Berikan jawaban yang utuh, mendalam, dan selesai dengan sempurna (tidak terputus
       let finalResponseText = responseText;
       let filteredSources: any[] = [];
 
-      const relevantMatch = finalResponseText.match(/\[RELEVANT_SOURCES:\s*(.*?)\]/i);
+      const relevantMatch = finalResponseText.match(/\[RELEVANT_SOURCES:\s*([^\]]*)\]/i);
       if (relevantMatch) {
         const sourcesStr = relevantMatch[1].trim();
         // Remove the tag from the final visible text
-        finalResponseText = finalResponseText.replace(/\[RELEVANT_SOURCES:\s*(.*?)\]/gi, '').trim();
+        finalResponseText = finalResponseText.replace(/\[RELEVANT_SOURCES:\s*([^\]]*)\]/gi, '').trim();
 
         if (sourcesStr.toUpperCase() !== 'NONE') {
           // Parse titles cited in [RELEVANT_SOURCES: Title A, Title B]
